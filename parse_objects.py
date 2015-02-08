@@ -46,12 +46,13 @@ def parse_object(rpsl_object):
         result['members'] = set(filter(None, result['members']))
         return result
 
-rpsl_object = []
-for line in open('irrtest.data').readlines():
-    if line.strip():
-        rpsl_object.append(line)
-    else:
+if __name__ == '__main__':
+    rpsl_object = []
+    for line in open('irrtest.data').readlines():
+        if line.strip():
+            rpsl_object.append(line)
+        else:
+            print parse_object(rpsl_object)
+            rpsl_object = []
+    if rpsl_object:
         print parse_object(rpsl_object)
-        rpsl_object = []
-if rpsl_object:
-    print parse_object(rpsl_object)
