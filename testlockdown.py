@@ -5,10 +5,10 @@ import textfsm
 from StringIO import StringIO
 from radix import Radix
 
-config_file = "config.yml"
+#config_file = "config.yml"
 
-config = yaml.load(open(config_file).read())
-print config
+#config = yaml.load(open(config_file).read())
+#print config
 
 """ BGP JSON messages:
 

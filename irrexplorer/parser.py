@@ -16,12 +16,7 @@ def parse_object(rpsl_object):
     """
 
     def fetch_value(line):
-        try:
-            return line.split(':', 1)[1].split('#')[0].strip()
-        except IndexError:
-            print line
-            import sys
-            sys.exit()
+        return line.split(':', 1)[1].split('#')[0].strip()
 
     object_type = rpsl_object[0].split(':')[0]
     object_name = fetch_value(rpsl_object.pop(0))
@@ -51,14 +46,29 @@ def parse_object(rpsl_object):
         result['members'] = set(filter(None, result['members']))
         return result
 
-if __name__ == '__main__':
+
+def parse_dump(dumpfile):
+    """
+    Take a file and find objects of interest, Can be called as generator
+
+    Args:
+        dumpfile (file)
+
+    Returns:
+        dict or None
+    """
     rpsl_object = []
-    for line in open('irrtest.data'):
+    for line in dumpfile:
         if line.startswith(('%', '#')):
             continue
         if line.strip():
             rpsl_object.append(line)
         else:
             if rpsl_object:
-                print parse_object(rpsl_object)
+                yield parse_object(rpsl_object)
             rpsl_object = []
+
+
+if __name__ == '__main__':
+    dump_file = open('irrtest.data')
+    print list(parse_dump(dump_file))
