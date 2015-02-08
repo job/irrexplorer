@@ -14,4 +14,3 @@ script:
 
 after_success:
   - coveralls
-  - rm ~/.netrc
