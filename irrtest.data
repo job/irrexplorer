@@ -18,6 +18,16 @@ mnt-by:             MAINT-AS5736-ALTDB
 changed:            pete@altadena.net 20010713
 source:             ALTDB
 
+person:         Job Snijders
+address:        Theodorus Majofskistraat 100
+address:        1065 SZ Amsterdam
+address:        The Netherlands
+remarks:        PGP key is PGPKEY-7E5BEC10
+phone:          +31-6-54942365
+nic-hdl:        JWJS1-RIPE
+mnt-by:         SNIJDERS-MNT
+source:         RIPE # Filtered
+
 as-set:             AS-test2
 descr:              Stub ASs for ClubNET
 members:            AS5726
