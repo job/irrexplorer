@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-import yaml
-import textfsm
-from StringIO import StringIO
-from radix import Radix
+#import yaml
+#import textfsm
+#from StringIO import StringIO
+#from radix import Radix
 
 #config_file = "config.yml"
 
@@ -42,4 +42,4 @@ Start
 
 """
 
-template_file = StringIO(template)
+#template_file = StringIO(template)
