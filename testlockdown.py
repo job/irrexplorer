@@ -21,3 +21,25 @@ print config
             }
 
 """
+
+"""
+    route:          91.213.230.0/24
+    origin:         AS20927
+
+    route:          213.239.64.0/18
+    herpa:          dweoinwf
+    origin:         AS2116
+
+"""
+
+template = """# textfsm template
+Value Required Prefix ([^ ]+)
+Value Required Origin ([0-9]+)
+
+Start
+  ^route:\s+${Prefix}
+  ^origin:\s+AS${Origin} -> Record Start
+
+"""
+
+template_file = StringIO(template)

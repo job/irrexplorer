@@ -1,0 +1,164 @@
+route:      207.72.0.0/14
+descr:      MERIT Network Inc.
+            1000 Oakbrook Drive, Suite 200
+            Ann Arbor
+            MI 48104, USA
+origin:     AS237
+mnt-by:     MAINT-AS237
+changed:    rik@merit.edu 20050922
+source:     RADB
+
+as-set:             AS-test1
+descr:              Stub ASs for ClubNET
+members:            AS5726, AS5736, AS20318
+admin-c:            DG251
+tech-c:             PC41
+notify:             route@ns.clubnet.net
+mnt-by:             MAINT-AS5736-ALTDB
+changed:            pete@altadena.net 20010713
+source:             ALTDB
+
+as-set:             AS-test2
+descr:              Stub ASs for ClubNET
+members:            AS5726
+members:            AS5736, AS20318
+admin-c:            DG251
+tech-c:             PC41
+notify:             route@ns.clubnet.net
+mnt-by:             MAINT-AS5736-ALTDB
+changed:            pete@altadena.net 20010713
+source:             ALTDB
+
+as-set:             AS-test3
+descr:              Stub ASs for ClubNET
+members:            AS5726
+members:            AS5736, AS20318 # herpa
+admin-c:            DG251
+tech-c:             PC41
+notify:             route@ns.clubnet.net
+mnt-by:             MAINT-AS5736-ALTDB
+changed:            pete@altadena.net 20010713
+source:             ALTDB
+
+as-set:             AS-PACIFIC-INTERNET-IX
+descr:              Pacific Internet Malaysia
+                    c/o 89 Science Park Drive
+                    #02-05/06 Rutherford
+                    Singapore 118261
+                    Republic of Singapore
+                    Tel: +65-6872-1010
+                    Fax: +65-6872-1011
+members:            AS4628, AS4629
+remarks:            Peering with AS4628 and AS4629
+                    Email abuse@pacific.net.sg for security issues
+                    Email noc@pacific.net.sg for network issues
+admin-c:            WH1-AP
+tech-c:             WH1-AP
+notify:             noc@pacific.net.sg
+mnt-by:             MAINT-AS9904
+changed:            hoou@pacific.net.sg 20020328
+source:             ALTDB
+
+as-set:             AS-NIXC
+descr:              ASNs announced by NIXC.
+members:            AS-NIXC-BACKBONE, AS-NIXC-CUSTOMERS
+admin-c:            Darrin Walton
+tech-c:             Darrin Walton
+notify:             radb@nixc.net
+mnt-by:             MAINT-NIXC
+changed:            darrinw@nixc.net 20020801
+source:             ALTDB
+
+as-set:             AS5042:AS-PEERS
+descr:              IWT Peers
+members:            AS3638, AS8001, AS5430, AS9156, AS13768, AS10588
+admin-c:            LNK
+tech-c:             LNK
+notify:             noc@informationwave.net
+mnt-by:             MAINT-AS5042
+changed:            missnglnk@informationwave.net 20021013
+source:             ALTDB
+
+as-set:     AS-CABOTELECOM-CUST-IPv6
+descr:      Customers from Cabo Telecom.
+members:    AS28339  # ACT
+members:    AS262857  # UFRN
+members:    AS262876  # UNP
+tech-c:     ARCTE-LACNIC
+admin-c:    ARCTE-LACNIC
+notify:     noc@cabotelecom.com.br
+mnt-by:     CABONATAL-BR
+changed:    eduardo.andrez@cabotelecom.com.br 20110403
+source:     ALTDB
+
+as-set:     AS-NLAYER-CUSTOMERS
+descr:      nLayer Communications - Customer AS-SET
+members:    AS10625, AS10692, AS10905, AS10940, AS11013, AS11280, AS11282,
+            AS11346, AS11478, AS11483, AS11682, AS11696, AS11763, AS11931,
+            AS-1215, AS12284, AS13335, AS1341, AS13557, AS13722, AS13730,
+            AS13803, AS1403, AS14061, AS14193, AS14200, AS1421, AS14288,
+            AS1442, AS14601, AS14627, AS14670, AS14829, AS14929, AS14987,
+            AS15024, AS15072, AS15149, AS15266, AS15695, AS16162, AS16626,
+            AS16632, AS16647, AS16839, AS16986, AS17139, AS17246, AS18549,
+            AS18608, AS18787, AS18793, AS18978, AS18981, AS19066, AS19222,
+            AS19230, AS19245, AS19551, AS197669, AS197853, AS199636, AS19970,
+            AS199799, AS20144, AS20223, AS21267, AS21321, AS21534, AS21797,
+            AS21840, AS22300, AS22518, AS22543, AS22653, AS22915, AS23136,
+            AS23367, AS23421, AS23498, AS23522, AS23533, AS236, AS24894,
+            AS25151, AS25605, AS25764, AS25780, AS25782, AS25844, AS26288,
+            AS26342, AS26424, AS26449, AS26484, AS26548, AS26642, AS26697,
+            AS26938, AS26967, AS26972, AS27280, AS27381, AS27413,
+            AS-27506-TRANSIT, AS27908, AS28786, AS29706, AS29846, AS29909,
+            AS30058, AS30238, AS30373, AS30502, AS-30517-ASSOCIATED, AS31402,
+            AS32063, AS32131, AS32286, AS32313, AS32392,
+            AS32421:AS-CUSTOMERS, AS32489, AS32632, AS32780, AS32782,
+            AS32977, AS33065, AS33314, AS33404, AS34967, AS35180, AS3584,
+            AS35890, AS35906, AS3595, AS35975, AS36137, AS36323, AS36605,
+            AS36614, AS3737, AS376:AS-CUSTOMERS, AS3842, AS38880, AS393241,
+            AS3943, AS39995, AS40041, AS40125, AS40217, AS40335, AS40353,
+            AS40418, AS40428, AS40539, AS40676, AS40784, AS40926, AS42369,
+            AS43639, AS43664, AS44965, AS4544:AS-NA-CUSTOMERS, AS45474,
+            AS46261, AS46351, AS46489, AS46609, AS46652, AS46665, AS46844,
+            AS46922, AS47484, AS4866, AS50468, AS51205, AS53265, AS53301,
+            AS53342, AS53428, AS53429, AS53582, AS53817, AS53969, AS54113,
+            AS54136, AS54235, AS54288, AS54329, AS54333, AS54335, AS54460,
+            AS54491, AS54527:AS-GLOBAL, AS54540, AS54594, AS54600, AS54778,
+            AS54829, AS54905, AS54953, AS54957, AS54963, AS54994, AS55011,
+            AS55041, AS55069, AS5645:AS-CUSTOMERS, AS-5713, AS57624, AS5784,
+            AS60736, AS61373, AS62195, AS62567, AS62713, AS62725, AS62870,
+            AS62982, AS63003, AS63008, AS63058, AS6643, AS7219, AS7456,
+            AS792, AS-ACEDATACENTERS, AS-ACN, AS-ADTAQ, AS-AFILIAS-FULLMONTY,
+            AS-AFNCA, AS-AKAMAI, AS-APPLIEDOPS, AS-AREN, AS-ARIALINK,
+            AS-AVESTANETWORKS, AS-BIGWELLS, AS-BLIP, AS-BTS, AS-BURSTNET,
+            AS-BXI, AS-C1, AS-C3, AS-CACHENETWORKS, AS-CBISP, AS-CHOOPA,
+            AS-CIFNET, AS-CLUETRUST, AS-CNSERVERS, AS-COGNET, AS-COLOAT,
+            AS-COLOCROSSING, AS-CORESITE-SET, AS-CQ-GIGENET, AS-CYBERVERSE,
+            AS-DACENTEC, AS-DCC, AS-DEAC, AS-DISTRIBUTEL, AS-DVLABS,
+            AS-ED-ASH, AS-EDGECAST, AS-ENA, AS-ENERGYGROUPNETWORKS,
+            AS-FIBERINTERNETCENTER, AS-FORTRESS, AS-FOXVALLEY,
+            AS-GIGANEWS-ALL, AS-GORACK, AS-GREATACCESS, AS-GTCOMM1,
+            AS-HAPNET, AS-HGC, AS-HOSTVIRTUAL, AS-ICANNDNSW, AS-IDCGLOBAL,
+            AS-INFORELAY, AS-INFOSTEWARDS, AS-INMOTION, AS-INTERACTIVE3D,
+            AS-VIO, AS-VOBIZ, AS-VOXEL, AS-VPLS, AS-WBTSGBR, AS-WEBAIR,
+            AS-WEBNX, AS-WEBPASS, AS-WESTHOST, AS-WHS-US, AS-XMISSION,
+            AS-XPLUSONE, AS-YELLOWFIBER, AS-YOUR-GLOBAL-SET
+admin-c:    NIA1-ARIN
+tech-c:     NLAYE-ARIN
+mnt-by:     MAINT-NLAYER
+changed:    ipeng@nlayer.net 20150208
+source:     ALTDB
+
+as-set:     AS-NLAYER-CUSTOMERS2
+descr:      nLayer Communications - Customer AS-SET
+members:    AS10625, AS10692, AS10905, AS10940, AS11013, AS11280, AS11282,
+            AS11346, AS11478, AS11483, AS11682, AS11696, AS11763, AS11931,
+            AS-1215, AS12284, AS13335, AS1341, AS13557, AS13722, AS13730,
+            AS-BXI, AS-C1, AS-C3, AS-CACHENETWORKS, AS-CBISP, AS-CHOOPA,
+            AS-CIFNET, AS-CLUETRUST, AS-CNSERVERS, AS-COGNET, AS-COLOAT,
+            AS-COLOCROSSING, AS-CORESITE-SET, AS-CQ-GIGENET, AS-CYBERVERSE, # herpa
+            AS-XPLUSONE, AS-YELLOWFIBER, AS-YOUR-GLOBAL-SET #derpa
+admin-c:    NIA1-ARIN
+tech-c:     NLAYE-ARIN
+mnt-by:     MAINT-NLAYER
+changed:    ipeng@nlayer.net 20150208
+source:     ALTDB
