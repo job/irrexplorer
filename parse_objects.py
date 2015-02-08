@@ -16,7 +16,12 @@ def parse_object(rpsl_object):
     """
 
     def fetch_value(line):
-        return line.split(':', 1)[1].split('#')[0].strip()
+        try:
+            return line.split(':', 1)[1].split('#')[0].strip()
+        except IndexError:
+            print line
+            import sys
+            sys.exit()
 
     object_type = rpsl_object[0].split(':')[0]
     object_name = fetch_value(rpsl_object.pop(0))
@@ -48,11 +53,12 @@ def parse_object(rpsl_object):
 
 if __name__ == '__main__':
     rpsl_object = []
-    for line in open('irrtest.data').readlines():
+    for line in open('irrtest.data'):
+        if line.startswith(('%', '#')):
+            continue
         if line.strip():
             rpsl_object.append(line)
         else:
-            print parse_object(rpsl_object)
+            if rpsl_object:
+                print parse_object(rpsl_object)
             rpsl_object = []
-    if rpsl_object:
-        print parse_object(rpsl_object)
