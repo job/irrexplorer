@@ -7,8 +7,14 @@
 
 def parse_object(rpsl_object):
     """
+    Args:
         rpsl_object (list): single object
+
+    Returns:
+        None if the object is not of interest
+        (dict) if the object was route{,6} or as-set
     """
+
     def fetch_value(line):
         return line.split(':', 1)[1].split('#')[0].strip()
 
@@ -22,6 +28,7 @@ def parse_object(rpsl_object):
                 result['origin'] = fetch_value(line)
             if line.split(':')[0] == "source":
                 result['source'] = fetch_value(line)
+        return result
 
     elif object_type == "as-set":
         result['members'] = []
@@ -37,7 +44,7 @@ def parse_object(rpsl_object):
             else:
                 in_members_context = False
         result['members'] = set(filter(None, result['members']))
-    return result
+        return result
 
 rpsl_object = []
 for line in open('irrtest.data').readlines():
