@@ -6,3 +6,4 @@ source = .
 [report]
 omit =
   setup.py
+  irrexplorer/__init__.py
