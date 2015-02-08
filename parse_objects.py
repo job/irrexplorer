@@ -33,7 +33,6 @@ def parse_object(rpsl_object):
                 result['members'] += map(str.strip, members)
                 in_members_context = True
             elif in_members_context and not line.lstrip() == line:
-                print line
                 result['members'] += map(str.strip, line.split(','))
             else:
                 in_members_context = False
@@ -42,7 +41,7 @@ def parse_object(rpsl_object):
 rpsl_object = []
 for line in open('irrtest.data').readlines():
     if line.strip():
-        rpsl_object.append(line.strip())
+        rpsl_object.append(line)
     else:
         print parse_object(rpsl_object)
         rpsl_object = []
