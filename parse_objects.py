@@ -36,6 +36,7 @@ def parse_object(rpsl_object):
                 result['members'] += map(str.strip, line.split(','))
             else:
                 in_members_context = False
+        result['members'] = set(filter(None, result['members']))
     return result
 
 rpsl_object = []
@@ -45,3 +46,5 @@ for line in open('irrtest.data').readlines():
     else:
         print parse_object(rpsl_object)
         rpsl_object = []
+if rpsl_object:
+    print parse_object(rpsl_object)
