@@ -8,6 +8,9 @@ mnt-by:     MAINT-AS237
 changed:    rik@merit.edu 20050922
 source:     RADB
 
+% RIPE style comments
+% hi
+
 as-set:             AS-test1
 descr:              Stub ASs for ClubNET
 members:            AS5726, AS5736, AS20318
@@ -173,3 +176,4 @@ mnt-by:     MAINT-NLAYER
 changed:    ipeng@nlayer.net 20150208
 source:     ALTDB
 
+# EOF
