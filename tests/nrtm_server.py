@@ -127,7 +127,7 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
             time.sleep(10)
             # client requested refresh, but instead gets latest object
             self.request.sendall(nrtm_data_2)
-            time.slee(1)
+            time.sleep(1)
         else:
             self.request.sendall("% ERROR")
 
