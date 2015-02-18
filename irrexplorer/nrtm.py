@@ -52,8 +52,8 @@ class client(object):
         self.dump = None # not necessary
         self.serial = self.serial + 1
         if self.host:
-            s = socket.socket() # AF_INET, SOCK_STREAM
-            (family, socktype, proto, canonname, sockaddr) = socket.getaddrinfo(self.host, self.port)[0]
+            (family, socktype, proto, canonname, sockaddr) = socket.getaddrinfo(self.host, self.port, 0, socket.SOCK_STREAM)[0]
+            s = socket.socket(family, socktype, proto)
             s.connect(sockaddr)
             f = s.makefile()
             f.write('-k -g {}:3:{}-LAST\n'.format('REGRESSION', self.serial))
