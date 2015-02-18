@@ -1,0 +1,3 @@
+*.pyc
+/irrexplorer.egg-info/
+/.coverage

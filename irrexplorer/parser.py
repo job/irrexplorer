@@ -75,10 +75,10 @@ def parse_object(rpsl_object):
 
 def parse_dump(dumpfile):
     """
-    Take a file and find objects of interest, Can be called as generator
+    Take a file object and find objects of interest, can be called as generator
 
     Args:
-        dumpfile (file)
+        parse_dump (file)
 
     Returns:
         dict or None
@@ -92,6 +92,35 @@ def parse_dump(dumpfile):
         else:
             if rpsl_object:
                 yield parse_object(rpsl_object)
+            rpsl_object = []
+
+def parse_nrtm_stream(f):
+    """
+    Mostly a copy of parse_dump, perhaps combine them?
+
+    Take a file object and find objects of interest, can be called as generator
+
+    Args:
+        parse_nrtm_stream (f)
+
+    Returns:
+        dict or None
+    """
+    tag = ''
+    rpsl_object = []
+    for line in f:
+        if line.startswith(('%', '#')):
+            continue
+        if line.startswith('ADD'): # FIXME: UPD? DEL?
+            tag = line.strip()
+            continue
+        if line.strip():
+            rpsl_object.append(line)
+        elif tag and rpsl_object:
+            cmd, serial = tag.split()
+            serial = int(serial)
+            yield cmd, serial, parse_object(rpsl_object)
+            tag = ''
             rpsl_object = []
 
 

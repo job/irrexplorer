@@ -1,0 +1,6 @@
+databases:
+    regression:
+        serial: 'tests/REGRESSION.CURRENTSERIAL'
+        dump: 'tests/irrtest.data'
+        nrtmhost: 'localhost'
+        nrtmport: 4444
