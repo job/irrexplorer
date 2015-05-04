@@ -3,8 +3,6 @@
 #
 # This file is part of IRR Explorer
 #
-# All rights reserved.
-#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #
@@ -28,12 +26,36 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from irrexplorer import config
+from irrexplorer import nrtm
+from threading import Thread
+from radix import Radix
+from Queue import Queue
 
 databases = config('irrexplorer_config.yml').databases
 
 
+def connect_nrtm(config):
+    feed = nrtm.client(**config)
+    for cmd, serial, obj in feed.get():
+        if not obj:
+            continue
+        print obj
+        print cmd, serial, len(obj), config['dbname']
 
-print a.databases
+def radix_maintainer():
+
+
+for dbase in databases:
+    name = dbase.keys().pop()
+    client_config = dict(d.items()[0] for d in dbase[name])
+    print client_config
+    worker = Thread(target=connect_nrtm, args=(client_config,))
+    worker.setDaemon(True)
+    worker.start()
+
+
+
+
 """
 from irrexplorer.nrtm import client
 a = client(nrtmhost='whois.radb.net',

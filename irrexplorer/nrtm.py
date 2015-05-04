@@ -35,9 +35,9 @@ import cStringIO
 class client(object):
     """nrtm client class"""
     def __init__(self, serial=None, serialoverride=None, dump=None,
-                 nrtmhost=None, nrtmport=43, dbase=None):
+                 nrtmhost=None, nrtmport=43, dbname=None):
         super(client, self).__init__()
-        self.dbase = dbase
+        self.dbname = dbname
         if serialoverride is not None:
             self.serial = serialoverride
         else:
@@ -81,11 +81,11 @@ class client(object):
                 f = s.makefile()
                 f.write('!!\n!nIRRExplorer\n')
                 f.flush()
-                f.write('-k -g {}:3:{}-LAST\n'.format(self.dbase, self.serial))
+                f.write('-k -g {}:3:{}-LAST\n'.format(self.dbname, self.serial))
                 f.flush()
                 for cmd, serial, obj in parser.parse_nrtm_stream(f):
                     self.serial = serial
                     yield cmd, serial, obj
                 print "sleeping 60 seconds before reconnecting to %s (%s)" % \
-                    (self.host, self.dbase)
+                    (self.host, self.dbname)
                 time.sleep(60)
