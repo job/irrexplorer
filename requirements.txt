@@ -1,1 +1,2 @@
 exabgp==3.4.7
+pyyaml
