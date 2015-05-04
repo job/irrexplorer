@@ -97,4 +97,5 @@ def parse_dump(dumpfile):
 
 if __name__ == '__main__':
     dump_file = open('irrtest.data')
-    print list(parse_dump(dump_file))
+    import pprint
+    pprint.pprint(list(parse_dump(dump_file)))
