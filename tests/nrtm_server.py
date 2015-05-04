@@ -39,7 +39,14 @@
 """
 
 import time
-import SocketServer
+import socket
+from thread import start_new_thread
+
+host = '::'
+port = 4444
+flowinfo = 0
+scopeid = 0
+sockaddr = (host, port, flowinfo, scopeid)
 
 nrtm_data_1 = """%START Version: 3 regression 1983029-1983034
 
@@ -140,25 +147,37 @@ remarks:        ****************************
 """
 
 
-class MyTCPHandler(SocketServer.BaseRequestHandler):
-
-    def handle(self):
-        self.data = self.request.recv(1024).strip()
-        print "{} wrote:".format(self.client_address[0])
-        print self.data
-        if self.data == "-k -g REGRESSION:3:1983029-LAST":
+def clientthread(conn):
+    conn.send('% Welcome to the NRTM test server.\n\n')
+    while True:
+        data = conn.recv(1024).strip()
+        if not data:
+            break
+        print data
+        if data == "-k -g REGRESSION:3:1983029-LAST":
             # send feed (copied from RADB)
-            self.request.sendall(nrtm_data_1)
+            print "sending:"
+            print nrtm_data_1
+            conn.sendall(nrtm_data_1)
             # keep socket open, act like persistent
             time.sleep(10)
             # client requested refresh, but instead gets latest object
-            self.request.sendall(nrtm_data_2)
+            print "sending:"
+            print nrtm_data_2
+            conn.sendall(nrtm_data_2)
             time.sleep(1)
-        else:
-            self.request.sendall("% ERROR")
-
+            conn.close()
+        if data == "!q":
+            conn.close()
+    conn.close()
 
 if __name__ == "__main__":
-    HOST, PORT = "localhost", 4444
-    server = SocketServer.TCPServer((HOST, PORT), MyTCPHandler)
-    server.serve_forever()
+    sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM, 0)
+    sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
+    sock.bind(sockaddr)
+    sock.listen(10)
+    while True:
+        conn, addr = sock.accept()
+        print 'Connected with ' + addr[0] + ':' + str(addr[1])
+        start_new_thread(clientthread, (conn,))
+    sock.close()

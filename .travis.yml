@@ -6,10 +6,10 @@ python:
 install:
   - pip install coveralls
   - pip install -r requirements.txt
-  - sudo cp tests/irrexplorer_config.yml irrexplorer_config.yml
+  - sudo cp tests/nrtm_test.yml irrexplorer_config.yml
   - python setup.py install
-  - sudo ip addr add 127.0.0.2/8 dev lo
-  - sudo env exabgp.tcp.bind="127.0.0.2" exabgp.tcp.port=179 exabgp.daemon.daemonize=true exabgp tests/bgp_injector.conf
+#  - sudo ip addr add 127.0.0.2/8 dev lo
+#  - sudo env exabgp.tcp.bind="127.0.0.2" exabgp.tcp.port=179 exabgp.daemon.daemonize=true exabgp tests/bgp_injector.conf
   - python tests/nrtm_server.py &
 
 script:
