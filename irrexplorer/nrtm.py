@@ -26,11 +26,18 @@
 
 from irrexplorer import parser
 import socket
+import time
+import urllib2
+import gzip
+import cStringIO
+
 
 class client(object):
     """nrtm client class"""
-    def __init__(self, serial=None, serialoverride=None, dump=None, nrtmhost=None, nrtmport=43):
+    def __init__(self, serial=None, serialoverride=None, dump=None,
+                 nrtmhost=None, nrtmport=43, dbase=None):
         super(client, self).__init__()
+        self.dbase = dbase
         if serialoverride is not None:
             self.serial = serialoverride
         else:
@@ -39,27 +46,46 @@ class client(object):
             self.host = nrtmhost
             self.port = nrtmport
 
-        if dump:
+        if dump.startswith('ftp'):
+            self.dump = self.fetch_dump(dump)
+        else:
             self.dump = file(dump)
 
+    def fetch_dump(self, dumpurl):
+        req = urllib2.Request(dumpurl)
+        response = urllib2.urlopen(req)
+        output = cStringIO.StringIO()
+        output.write(response.read())
+        output.seek(0)
+        return gzip.GzipFile(fileobj=output)
+
     def setserialfrom(self, f):
-        self.serial=int(open(f).read().strip())
+        if f.startswith('ftp'):
+            req = urllib2.Request(f)
+            response = urllib2.urlopen(req)
+            self.serial = int(response.read())
+        else:
+            self.serial = int(open(f).read().strip())
 
     def get(self):
         if self.dump:
             for obj in parser.parse_dump(self.dump):
                 yield 'ADD', 0, obj
-        self.dump = None # not necessary
+        self.dump = None  # not necessary
         self.serial = self.serial + 1
         if self.host:
-            (family, socktype, proto, canonname, sockaddr) = socket.getaddrinfo(self.host, self.port, 0, socket.SOCK_STREAM)[0]
-            s = socket.socket(family, socktype, proto)
-            s.connect(sockaddr)
-            f = s.makefile()
-            f.write('-k -g {}:3:{}-LAST\n'.format('REGRESSION', self.serial))
-            f.flush()
-            for cmd, serial, obj in parser.parse_nrtm_stream(f):
-                self.serial = serial
-                yield cmd, serial, obj
-
-
+            while True:
+                (family, socktype, proto, canonname, sockaddr) = socket.getaddrinfo(self.host, self.port, 0, socket.SOCK_STREAM)[0]
+                s = socket.socket(family, socktype, proto)
+                s.connect(sockaddr)
+                f = s.makefile()
+                f.write('!!\n!nIRRExplorer\n')
+                f.flush()
+                f.write('-k -g {}:3:{}-LAST\n'.format(self.dbase, self.serial))
+                f.flush()
+                for cmd, serial, obj in parser.parse_nrtm_stream(f):
+                    self.serial = serial
+                    yield cmd, serial, obj
+                print "sleeping 60 seconds before reconnecting to %s (%s)" % \
+                    (self.host, self.dbase)
+                time.sleep(60)

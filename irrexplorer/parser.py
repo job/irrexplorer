@@ -42,7 +42,12 @@ def parse_object(rpsl_object):
     """
 
     def fetch_value(line):
-        return line.split(':', 1)[1].split('#')[0].strip()
+        try:
+            return line.split(':', 1)[1].split('#')[0].strip()
+        except IndexError:  #FIXME unsure why this is needed
+            print line
+            import sys
+            sys.exit(0)
 
     object_type = rpsl_object[0].split(':')[0]
     object_name = fetch_value(rpsl_object.pop(0))
@@ -109,9 +114,9 @@ def parse_nrtm_stream(f):
     tag = ''
     rpsl_object = []
     for line in f:
-        if line.startswith(('%', '#')):
+        if line.startswith(('%', '#', 'C')):
             continue
-        if line.startswith('ADD'): # FIXME: UPD? DEL?
+        if line.startswith(('ADD', 'DEL')):  # FIXME: UPD?
             tag = line.strip()
             continue
         if line.strip():
