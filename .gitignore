@@ -1,3 +1,5 @@
 *.pyc
-/irrexplorer.egg-info/
-/.coverage
+.eggs/
+irrexplorer.egg-info/
+.coverage
+.venv/
