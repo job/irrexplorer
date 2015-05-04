@@ -32,29 +32,40 @@ from radix import Radix
 from Queue import Queue
 
 databases = config('irrexplorer_config.yml').databases
+nrtm_queue = Queue()
 
 
-def connect_nrtm(config):
+def connect_nrtm(config, nrtm_queue):
     feed = nrtm.client(**config)
     for cmd, serial, obj in feed.get():
         if not obj:
             continue
-        print obj
-        print cmd, serial, len(obj), config['dbname']
+#        print cmd, obj
+        nrtm_queue.put((cmd, serial, obj, config['dbname']))
 
-def radix_maintainer():
+
+def radix_maintainer(nrtm_queue):
+    import time
+    time.sleep(15)
+    while True:
+        update = nrtm_queue.get()
+        print update
+        nrtm_queue.task_done()
 
 
 for dbase in databases:
     name = dbase.keys().pop()
     client_config = dict(d.items()[0] for d in dbase[name])
     print client_config
-    worker = Thread(target=connect_nrtm, args=(client_config,))
+    worker = Thread(target=connect_nrtm, args=(client_config, nrtm_queue))
     worker.setDaemon(True)
     worker.start()
 
+worker = Thread(target=radix_maintainer, args=(nrtm_queue,))
+worker.setDaemon(True)
+worker.start()
 
-
+nrtm_queue.join()
 
 """
 from irrexplorer.nrtm import client
