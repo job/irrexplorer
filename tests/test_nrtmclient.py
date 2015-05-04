@@ -35,9 +35,11 @@ class TestNRTM(unittest.TestCase):
         feedconfig = config('tests/nrtm_test.yml').databases['regression']
         feed = nrtm.client(**feedconfig)
         for cmd, serial, obj in feed.get():
-            if not obj: continue
+            if not obj:
+                continue
             print cmd, serial, len(obj)
-        self.assertTrue(False) # so we get stdout
+            if cmd == "ADD" and serial == 1983035 and len(obj) == 4:
+                self.assertTrue(True)
 
 def main():
     unittest.main()
