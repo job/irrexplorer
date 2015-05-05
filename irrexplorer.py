@@ -45,6 +45,7 @@ def find_more_specifics(target, prefixes):
 def find_more_sp_helper(args):
     return find_more_specifics(*args)
 
+
 class TreeLookup(threading.Thread):
     def __init__(self, tree, asn_prefix_map, assets,
                  lookup_queue, result_queue):
@@ -63,9 +64,6 @@ class TreeLookup(threading.Thread):
                 continue
             if lookup == "search_specifics":
                 data = None
-                if self.tree.search_exact(target):
-                    data = self.tree.search_exact(target).data
-                    results.append((target, data))
                 # cheat a little by simple sharding!
                 # split all prefixes in 6 chunks, have each list worked
                 # on by a Proces()
@@ -75,8 +73,8 @@ class TreeLookup(threading.Thread):
                 specifics = pool.map(find_more_sp_helper, job_args)
                 for prefix in [item for sublist in specifics for item in sublist]:
                     data = self.tree.search_exact(prefix).data
-                    results.append((prefix, data))
-                self.result_queue.put(set(results))
+                    results.append({prefix: data['origins']})
+                self.result_queue.put(results)
 
             elif lookup == "inverseasn":
                 if target in self.asn_prefix_map:
