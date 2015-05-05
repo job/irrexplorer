@@ -46,7 +46,7 @@ def find_more_sp_helper(args):
     return find_more_specifics(*args)
 
 
-class TreeLookup(threading.Thread):
+class LookupWorker(threading.Thread):
     def __init__(self, tree, asn_prefix_map, assets,
                  lookup_queue, result_queue):
         threading.Thread.__init__(self)
@@ -71,6 +71,7 @@ class TreeLookup(threading.Thread):
                 parts = [self.tree.prefixes()[i::6] for i in range(6)]  # split all pfx in 4 lists
                 job_args = [(target, p) for p in parts]  # workaround pool() only accepts 1 arg
                 specifics = pool.map(find_more_sp_helper, job_args)
+                # next line flattens the list of lists
                 for prefix in [item for sublist in specifics for item in sublist]:
                     data = self.tree.search_exact(prefix).data
                     results.append({prefix: data['origins']})
@@ -79,6 +80,12 @@ class TreeLookup(threading.Thread):
             elif lookup == "inverseasn":
                 if target in self.asn_prefix_map:
                     self.result_queue.put(self.asn_prefix_map[target])
+                else:
+                    self.result_queue.put([])
+
+            elif lookup == "asset_search":
+                if target in self.assets:
+                    self.result_queue.put(self.assets[target])
                 else:
                     self.result_queue.put([])
 
@@ -106,7 +113,7 @@ class NRTMWorker(multiprocessing.Process):
         self.dbname = feedconfig['dbname']
         self.asn_prefix_map = {}
         self.assets = {}
-        self.lookup = TreeLookup(self.tree, self.asn_prefix_map, self.assets,
+        self.lookup = LookupWorker(self.tree, self.asn_prefix_map, self.assets,
                                  self.lookup_queue, self.result_queue)
 
 # TODO
@@ -214,7 +221,7 @@ for i in lookup_queues:
 for i in result_queues:
     print "found in %s %s" % (i, result_queues[i].get())
 
-prefix = "AS15562"
+prefix = 15562
 for i in lookup_queues:
     print "doing lookup for %s in %s" % (prefix, i)
     lookup_queues[i].put(("inverseasn", prefix))
@@ -222,6 +229,23 @@ for i in lookup_queues:
     lookup_queues[i].join()
 for i in result_queues:
     print "found in %s %s" % (i, result_queues[i].get())
+
+def query(lookup_queues, result_queues, query_type, target):
+    for i in lookup_queues:
+        print "doing lookup for %s in %s" % (target, i)
+        lookup_queues[i].put((query_type, target))
+    for i in lookup_queues:
+        lookup_queues[i].join()
+    result = {}
+    for i in result_queues:
+        result[i] = result_queues[i].get()
+    return result
+
+def lookup_assets(asset, result=dict(), seen=[]):
+    seen.append(asset)
+    print query(lookup_queues, result_queues, "asset_search", asset)
+
+lookup_assets("AS-GLOBEINTERNET")
 
 """ main thread to keep the programme alive """
 while True:
