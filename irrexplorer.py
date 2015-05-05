@@ -60,6 +60,13 @@ class TreeLookup(threading.Thread):
                         data = self.tree.search_exact(prefix).data
                         results.append((prefix, data))
                 self.result_queue.put(results)
+
+            elif lookup == "inverseasn":
+                if target in self.asn_prefix_map:
+                    self.result_queue.put(self.asn_prefix_map['target'])
+                else:
+                    self.result_queue.put([])
+
             self.lookup_queue.task_done()
 
 
@@ -183,6 +190,15 @@ prefix = "2401:4800::/32"
 for i in lookup_queues:
     print "doing lookup for %s in %s" % (prefix, i)
     lookup_queues[i].put(("search_specifics", prefix))
+for i in lookup_queues:
+    lookup_queues[i].join()
+for i in result_queues:
+    print "found in %s %s" % (i, result_queues[i].get())
+
+prefix = "AS15562"
+for i in lookup_queues:
+    print "doing lookup for %s in %s" % (prefix, i)
+    lookup_queues[i].put(("inverseasn", prefix))
 for i in lookup_queues:
     lookup_queues[i].join()
 for i in result_queues:
