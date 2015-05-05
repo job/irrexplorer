@@ -30,13 +30,14 @@ from irrexplorer import nrtm
 
 import multiprocessing
 import radix
-import threading
 
 
 class NRTMWorker(multiprocessing.Process):
     """
-    Launches an nrtm.client() instance and feeds the output in to a central
-    queue.
+    Launches an nrtm.client() instance and feeds the output in to a
+    radix tree. Somehow allow other processes to lookup entries in the
+    radix tree. Destroy & rebuild radix tree when serial overruns and
+    a new connection must be established with the NRTM host.
     """
     def __init__(self, feedconfig, cmd_queue, result_queue):
         """
@@ -87,24 +88,24 @@ class NRTMWorker(multiprocessing.Process):
                 self.result_queue.put(result.data)
 
 # deprecated
-class Radix_maintainer(threading.Thread):
-    """
-    Consumes NRTM + BGP updates and stores them in a central
-    radix tree.
-    """
-    def __init__(self, nrtm_queue):
-        """
-        Constructor.
-
-        @param nrtm_queue Queue() from which NRTM/BGP updates are taken
-        """
-        threading.Thread.__init__(self)
-        self.nrtm_queue = nrtm_queue
-        self.tree = radix.Radix()
-
-    def run(self):
-        while True:
-            update = self.nrtm_queue.get()
+#class Radix_maintainer(threading.Thread):
+#    """
+#    Consumes NRTM + BGP updates and stores them in a central
+#    radix tree.
+#    """
+#    def __init__(self, nrtm_queue):
+#        """
+#        Constructor.
+#
+#        @param nrtm_queue Queue() from which NRTM/BGP updates are taken
+#        """
+#        threading.Thread.__init__(self)
+#        self.nrtm_queue = nrtm_queue
+#        self.tree = radix.Radix()
+#
+#    def run(self):
+#        while True:
+#            update = self.nrtm_queue.get()
 
 databases = config('irrexplorer_config.yml').databases
 lookup_queues = {}
