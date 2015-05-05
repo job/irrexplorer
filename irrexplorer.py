@@ -28,8 +28,27 @@
 from irrexplorer import config
 from irrexplorer import nrtm
 
+import threading
 import multiprocessing
 import radix
+
+
+class TreeLookup(threading.Thread):
+    def __init__(self, tree, lookup_queue, result_queue):
+        threading.Thread.__init__(self)
+        self.tree = tree
+        self.lookup_queue = lookup_queue
+        self.result_queue = result_queue
+
+    def run(self):
+        while True:
+            lookup, target = self.lookup_queue.get()
+            if not lookup:
+                continue
+            if lookup == "prefix":
+                result = self.tree.search_exact(target)
+                if result:
+                    self.result_queue.put(result.data)
 
 
 class NRTMWorker(multiprocessing.Process):
@@ -39,7 +58,7 @@ class NRTMWorker(multiprocessing.Process):
     radix tree. Destroy & rebuild radix tree when serial overruns and
     a new connection must be established with the NRTM host.
     """
-    def __init__(self, feedconfig, cmd_queue, result_queue):
+    def __init__(self, feedconfig, lookup_queue, result_queue):
         """
         Constructor.
         @param config dict() with NRTM host information
@@ -47,10 +66,11 @@ class NRTMWorker(multiprocessing.Process):
         """
         multiprocessing.Process.__init__(self)
         self.feedconfig = feedconfig
-        self.cmd_queue = cmd_queue
+        self.lookup_queue = lookup_queue
         self.result_queue = result_queue
         self.tree = radix.Radix()
         self.dbname = feedconfig['dbname']
+        self.lookup = TreeLookup(self.tree, self.lookup_queue, self.result_queue)
 
 # TODO
 # add completly new rnode from irr
@@ -64,6 +84,9 @@ class NRTMWorker(multiprocessing.Process):
         Process run method, fetch NRTM updates and put them in the
         a radix tree.
         """
+        self.lookup.setDaemon(True)
+        self.lookup.start()
+
         feed = nrtm.client(**self.feedconfig)
         while True:
             for cmd, serial, obj in feed.get():
@@ -80,12 +103,6 @@ class NRTMWorker(multiprocessing.Process):
                             rnode.data['origins'] = [obj['origin']]
                         else:
                             rnode.data['origins'] = set([obj['origin']] + list(rnode.data['origins']))
-            lookup, target = self.cmd_queue.get()
-            if not lookup:
-                continue
-            if lookup == "prefix":
-                result = self.tree.search_exact(target)
-                self.result_queue.put(result.data)
 
 # deprecated
 #class Radix_maintainer(threading.Thread):
@@ -124,7 +141,10 @@ for dbase in databases[0:2]:
 #worker.start()
 
 import time
-time.sleep(5)
+for i in range(0, 30):
+    print i
+    time.sleep(1)
+
 for i in lookup_queues:
     lookup_queues[i].put(("prefix", "1.0.128.0/17"))
     time.sleep(1)
