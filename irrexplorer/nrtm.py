@@ -25,11 +25,11 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from irrexplorer import parser
+import cStringIO
+import gzip
 import socket
 import time
 import urllib2
-import gzip
-import cStringIO
 
 
 class client(object):
@@ -84,8 +84,9 @@ class client(object):
                 f.write('-k -g {}:3:{}-LAST\n'.format(self.dbname, self.serial))
                 f.flush()
                 for cmd, serial, obj in parser.parse_nrtm_stream(f):
-                    self.serial = serial
-                    yield cmd, serial, obj
+                    if serial > self.serial:
+                        self.serial = serial
+                        yield cmd, serial, obj
                 print "sleeping 60 seconds before reconnecting to %s (%s)" % \
                     (self.host, self.dbname)
                 time.sleep(60)

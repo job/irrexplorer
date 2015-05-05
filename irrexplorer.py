@@ -27,45 +27,111 @@
 
 from irrexplorer import config
 from irrexplorer import nrtm
-from threading import Thread
-from radix import Radix
-from Queue import Queue
+
+import multiprocessing
+import radix
+import threading
+
+
+class NRTMWorker(multiprocessing.Process):
+    """
+    Launches an nrtm.client() instance and feeds the output in to a central
+    queue.
+    """
+    def __init__(self, feedconfig, cmd_queue, result_queue):
+        """
+        Constructor.
+        @param config dict() with NRTM host information
+        @param nrtm_queue Queue() where NRTM output goes
+        """
+        multiprocessing.Process.__init__(self)
+        self.feedconfig = feedconfig
+        self.cmd_queue = cmd_queue
+        self.result_queue = result_queue
+        self.tree = radix.Radix()
+        self.dbname = feedconfig['dbname']
+
+# TODO
+# add completly new rnode from irr
+# add completly new rnode from bgp
+# add more data to existing rnode
+# remove data from existing rnode
+# remove existing rnode (last bgp or irr withdraw)
+
+    def run(self):
+        """
+        Process run method, fetch NRTM updates and put them in the
+        a radix tree.
+        """
+        feed = nrtm.client(**self.feedconfig)
+        while True:
+            for cmd, serial, obj in feed.get():
+                if not obj:
+                    continue
+                if not self.dbname == obj['source']:
+                    """ ignore updates for which the source does not
+                    match the configured/expected database """
+                    continue
+                if obj['kind'] in ["route", "route6"]:
+                    if cmd == "ADD":
+                        if not self.tree.search_exact(obj['name']):
+                            rnode = self.tree.add(obj['name'])
+                            rnode.data['origins'] = [obj['origin']]
+                        else:
+                            rnode.data['origins'] = set([obj['origin']] + list(rnode.data['origins']))
+            lookup, target = self.cmd_queue.get()
+            if not lookup:
+                continue
+            if lookup == "prefix":
+                result = self.tree.search_exact(target)
+                self.result_queue.put(result.data)
+
+# deprecated
+class Radix_maintainer(threading.Thread):
+    """
+    Consumes NRTM + BGP updates and stores them in a central
+    radix tree.
+    """
+    def __init__(self, nrtm_queue):
+        """
+        Constructor.
+
+        @param nrtm_queue Queue() from which NRTM/BGP updates are taken
+        """
+        threading.Thread.__init__(self)
+        self.nrtm_queue = nrtm_queue
+        self.tree = radix.Radix()
+
+    def run(self):
+        while True:
+            update = self.nrtm_queue.get()
 
 databases = config('irrexplorer_config.yml').databases
-nrtm_queue = Queue()
-
-
-def connect_nrtm(config, nrtm_queue):
-    feed = nrtm.client(**config)
-    for cmd, serial, obj in feed.get():
-        if not obj:
-            continue
-#        print cmd, obj
-        nrtm_queue.put((cmd, serial, obj, config['dbname']))
-
-
-def radix_maintainer(nrtm_queue):
-    import time
-    time.sleep(15)
-    while True:
-        update = nrtm_queue.get()
-        print update
-        nrtm_queue.task_done()
-
-
-for dbase in databases:
-    name = dbase.keys().pop()
-    client_config = dict(d.items()[0] for d in dbase[name])
-    print client_config
-    worker = Thread(target=connect_nrtm, args=(client_config, nrtm_queue))
-    worker.setDaemon(True)
+lookup_queues = {}
+result_queues = {}
+for dbase in databases[0:2]:
+    name = dbase.keys()[0]
+    feedconfig = dbase[name]
+    feedconfig = dict(d.items()[0] for d in feedconfig)
+    lookup_queues[name] = multiprocessing.Queue()
+    result_queues[name] = multiprocessing.Queue()
+    worker = NRTMWorker(feedconfig, lookup_queues[name], result_queues[name])
     worker.start()
 
-worker = Thread(target=radix_maintainer, args=(nrtm_queue,))
-worker.setDaemon(True)
-worker.start()
+#worker = Radix_maintainer(nrtm_queue)
+#worker.setDaemon(True)
+#worker.start()
 
-nrtm_queue.join()
+import time
+time.sleep(5)
+for i in lookup_queues:
+    lookup_queues[i].put(("prefix", "1.0.128.0/17"))
+    time.sleep(1)
+for i in result_queues:
+    print result_queues[i].get()
+
+
+time.sleep(100000)
 
 """
 from irrexplorer.nrtm import client
@@ -79,4 +145,3 @@ while True:
     for i in a.get():
         print i
 """
-

@@ -66,7 +66,9 @@ def parse_object(rpsl_object):
         in_members_context = False
         while rpsl_object:
             line = rpsl_object.pop(0).split('#')[0]
-            if line.split(':')[0] == "members":
+            if line.split(':')[0] == "source":
+                result['source'] = fetch_value(line)
+            elif line.split(':')[0] == "members":
                 members = fetch_value(line).split(',')
                 result['members'] += map(str.strip, members)
                 in_members_context = True
