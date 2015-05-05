@@ -28,27 +28,39 @@
 from irrexplorer import config
 from irrexplorer import nrtm
 
+import ipaddr
 import threading
 import multiprocessing
 import radix
 
 
 class TreeLookup(threading.Thread):
-    def __init__(self, tree, lookup_queue, result_queue):
+    def __init__(self, tree, asn_prefix_map, assets,
+                 lookup_queue, result_queue):
         threading.Thread.__init__(self)
         self.tree = tree
         self.lookup_queue = lookup_queue
         self.result_queue = result_queue
+        self.asn_prefix_map = asn_prefix_map
+        self.assets = assets
 
     def run(self):
         while True:
             lookup, target = self.lookup_queue.get()
+            results = []
             if not lookup:
                 continue
-            if lookup == "prefix":
-                result = self.tree.search_exact(target)
-                if result:
-                    self.result_queue.put(result.data)
+            if lookup == "search_specifics":
+                data = None
+                if self.tree.search_exact(target):
+                    data = self.tree.search_exact(target).data
+                    results.append((target, data))
+                for prefix in self.tree.prefixes():
+                    if ipaddr.IPNetwork(prefix) in ipaddr.IPNetwork(target):
+                        data = self.tree.search_exact(prefix).data
+                        results.append((prefix, data))
+                self.result_queue.put(results)
+            self.lookup_queue.task_done()
 
 
 class NRTMWorker(multiprocessing.Process):
@@ -70,7 +82,10 @@ class NRTMWorker(multiprocessing.Process):
         self.result_queue = result_queue
         self.tree = radix.Radix()
         self.dbname = feedconfig['dbname']
-        self.lookup = TreeLookup(self.tree, self.lookup_queue, self.result_queue)
+        self.asn_prefix_map = {}
+        self.assets = {}
+        self.lookup = TreeLookup(self.tree, self.asn_prefix_map, self.assets,
+                                 self.lookup_queue, self.result_queue)
 
 # TODO
 # add completly new rnode from irr
@@ -92,17 +107,36 @@ class NRTMWorker(multiprocessing.Process):
             for cmd, serial, obj in feed.get():
                 if not obj:
                     continue
-                if not self.dbname == obj['source']:
-                    """ ignore updates for which the source does not
-                    match the configured/expected database """
+                try:
+                    if not self.dbname == obj['source']:
+                        """ ignore updates for which the source does not
+                        match the configured/expected database """
+                        continue
+                except:
+                    print "ERROR: weird object: %s" % obj
                     continue
+
                 if obj['kind'] in ["route", "route6"]:
                     if cmd == "ADD":
                         if not self.tree.search_exact(obj['name']):
+                            # FIXME does sometimes fails in the pure python
+                            # py-radix
                             rnode = self.tree.add(obj['name'])
                             rnode.data['origins'] = [obj['origin']]
                         else:
                             rnode.data['origins'] = set([obj['origin']] + list(rnode.data['origins']))
+                        if obj['origin'] not in self.asn_prefix_map:
+                            self.asn_prefix_map[obj['origin']] = [obj['name']]
+                        else:
+                            self.asn_prefix_map[obj['origin']].append(obj['name'])
+                    else:
+                        self.tree.delete(obj['name'])
+                        self.asn_prefix_map[obj['origin']].remove(obj['name'])
+                if obj['kind'] == "as-set":
+                    if cmd == "ADD":
+                        self.assets[obj['name']] = obj['members']
+                    else:
+                        del self.assets[obj['name']]
 
 # deprecated
 #class Radix_maintainer(threading.Thread):
@@ -131,8 +165,8 @@ for dbase in databases[0:2]:
     name = dbase.keys()[0]
     feedconfig = dbase[name]
     feedconfig = dict(d.items()[0] for d in feedconfig)
-    lookup_queues[name] = multiprocessing.Queue()
-    result_queues[name] = multiprocessing.Queue()
+    lookup_queues[name] = multiprocessing.JoinableQueue()
+    result_queues[name] = multiprocessing.JoinableQueue()
     worker = NRTMWorker(feedconfig, lookup_queues[name], result_queues[name])
     worker.start()
 
@@ -141,28 +175,19 @@ for dbase in databases[0:2]:
 #worker.start()
 
 import time
-for i in range(0, 30):
+for i in range(0, 15):
     print i
     time.sleep(1)
 
+prefix = "2401:4800::/32"
 for i in lookup_queues:
-    lookup_queues[i].put(("prefix", "1.0.128.0/17"))
-    time.sleep(1)
+    print "doing lookup for %s in %s" % (prefix, i)
+    lookup_queues[i].put(("search_specifics", prefix))
+for i in lookup_queues:
+    lookup_queues[i].join()
 for i in result_queues:
-    print result_queues[i].get()
+    print "found in %s %s" % (i, result_queues[i].get())
 
-
-time.sleep(100000)
-
-"""
-from irrexplorer.nrtm import client
-a = client(nrtmhost='whois.radb.net',
-           nrtmport=43,
-           serial='ftp://ftp.radb.net/radb/dbase/RADB.CURRENTSERIAL',
-           dump='ftp://ftp.radb.net/radb/dbase/radb.db.gz',
-           dbase="RADB")
-
+""" main thread to keep the programme alive """
 while True:
-    for i in a.get():
-        print i
-"""
+    time.sleep(10)

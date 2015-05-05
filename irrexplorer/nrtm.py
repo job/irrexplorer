@@ -72,6 +72,7 @@ class client(object):
             for obj in parser.parse_dump(self.dump):
                 yield 'ADD', 0, obj
         self.dump = None  # not necessary
+        print "INFO: done loading dump for %s" % self.dbname
         self.serial = self.serial + 1
         if self.host:
             while True:
