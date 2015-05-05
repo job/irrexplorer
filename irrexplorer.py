@@ -34,6 +34,17 @@ import multiprocessing
 import radix
 
 
+def find_more_specifics(target, prefixes):
+    result = []
+    for prefix in prefixes:
+        if prefix:
+            if ipaddr.IPNetwork(prefix) in ipaddr.IPNetwork(target):
+                result.append(prefix)
+    return result
+
+def find_more_sp_helper(args):
+    return find_more_specifics(*args)
+
 class TreeLookup(threading.Thread):
     def __init__(self, tree, asn_prefix_map, assets,
                  lookup_queue, result_queue):
@@ -55,15 +66,21 @@ class TreeLookup(threading.Thread):
                 if self.tree.search_exact(target):
                     data = self.tree.search_exact(target).data
                     results.append((target, data))
-                for prefix in self.tree.prefixes():
-                    if ipaddr.IPNetwork(prefix) in ipaddr.IPNetwork(target):
-                        data = self.tree.search_exact(prefix).data
-                        results.append((prefix, data))
-                self.result_queue.put(results)
+                # cheat a little by simple sharding!
+                # split all prefixes in 6 chunks, have each list worked
+                # on by a Proces()
+                pool = multiprocessing.Pool(6)
+                parts = [self.tree.prefixes()[i::6] for i in range(6)]  # split all pfx in 4 lists
+                job_args = [(target, p) for p in parts]  # workaround pool() only accepts 1 arg
+                specifics = pool.map(find_more_sp_helper, job_args)
+                for prefix in [item for sublist in specifics for item in sublist]:
+                    data = self.tree.search_exact(prefix).data
+                    results.append((prefix, data))
+                self.result_queue.put(set(results))
 
             elif lookup == "inverseasn":
                 if target in self.asn_prefix_map:
-                    self.result_queue.put(self.asn_prefix_map['target'])
+                    self.result_queue.put(self.asn_prefix_map[target])
                 else:
                     self.result_queue.put([])
 
@@ -109,9 +126,9 @@ class NRTMWorker(multiprocessing.Process):
         self.lookup.setDaemon(True)
         self.lookup.start()
 
-        feed = nrtm.client(**self.feedconfig)
+        self.feed = nrtm.client(**self.feedconfig)
         while True:
-            for cmd, serial, obj in feed.get():
+            for cmd, serial, obj in self.feed.get():
                 if not obj:
                     continue
                 try:
@@ -131,7 +148,10 @@ class NRTMWorker(multiprocessing.Process):
                             rnode = self.tree.add(obj['name'])
                             rnode.data['origins'] = [obj['origin']]
                         else:
+                            rnode = self.tree.search_exact(obj['name'])
                             rnode.data['origins'] = set([obj['origin']] + list(rnode.data['origins']))
+
+                        # add prefix to the inverse ASN map
                         if obj['origin'] not in self.asn_prefix_map:
                             self.asn_prefix_map[obj['origin']] = [obj['name']]
                         else:
@@ -139,6 +159,7 @@ class NRTMWorker(multiprocessing.Process):
                     else:
                         self.tree.delete(obj['name'])
                         self.asn_prefix_map[obj['origin']].remove(obj['name'])
+
                 if obj['kind'] == "as-set":
                     if cmd == "ADD":
                         self.assets[obj['name']] = obj['members']
@@ -168,7 +189,7 @@ class NRTMWorker(multiprocessing.Process):
 databases = config('irrexplorer_config.yml').databases
 lookup_queues = {}
 result_queues = {}
-for dbase in databases[0:2]:
+for dbase in databases:
     name = dbase.keys()[0]
     feedconfig = dbase[name]
     feedconfig = dict(d.items()[0] for d in feedconfig)
@@ -182,11 +203,11 @@ for dbase in databases[0:2]:
 #worker.start()
 
 import time
-for i in range(0, 15):
+for i in range(0, 45):
     print i
     time.sleep(1)
 
-prefix = "2401:4800::/32"
+prefix = "165.254.97.7/32"
 for i in lookup_queues:
     print "doing lookup for %s in %s" % (prefix, i)
     lookup_queues[i].put(("search_specifics", prefix))
