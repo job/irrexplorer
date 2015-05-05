@@ -29,6 +29,7 @@ from irrexplorer import config
 from irrexplorer import nrtm
 
 import ipaddr
+import itertools
 import threading
 import multiprocessing
 import radix
@@ -241,11 +242,41 @@ def query(lookup_queues, result_queues, query_type, target):
         result[i] = result_queues[i].get()
     return result
 
+"""
+    {'altdb': [], 'level3': [], 'apnic': [], 'radb': set(['AS6453',
+    'AS-GLOBEINTERNET-CLIENTS'])}
+"""
+
+def isautnum(autnum):
+    try:
+        int(autnum[2:])
+        return True
+    except ValueError:
+        return False
+
+#FIXME lookup_asset is broken
+# for each element in an as-set we want to globally check whether it is in IRRs
+# if the elment is a set itself, we must also check in all IRRs
+# this has to happen recursively but the results need to be somewhat flat
+# @param seen for instance is everything that has been queried in all the DBs
+
 def lookup_assets(asset, result=dict(), seen=[]):
     seen.append(asset)
-    print query(lookup_queues, result_queues, "asset_search", asset)
+    x = query(lookup_queues, result_queues, "asset_search", asset)
 
-lookup_assets("AS-GLOBEINTERNET")
+    for db in x:
+        if db not in result:
+            result[db] = x[db]
+        for elem in x[db]:
+            if isautnum(elem):
+                seen.append(asset)
+            elif elem not in seen:
+                result = lookup_assets(elem, result, seen)
+            else:
+                result[db] = set(list(x[db]) + list(result[db]))
+    return result
+
+print lookup_assets("AS-EMPLOT")
 
 """ main thread to keep the programme alive """
 while True:
