@@ -56,7 +56,7 @@ def parse_object(rpsl_object):
     if object_type in ["route", "route6"]:
         for line in rpsl_object:
             if line.split(':')[0] == "origin":
-                result['origin'] = fetch_value(line)
+                result['origin'] = int(fetch_value(line)[2:])
             if line.split(':')[0] == "source":
                 result['source'] = fetch_value(line)
         return result
