@@ -33,8 +33,13 @@ import threading
 import multiprocessing
 import radix
 
-from flask import Flask
+from flask import Flask, render_template, request, flash, redirect, \
+    url_for
 from flask_bootstrap import Bootstrap
+from flask_wtf import Form
+from wtforms import TextField, SubmitField
+from wtforms.validators import Required
+
 
 def find_more_specifics(target, prefixes):
     result = []
@@ -249,13 +254,24 @@ def query(query_type, target):
         result_queues[i].task_done()
     return result
 
+
 def is_autnum(autnum):
     try:
-        int(autnum[2:])
-        return True
+        if autnum.startswith('AS'):
+            int(autnum[2:])
+            return True
+        else:
+            return False
     except ValueError:
         return False
 
+
+def is_ipnetwork(data):
+    try:
+        ipaddr.IPNetwork(data)
+        return True
+    except ValueError:
+        return False
 
 def lookup_assets(asset, seen=None):
     if seen is None:
@@ -280,12 +296,52 @@ def lookup_assets(asset, seen=None):
 #print lookup_assets(asset="AS-ANTICLOCKWISE")
 #print lookup_assets(asset="AS-GLOBEINTERNET-CLIENTS")
 
-app = Flask(__name__)
-Bootstrap(app)
+class InputForm(Form):
+    field2 = TextField('Data', description='Input ASN, AS-SET or Prefix.',
+                       validators=[Required()])
+    submit_button = SubmitField('Submit')
 
-@app.route("/")
-def hello():
-    return str(lookup_assets(asset="AS-VSNL"))
 
-if __name__ == "__main__":
-    app.run()
+def create_app(configfile=None):
+    app = Flask(__name__)
+    app.config.from_pyfile('appconfig.cfg')
+    Bootstrap(app)
+
+    @app.route('/', methods=['GET', 'POST'])
+    def index():
+        form = InputForm()
+        if request.method == 'GET':
+            return render_template('index.html', form=form)
+
+        if request.method == 'POST':
+            data = form.field2.data
+
+            if is_autnum(data):
+                return redirect(url_for('autnum', autnum=data))
+
+            elif is_ipnetwork(data):
+                flash('Just one field is required, fill it in!')
+                return redirect(url_for('prefix', prefix=data))
+
+            elif data.startswith('AS'):
+                return redirect(url_for('asset', asset=data))
+
+            else:
+                return render_template('index.html', form=form)
+
+    @app.route('/autnum/<autnum>')
+    def autnum(autnum):
+        return str(query("inverseasn", autnum))
+
+    @app.route('/prefix/<path:prefix>')
+    def prefix(prefix):
+        return str(query("search_specifics", prefix))
+
+    @app.route('/asset/<asset>')
+    def asset(asset):
+        return str(lookup_assets(asset))
+
+    return app
+
+if __name__ == '__main__':
+    create_app().run(host="0.0.0.0",debug=True)

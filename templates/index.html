@@ -1,0 +1,66 @@
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "bootstrap/fixes.html" as fixes %}
+{% import "bootstrap/utils.html" as util %}
+
+{% block styles %}
+{{super()}}
+<style>
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 20px;
+}
+.centered {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="col-md-3">
+    </div>
+
+    <div class="col-md-6">
+        <div class="row">
+            <div class="col-md-3">
+            </div>
+            <div class="col-md-6">
+                <img class="center-block img-responsive" src="https://raw.githubusercontent.com/job/irrexplorer/master/docs/irrexplorer.png" />
+            </div>
+            <div class="col-md-3">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="centered">
+                <center>
+                <h2>Enter a prefix, as-set or ASN</h2>
+                {{ wtf.quick_form(form, form_type='inline', button_map={'submit_button': 'primary'}) }}
+                </center>
+            </div>
+        </div>
+        <div class="row">
+        </div>
+    </div>
+
+    <div class="col-md-3">
+    </div>
+
+</div>
+<div class="container-fluid footer">
+    <div class="pull-right">
+        Created by <a href="mailto:job@ntt.net">Job Snijders</a>, source code available on <a href="https://github.com/job/irrexplorer">Github</a>.
+    </div>
+</div>
+{% endblock %}
+
+{% block head %}
+{{super()}}
+{{fixes.ie8()}}
+{% endblock %}
