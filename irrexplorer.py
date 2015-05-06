@@ -33,6 +33,8 @@ import threading
 import multiprocessing
 import radix
 
+from flask import Flask
+from flask_bootstrap import Bootstrap
 
 def find_more_specifics(target, prefixes):
     result = []
@@ -274,10 +276,16 @@ def lookup_assets(asset, seen=None):
                 seen = lookup_assets(elem, seen)
     return seen
 
-print lookup_assets(asset="AS-VSNL")
-print lookup_assets(asset="AS-ANTICLOCKWISE")
-print lookup_assets(asset="AS-GLOBEINTERNET-CLIENTS")
+#print lookup_assets(asset="AS-VSNL")
+#print lookup_assets(asset="AS-ANTICLOCKWISE")
+#print lookup_assets(asset="AS-GLOBEINTERNET-CLIENTS")
 
-""" main thread to keep the programme alive """
-while True:
-    time.sleep(10)
+app = Flask(__name__)
+Bootstrap(app)
+
+@app.route("/")
+def hello():
+    return str(lookup_assets(asset="AS-VSNL"))
+
+if __name__ == "__main__":
+    app.run()
