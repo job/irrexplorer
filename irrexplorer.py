@@ -29,7 +29,6 @@ from irrexplorer import config
 from irrexplorer import nrtm
 
 import ipaddr
-import itertools
 import threading
 import multiprocessing
 import radix
@@ -221,6 +220,7 @@ for i in lookup_queues:
     lookup_queues[i].join()
 for i in result_queues:
     print "found in %s %s" % (i, result_queues[i].get())
+    result_queues[i].task_done()
 
 prefix = 15562
 for i in lookup_queues:
@@ -230,8 +230,12 @@ for i in lookup_queues:
     lookup_queues[i].join()
 for i in result_queues:
     print "found in %s %s" % (i, result_queues[i].get())
+    result_queues[i].task_done()
 
-def query(lookup_queues, result_queues, query_type, target):
+
+def query(query_type, target):
+    global lookup_queues
+    global result_queues
     for i in lookup_queues:
         print "doing lookup for %s in %s" % (target, i)
         lookup_queues[i].put((query_type, target))
@@ -240,43 +244,39 @@ def query(lookup_queues, result_queues, query_type, target):
     result = {}
     for i in result_queues:
         result[i] = result_queues[i].get()
+        result_queues[i].task_done()
     return result
 
-"""
-    {'altdb': [], 'level3': [], 'apnic': [], 'radb': set(['AS6453',
-    'AS-GLOBEINTERNET-CLIENTS'])}
-"""
-
-def isautnum(autnum):
+def is_autnum(autnum):
     try:
         int(autnum[2:])
         return True
     except ValueError:
         return False
 
-#FIXME lookup_asset is broken
-# for each element in an as-set we want to globally check whether it is in IRRs
-# if the elment is a set itself, we must also check in all IRRs
-# this has to happen recursively but the results need to be somewhat flat
-# @param seen for instance is everything that has been queried in all the DBs
 
-def lookup_assets(asset, result=dict(), seen=[]):
-    seen.append(asset)
-    x = query(lookup_queues, result_queues, "asset_search", asset)
+def lookup_assets(asset, seen=None):
+    if seen is None:
+        seen = []
+
+    x = query("asset_search", asset)
 
     for db in x:
-        if db not in result:
-            result[db] = x[db]
+        if not x[db]:
+            continue
         for elem in x[db]:
-            if isautnum(elem):
-                seen.append(asset)
-            elif elem not in seen:
-                result = lookup_assets(elem, result, seen)
+            if elem in seen:
+                continue
+            if is_autnum(elem):
+                seen.append(elem)
             else:
-                result[db] = set(list(x[db]) + list(result[db]))
-    return result
+                seen.append(elem)
+                seen = lookup_assets(elem, seen)
+    return seen
 
-print lookup_assets("AS-EMPLOT")
+print lookup_assets(asset="AS-VSNL")
+print lookup_assets(asset="AS-ANTICLOCKWISE")
+print lookup_assets(asset="AS-GLOBEINTERNET-CLIENTS")
 
 """ main thread to keep the programme alive """
 while True:
