@@ -210,6 +210,8 @@ def query(query_type, target):
         lookup_queues[i].join()
     result = {}
     for i in result_queues:
+        if i in ['BGP', 'RIPE-AUTH']:
+            continue
         result[i] = result_queues[i].get()
         result_queues[i].task_done()
     return result
