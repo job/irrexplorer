@@ -77,7 +77,7 @@ class RIPEWorker(multiprocessing.Process):
         self.lookup.start()
 
     def run(self):
-        print "info: loaded the tree"
+        print "INFO: loaded the RIPE managed tree"
 
 if __name__ == "__main__":
     lookup_queue = multiprocessing.JoinableQueue()
