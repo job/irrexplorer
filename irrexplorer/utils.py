@@ -73,7 +73,9 @@ def find_more_specifics(target, prefixes):
 def find_more_sp_helper(args):
     return find_more_specifics(*args)
 
-def irr_query(query_type, target, lookup_queues, result_queues):
+def irr_query(query_type, target):
+    global lookup_queues
+    global result_queues
     for i in lookup_queues:
         if i in ['BGP', 'RIPE-AUTH']:
             continue

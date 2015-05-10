@@ -28,10 +28,8 @@
 import utils
 
 
-def report_autnum(autnum, lookup_queues, result_queues):
-    return str(utils.irr_query("reverse_asn", autnum, lookup_queues,
-                               result_queues))
+def report_autnum(autnum):
+    return str(utils.irr_query("reverse_asn", autnum))
 
-def report_prefix(prefix, lookup_queues, result_queues):
-    return str(utils.irr_query("search_specifics", prefix, lookup_queues,
-                               result_queues))
+def report_prefix(prefix):
+    return str(utils.irr_query("search_specifics", prefix))
