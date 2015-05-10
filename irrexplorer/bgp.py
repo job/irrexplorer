@@ -149,9 +149,9 @@ class BGPWorker(multiprocessing.Process):
             self.tree = self.temp_tree
             self.prefixes = self.prefixes_temp
             self.asn_prefix_map = self.asn_prefix_map_temp
-            print "info: loaded the tree"
+            print "INFO: loaded the BGP tree"
             time.sleep(60 * 16)
-            print "refreshing trees"
+            print "INFO: refreshing BGP tree"
 
 if __name__ == "__main__":
     lookup_queue = multiprocessing.JoinableQueue()
