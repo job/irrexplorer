@@ -49,13 +49,15 @@ class bgpclient(object):
         return response.read()
 
     def get(self):
+        prefixes = []
         if self.bgpdump:
             for line in self.bgpdump.split('\n'):
                 try:
                     prefix, origin = line.strip().split(' ')
                 except:
                     print line
-                yield prefix, int(origin)
+                prefixes.append((prefix, int(origin)))
+            return prefixes
 
 
 class BGPLookupWorker(threading.Thread):
