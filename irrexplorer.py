@@ -30,7 +30,6 @@ from irrexplorer import nrtm
 from irrexplorer import ripe
 from irrexplorer import bgp
 from irrexplorer import utils
-from irrexplorer import views
 
 import threading
 import multiprocessing
@@ -197,6 +196,27 @@ for i in range(0, 45):
     time.sleep(1)
 
 
+def query(query_type, target):
+    global lookup_queues
+    global result_queues
+    for i in lookup_queues:
+        if i in ['BGP', 'RIPE-AUTH']:
+            continue
+        print "doing lookup for %s in %s" % (target, i)
+        lookup_queues[i].put((query_type, target))
+    for i in lookup_queues:
+        if i in ['BGP', 'RIPE-AUTH']:
+            continue
+        lookup_queues[i].join()
+    result = {}
+    for i in result_queues:
+        if i in ['BGP', 'RIPE-AUTH']:
+            continue
+        result[i] = result_queues[i].get()
+        result_queues[i].task_done()
+    return result
+
+
 class InputForm(Form):
     field2 = TextField('Data', description='Input ASN, AS-SET or Prefix.',
                        validators=[Required()])
@@ -238,11 +258,11 @@ def create_app(configfile=None):
 
     @app.route('/autnum/<autnum>')
     def autnum(autnum):
-        return views.report_autnum(autnum)
+        return str(query("inverseasn", autnum))
 
     @app.route('/prefix/<path:prefix>')
     def prefix(prefix):
-        return views.report_prefix(prefix)
+        return str(query("search_specifics", prefix))
 
 #    @app.route('/asset/<asset>')
 #    def asset(asset):
