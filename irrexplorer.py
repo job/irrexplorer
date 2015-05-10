@@ -29,8 +29,8 @@ from irrexplorer import config
 from irrexplorer import nrtm
 from irrexplorer import ripe
 from irrexplorer import bgp
+from irrexplorer import utils
 
-import ipaddr
 import threading
 import multiprocessing
 import radix
@@ -41,18 +41,6 @@ from flask_bootstrap import Bootstrap
 from flask_wtf import Form
 from wtforms import TextField, SubmitField
 from wtforms.validators import Required
-
-
-def find_more_specifics(target, prefixes):
-    result = []
-    for prefix in prefixes:
-        if prefix:
-            if ipaddr.IPNetwork(prefix) in ipaddr.IPNetwork(target):
-                result.append(prefix)
-    return result
-
-def find_more_sp_helper(args):
-    return find_more_specifics(*args)
 
 
 class LookupWorker(threading.Thread):
@@ -79,7 +67,7 @@ class LookupWorker(threading.Thread):
                 pool = multiprocessing.Pool(6)
                 parts = [self.tree.prefixes()[i::6] for i in range(6)]  # split all pfx in 4 lists
                 job_args = [(target, p) for p in parts]  # workaround pool() only accepts 1 arg
-                specifics = pool.map(find_more_sp_helper, job_args)
+                specifics = pool.map(utils.find_more_sp_helper, job_args)
                 # next line flattens the list of lists
                 for prefix in [item for sublist in specifics for item in sublist]:
                     data = self.tree.search_exact(prefix).data
@@ -123,7 +111,7 @@ class NRTMWorker(multiprocessing.Process):
         self.asn_prefix_map = {}
         self.assets = {}
         self.lookup = LookupWorker(self.tree, self.asn_prefix_map, self.assets,
-                                 self.lookup_queue, self.result_queue)
+                                   self.lookup_queue, self.result_queue)
 
 # TODO
 # add completly new rnode from irr
@@ -207,26 +195,6 @@ for i in range(0, 45):
     print i
     time.sleep(1)
 
-prefix = "165.254.97.7/32"
-for i in lookup_queues:
-    print "doing lookup for %s in %s" % (prefix, i)
-    lookup_queues[i].put(("search_specifics", prefix))
-for i in lookup_queues:
-    lookup_queues[i].join()
-for i in result_queues:
-    print "found in %s %s" % (i, result_queues[i].get())
-    result_queues[i].task_done()
-
-prefix = 15562
-for i in lookup_queues:
-    print "doing lookup for %s in %s" % (prefix, i)
-    lookup_queues[i].put(("inverseasn", prefix))
-for i in lookup_queues:
-    lookup_queues[i].join()
-for i in result_queues:
-    print "found in %s %s" % (i, result_queues[i].get())
-    result_queues[i].task_done()
-
 
 def query(query_type, target):
     global lookup_queues
@@ -242,47 +210,6 @@ def query(query_type, target):
         result_queues[i].task_done()
     return result
 
-
-def is_autnum(autnum):
-    try:
-        if autnum.startswith('AS'):
-            int(autnum[2:])
-            return True
-        else:
-            return False
-    except ValueError:
-        return False
-
-
-def is_ipnetwork(data):
-    try:
-        ipaddr.IPNetwork(data)
-        return True
-    except ValueError:
-        return False
-
-def lookup_assets(asset, seen=None):
-    if seen is None:
-        seen = []
-
-    x = query("asset_search", asset)
-
-    for db in x:
-        if not x[db]:
-            continue
-        for elem in x[db]:
-            if elem in seen:
-                continue
-            if is_autnum(elem):
-                seen.append(elem)
-            else:
-                seen.append(elem)
-                seen = lookup_assets(elem, seen)
-    return seen
-
-#print lookup_assets(asset="AS-VSNL")
-#print lookup_assets(asset="AS-ANTICLOCKWISE")
-#print lookup_assets(asset="AS-GLOBEINTERNET-CLIENTS")
 
 class InputForm(Form):
     field2 = TextField('Data', description='Input ASN, AS-SET or Prefix.',
@@ -304,15 +231,16 @@ def create_app(configfile=None):
         if request.method == 'POST':
             data = form.field2.data
 
-            if is_autnum(data):
+            if utils.is_autnum(data):
                 return redirect(url_for('autnum', autnum=data))
 
-            elif is_ipnetwork(data):
+            elif utils.is_ipnetwork(data):
                 flash('Just one field is required, fill it in!')
                 return redirect(url_for('prefix', prefix=data))
 
-            elif data.startswith('AS'):
-                return redirect(url_for('asset', asset=data))
+#FIXME no support for as-set digging for now
+#            elif data.startswith('AS'):
+#                return redirect(url_for('asset', asset=data))
 
             else:
                 return render_template('index.html', form=form)
@@ -325,11 +253,11 @@ def create_app(configfile=None):
     def prefix(prefix):
         return str(query("search_specifics", prefix))
 
-    @app.route('/asset/<asset>')
-    def asset(asset):
-        return str(lookup_assets(asset))
+#    @app.route('/asset/<asset>')
+#    def asset(asset):
+#        return str(utils.lookup_assets(asset))
 
     return app
 
 if __name__ == '__main__':
-    create_app().run(host="0.0.0.0",debug=True)
+    create_app().run(host="0.0.0.0", debug=True)
