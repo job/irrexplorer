@@ -73,5 +73,25 @@ def find_more_specifics(target, prefixes):
 def find_more_sp_helper(args):
     return find_more_specifics(*args)
 
+def irr_query(query_type, target):
+    global lookup_queues
+    global result_queues
+    for i in lookup_queues:
+        if i in ['BGP', 'RIPE-AUTH']:
+            continue
+        print "doing lookup for %s in %s" % (target, i)
+        lookup_queues[i].put((query_type, target))
+    for i in lookup_queues:
+        if i in ['BGP', 'RIPE-AUTH']:
+            continue
+        lookup_queues[i].join()
+    result = {}
+    for i in result_queues:
+        if i in ['BGP', 'RIPE-AUTH']:
+            continue
+        result[i] = result_queues[i].get()
+        result_queues[i].task_done()
+    return result
+
 if __name__ == "__main__":
     pass
