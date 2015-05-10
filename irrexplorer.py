@@ -74,6 +74,15 @@ class LookupWorker(threading.Thread):
                     results.append({prefix: data['origins']})
                 self.result_queue.put(results)
 
+            elif lookup == "search_aggregate":
+                rnode = self.tree.search_worst(target)
+                if not rnode:
+                    self.result_queue.put(None)
+                else:
+                    prefix = rnode.prefix
+                    data = rnode.data
+                    self.result_queue.put((prefix, data))
+
             elif lookup == "inverseasn":
                 if target in self.asn_prefix_map:
                     self.result_queue.put(self.asn_prefix_map[target])
@@ -196,7 +205,7 @@ for i in range(0, 45):
     time.sleep(1)
 
 
-def query(query_type, target):
+def irr_query(query_type, target):
     global lookup_queues
     global result_queues
     for i in lookup_queues:
@@ -215,6 +224,42 @@ def query(query_type, target):
         result[i] = result_queues[i].get()
         result_queues[i].task_done()
     return result
+
+def other_query(data_source, query_type, target):
+    global lookup_queues
+    global result_queues
+    lookup_queues[data_source].put((query_type, target))
+    lookup_queues[data_source].join()
+    result = result_queues[data_source].get()
+    result_queues[data_source].task_done()
+    return result
+
+
+def bgp_query():
+    pass
+
+
+def ripe_query():
+    pass
+
+
+def prefix_report(prefix):
+    """
+        - find least specific
+        - search in BGP for more specifics
+        - search in IRR for more specifics
+        - check all prefixes whether they are RIPE managed or not
+        - return dict
+    """
+    tree = radix.Radix()
+    bgp_aggregate = other_query("BGP", "search_aggregate", prefix)
+    tree.add(bgp_aggregate)
+    irr_aggregate = irr_query("search_aggregate", prefix)
+    for r in irr_aggregate:
+        if irr_aggregate[r]:
+            tree.add(irr_aggregate[r])
+    aggregate = tree.search_worst(prefix)
+    return aggregate
 
 
 class InputForm(Form):
@@ -258,11 +303,12 @@ def create_app(configfile=None):
 
     @app.route('/autnum/<autnum>')
     def autnum(autnum):
-        return str(query("inverseasn", autnum))
+        return str(irr_query("inverseasn", autnum))
 
     @app.route('/prefix/<path:prefix>')
     def prefix(prefix):
-        return str(query("search_specifics", prefix))
+        return prefix_report(prefix)
+#        return str(query("search_specifics", prefix))
 
 #    @app.route('/asset/<asset>')
 #    def asset(asset):

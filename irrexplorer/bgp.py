@@ -93,6 +93,15 @@ class BGPLookupWorker(threading.Thread):
                     results.append({prefix: data['origins']})
                 self.result_queue.put(results)
 
+            elif lookup == "search_aggregate":
+                rnode = self.tree.search_worst(target)
+                if not rnode:
+                    self.result_queue.put(None)
+                else:
+                    prefix = rnode.prefix
+                    data = rnode.data
+                    self.result_queue.put((prefix, data))
+
             elif lookup == "inverseasn":
                 if target in self.asn_prefix_map:
                     self.result_queue.put(self.asn_prefix_map[target])
