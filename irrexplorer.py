@@ -200,9 +200,13 @@ def query(query_type, target):
     global lookup_queues
     global result_queues
     for i in lookup_queues:
+        if i in ['BGP', 'RIPE-AUTH']:
+            continue
         print "doing lookup for %s in %s" % (target, i)
         lookup_queues[i].put((query_type, target))
     for i in lookup_queues:
+        if i in ['BGP', 'RIPE-AUTH']:
+            continue
         lookup_queues[i].join()
     result = {}
     for i in result_queues:
