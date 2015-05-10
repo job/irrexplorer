@@ -204,6 +204,8 @@ class InputForm(Form):
 
 
 def create_app(configfile=None):
+    global lookup_queues
+    global result_queues
     app = Flask(__name__)
     app.config.from_pyfile('appconfig.cfg')
     Bootstrap(app)
@@ -238,11 +240,11 @@ def create_app(configfile=None):
 
     @app.route('/autnum/<autnum>')
     def autnum(autnum):
-        return views.report_autnum(autnum)
+        return views.report_autnum(autnum, lookup_queues, result_queues)
 
     @app.route('/prefix/<path:prefix>')
     def prefix(prefix):
-        return views.report_prefix(prefix)
+        return views.report_prefix(prefix, lookup_queues, result_queues)
 
 #    @app.route('/asset/<asset>')
 #    def asset(asset):
