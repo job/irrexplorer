@@ -57,6 +57,7 @@ class bgpclient(object):
                 except:
                     print line
                 prefixes.append((prefix, int(origin)))
+            print "INFO: collected all BGP prefixes in a single list"
             return prefixes
 
 
