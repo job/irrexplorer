@@ -142,13 +142,13 @@ class BGPWorker(multiprocessing.Process):
             self.prefixes_temp = []
             self.asn_prefix_map_temp = {}
             for prefix, origin in self.bgpfeed.get():
-                self.prefixes.append(prefix)
+                self.prefixes_temp.append(prefix)
                 rnode = self.temp_tree.add(prefix)
                 rnode.data["origins"] = origin
-                if origin not in self.asn_prefix_map.keys():
-                    self.asn_prefix_map[origin] = [prefix]
+                if origin not in self.asn_prefix_map_temp.keys():
+                    self.asn_prefix_map_temp[origin] = [prefix]
                 else:
-                    self.asn_prefix_map[origin].append(prefix)
+                    self.asn_prefix_map_temp[origin].append(prefix)
             self.tree = self.temp_tree
             self.prefixes = self.prefixes_temp
             self.asn_prefix_map = self.asn_prefix_map_temp
