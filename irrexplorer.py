@@ -56,7 +56,7 @@ class LookupWorker(threading.Thread):
     def run(self):
         while True:
             lookup, target = self.lookup_queue.get()
-            results = []
+            results = {}
             if not lookup:
                 continue
             if lookup == "search_specifics":
@@ -71,7 +71,8 @@ class LookupWorker(threading.Thread):
                 # next line flattens the list of lists
                 for prefix in [item for sublist in specifics for item in sublist]:
                     data = self.tree.search_exact(prefix).data
-                    results.append({prefix: data['origins']})
+                    results[prefix] = {}
+                    results[prefix]['origins'] = data['origins']
                 self.result_queue.put(results)
 
             elif lookup == "search_aggregate":
@@ -273,15 +274,17 @@ def prefix_report(prefix):
         else:
             prefixes[p]['bgp_origin'] = bgp_specifics[p]['origins']
     for db in irr_specifics:
-        if irr_specifics[db]:
-            for p in irr_specifics[db]:
-                if p not in prefixes:
-                    prefixes[p] = {}
-                    prefixes[p][db] = irr_specifics[db][p]['origins']
-                else:
-                    prefixes[p][db] = irr_specifics[db][p]['origins']
-        else:
+        if not irr_specifics[db]:
             prefixes[p][db] = False
+            continue
+        #FIXME irr_query() should return a dict in dict, not list in dict
+        for p in irr_specifics[db]:
+            if p not in prefixes:
+                prefixes[p] = {}
+                prefixes[p][db] = irr_specifics[db][p]['origins']
+            else:
+                prefixes[p][db] = irr_specifics[db][p]['origins']
+
     for p in prefixes:
         if p not in bgp_specifics:
             prefixes[p]['bgp_origin'] = False
