@@ -253,12 +253,15 @@ def prefix_report(prefix):
     """
     tree = radix.Radix()
     bgp_aggregate = other_query("BGP", "search_aggregate", prefix)
-    tree.add(bgp_aggregate)
+    if bgp_aggregate:
+        tree.add(bgp_aggregate)
     irr_aggregate = irr_query("search_aggregate", prefix)
     for r in irr_aggregate:
         if irr_aggregate[r]:
             tree.add(irr_aggregate[r])
     aggregate = tree.search_worst(prefix)
+    if not aggregate:
+        return "Could not find prefix in IRR or BGP tables"
     return aggregate
 
 
