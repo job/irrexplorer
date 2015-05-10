@@ -258,11 +258,13 @@ def prefix_report(prefix):
     irr_aggregate = irr_query("search_aggregate", prefix)
     for r in irr_aggregate:
         if irr_aggregate[r]:
-            tree.add(irr_aggregate[r])
+            tree.add(irr_aggregate[r][0])
     aggregate = tree.search_worst(prefix)
     if not aggregate:
         return "Could not find prefix in IRR or BGP tables"
-    return aggregate
+    else:
+        aggregate = aggregate.prefix
+        return aggregate
 
 
 class InputForm(Form):
