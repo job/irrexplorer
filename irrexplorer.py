@@ -27,6 +27,8 @@
 
 from irrexplorer import config
 from irrexplorer import nrtm
+from irrexplorer import ripe
+from irrexplorer import bgp
 
 import ipaddr
 import threading
@@ -178,26 +180,6 @@ class NRTMWorker(multiprocessing.Process):
                     else:
                         del self.assets[obj['name']]
 
-# deprecated
-#class Radix_maintainer(threading.Thread):
-#    """
-#    Consumes NRTM + BGP updates and stores them in a central
-#    radix tree.
-#    """
-#    def __init__(self, nrtm_queue):
-#        """
-#        Constructor.
-#
-#        @param nrtm_queue Queue() from which NRTM/BGP updates are taken
-#        """
-#        threading.Thread.__init__(self)
-#        self.nrtm_queue = nrtm_queue
-#        self.tree = radix.Radix()
-#
-#    def run(self):
-#        while True:
-#            update = self.nrtm_queue.get()
-
 databases = config('irrexplorer_config.yml').databases
 lookup_queues = {}
 result_queues = {}
@@ -210,9 +192,15 @@ for dbase in databases:
     worker = NRTMWorker(feedconfig, lookup_queues[name], result_queues[name])
     worker.start()
 
-#worker = Radix_maintainer(nrtm_queue)
-#worker.setDaemon(True)
-#worker.start()
+# Launch helper processes for BGP & RIPE managed space lookups
+for q in ['RIPE-AUTH', 'BGP']:
+    lookup_queues[q] = multiprocessing.JoinableQueue()
+    result_queues[q] = multiprocessing.JoinableQueue()
+worker = bgp.BGPWorker(lookup_queues['BGP'], result_queues['BGP'])
+worker.start()
+worker = ripe.RIPEWorker(lookup_queues['RIPE-AUTH'],
+                         result_queues['RIPE-AUTH'])
+worker.start()
 
 import time
 for i in range(0, 45):
