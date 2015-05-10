@@ -264,7 +264,15 @@ def prefix_report(prefix):
         return "Could not find prefix in IRR or BGP tables"
     else:
         aggregate = aggregate.prefix
-        return aggregate
+    bgp_specifics = other_query("BGP", "search_specifics", aggregate)
+    irr_specifics = irr_query("search_specifics", aggregate)
+    prefixes = {}
+    for p in bgp_specifics:
+        if p not in prefixes:
+            prefixes[p] = {'bgp_origin': bgp_specifics[p]['origins']}
+        else:
+            prefixes[p]['bgp_origin'] = bgp_specifics[p]['origins']
+    return prefixes
 
 
 class InputForm(Form):
