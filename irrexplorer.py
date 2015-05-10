@@ -230,6 +230,11 @@ def create_app(configfile=None):
 
         if request.method == 'POST':
             data = form.field2.data
+            try:
+                int(data)
+                data = "AS%s" % data
+            except ValueError:
+                pass
 
             if utils.is_autnum(data):
                 return redirect(url_for('autnum', autnum=data))
