@@ -54,7 +54,11 @@ class RIPELookupWorker(threading.Thread):
             if not lookup:
                 continue
             if lookup == "is_covered":
-                result = self.tree.search_worst(target).prefix
+                result = self.tree.search_worst(target)
+                if result:
+                    result = result.prefix
+                else:
+                    result = None
                 self.result_queue.put(result)
 
             self.lookup_queue.task_done()
