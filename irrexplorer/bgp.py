@@ -141,7 +141,7 @@ class BGPWorker(multiprocessing.Process):
             self.prefixes = self.prefixes_temp
             self.asn_prefix_map = self.asn_prefix_map_temp
             print "info: loaded the tree"
-            time.sleep(60 * 2)
+            time.sleep(60 * 16)
             print "refreshing trees"
 
 if __name__ == "__main__":
