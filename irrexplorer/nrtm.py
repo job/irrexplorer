@@ -69,7 +69,7 @@ class client(object):
 
     def get(self):
         if self.dump:
-            for obj in parser.parse_dump(self.dump)[0:50000]:
+            for obj in parser.parse_dump(self.dump):
                 yield 'ADD', 0, obj
         self.dump = None  # not necessary
         print "INFO: done loading dump for %s" % self.dbname
