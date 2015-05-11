@@ -229,7 +229,7 @@ def irr_query(query_type, target):
         if i in ['BGP', 'RIPE-AUTH']:
             continue
         lookup_queues[i].join()
-    time.sleep(1)
+    time.sleep(10)
     result = {}
     for i in result_queues:
         if i in ['BGP', 'RIPE-AUTH']:
@@ -304,7 +304,8 @@ def prefix_report(prefix):
         'ripe': {'85.184.0.0/16': {'origins': [8935]}},
         'arin': {}, 'afrinic': {}, 'tc': {}}
     """
-    print prefixes
+    print "prefix_report: Lookup prefixes: %s" % prefixes
+    print "prefix_report: Lookup irr_specifics: %s" % irr_specifics
 
     for db in irr_specifics:
         if not irr_specifics[db]:
