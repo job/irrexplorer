@@ -23,7 +23,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container" style="width:90%">
 
     <div class="col-md-6">
         <div class="row">
@@ -153,15 +153,19 @@ function rendererImgFunction(data, type, row) {
 function getfields(prefix_data) {
 
     prefixes = Object.keys(prefix_data);
-    fieldsfound = Object.keys(prefix_data[prefixes[0]])
-    fields = [ "prefix" ]
+    fieldsfound = Object.keys(prefix_data[prefixes[0]]).sort();
+
+    fields = ["prefix", "bgp_origin"];
+    fieldsend = ["ripe_managed", "advice"];
     for (var field in fieldsfound) {
         fieldname = fieldsfound[field];
-        if (fieldname.startsWith("advice") == false) {
+        if (fieldsend.indexOf(fieldname) == -1) {
+            if (fields.indexOf(fieldname) == -1) {
                 fields.push(fieldname);
+            }
         }
     }
-    fields.push("advice");
+    fields.push.apply(fields, fieldsend);
 
     return fields
 
