@@ -169,8 +169,12 @@ class NRTMWorker(multiprocessing.Process):
                         else:
                             self.asn_prefix_map[obj['origin']].append(obj['name'])
                     else:
-                        self.tree.delete(obj['name'])
-                        self.asn_prefix_map[obj['origin']].remove(obj['name'])
+                        try:
+                            self.tree.delete(obj['name'])
+                            self.asn_prefix_map[obj['origin']].remove(obj['name'])
+                        except KeyError:
+                            print "ERROR: could not remove this object from the tree in %s" % self.dbname
+                            print obj
 
                 if obj['kind'] == "as-set":
                     if cmd == "ADD":
