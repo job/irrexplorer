@@ -126,9 +126,9 @@ class BGPWorker(multiprocessing.Process):
         multiprocessing.Process.__init__(self)
         self.lookup_queue = lookup_queue
         self.result_queue = result_queue
-        self.tree = radix.Radix()
-        self.prefixes = []
-        self.asn_prefix_map = {}
+        self.tree = None
+        self.prefixes = None
+        self.asn_prefix_map = None
         self.dbname = "BGP"
         self.lookup = BGPLookupWorker(self.tree, self.prefixes,
                                       self.asn_prefix_map, self.lookup_queue,
