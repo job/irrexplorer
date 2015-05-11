@@ -79,7 +79,7 @@ class BGPLookupWorker(threading.Thread):
     def run(self):
         while True:
             lookup, target = self.lookup_queue.get()
-            results = []
+            results = {}
             if not lookup:
                 continue
             else:
@@ -93,7 +93,8 @@ class BGPLookupWorker(threading.Thread):
                 # next line flattens the list of lists
                 for prefix in [item for sublist in specifics for item in sublist]:
                     data = self.tree.search_exact(prefix).data
-                    results.append({prefix: data['origins']})
+                    results[prefix] = {}
+                    results[prefix]['origins'] = data['origins']
                 self.result_queue.put(results)
 
             elif lookup == "search_aggregate":
