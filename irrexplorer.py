@@ -155,6 +155,11 @@ class NRTMWorker(multiprocessing.Process):
 
                 if obj['kind'] in ["route", "route6"]:
                     if cmd == "ADD":
+                        try:
+                            ipaddr.IPNetwork(obj['name'])
+                        except ValueError:
+                            print "ERROR: non-valid stuff in %s: %s" \
+                                % (self.dbname, obj)
                         if not self.tree.search_exact(obj['name']):
                             # FIXME does sometimes fails in the pure python
                             # py-radix
