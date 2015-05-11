@@ -229,7 +229,6 @@ def irr_query(query_type, target):
         if i in ['BGP', 'RIPE-AUTH']:
             continue
         lookup_queues[i].join()
-    time.sleep(10)
     result = {}
     for i in result_queues:
         if i in ['BGP', 'RIPE-AUTH']:
@@ -329,6 +328,13 @@ def prefix_report(prefix):
     for p in prefixes:
         print p
         print prefixes[p]
+        for db in ['afrinic', 'altdb', 'apnic', 'arin', 'bboi', 'bell', 'gt',
+                   'jpirr', 'level3', 'nttcom', 'radb', 'rgnet', 'ripe',
+                   'savvis', 'tc']:
+            if db == "ripe":
+                continue
+            if not prefixes[p][db]:
+                prefixes[p][db] = None
         if prefixes[p]['ripe_managed'] \
                 and not prefixes[p]['ripe'] \
                 and not prefixes[p]['bgp_origin']:
