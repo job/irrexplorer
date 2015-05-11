@@ -266,7 +266,9 @@ def prefix_report(prefix):
             tree.add(irr_aggregate[r][0])
     aggregate = tree.search_worst(prefix)
     if not aggregate:
-        return "Could not find prefix in IRR or BGP tables"
+        return """Could not find prefix in IRR or BGP tables: %s""" \
+            % tree.prefixes()
+
     else:
         aggregate = aggregate.prefix
     bgp_specifics = other_query("BGP", "search_specifics", aggregate)
