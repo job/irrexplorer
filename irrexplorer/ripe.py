@@ -54,6 +54,7 @@ class RIPELookupWorker(threading.Thread):
             if not lookup:
                 continue
             if lookup == "is_covered":
+                print "Received lookup request for: %s %s" % (lookup, target)
                 result = self.tree.search_worst(target)
                 if result:
                     result = result.prefix
