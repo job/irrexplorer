@@ -5,3 +5,4 @@ py-radix
 flask
 flask-bootstrap
 flask-table
+flask-wtf
