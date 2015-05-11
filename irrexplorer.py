@@ -316,7 +316,7 @@ def prefix_report(prefix):
         else:
             prefixes[p]['ripe_managed'] = False
 
-    return str(prefixes)
+    return prefixes
 
 
 class InputForm(Form):
