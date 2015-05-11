@@ -33,7 +33,7 @@
                 <img class="img-responsive" src="https://raw.githubusercontent.com/job/irrexplorer/master/docs/irrexplorer-logo.png" />
             </div>
             <div class="col-md-3">
-                
+
             </div>
         </div>
 
@@ -77,10 +77,33 @@
 <script type="text/javascript" src="//cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>
 <script type="text/javascript">
 $(document).ready(function () {
-    //$('#example').DataTable();
+
+    // look at what is after /prefix/ in the URL
+    // if something is present then search straight away
+    prefixurl = "";
+    var pathArray = window.location.pathname.split( '/' );
+    if (pathArray[pathArray.length - 1 ] != "prefix") {
+        if (pathArray[pathArray.length - 2] == "prefix") {
+            prefixurl = pathArray[pathArray.length - 1];
+        }
+        if (pathArray[pathArray.length - 3] == "prefix") {
+            prefixurl = pathArray[pathArray.length - 2] + "/" + pathArray[pathArray.length - 1];
+        }
+    }
+    if (prefixurl != "") {
+        $('form').find('input[name="prefix"]').val(prefixurl);
+        prefixsearch();
+    }
+
     $("form").submit(function (e) {
         e.preventDefault(); //prevent default form submit
-        var prefix = $('form').find('input[name="prefix"]').val();
+        prefixsearch();
+    });
+
+});
+
+function prefixsearch() {
+    var prefix = $('form').find('input[name="prefix"]').val();
         if (prefix.length > 0)
         {
             $("#btnsearch").prop("disabled",true);
@@ -88,10 +111,8 @@ $(document).ready(function () {
             $.ajax({
                 url: '/prefix_json/' + prefix,
                 success: function (data) {
-                    //alert('x');
                     $("#btnsearch").prop("disabled",false);
                     $("#btnsearch").html('Search');
-                    //alert(data);
                     prefixes = JSON.parse(data);
                     populatetable('#example', prefixes);
                 },
@@ -103,8 +124,7 @@ $(document).ready(function () {
                 cache: false
             });
         };
-    });
-});
+}
 
 function rendererImgFunction(data, type, row) {
     if (typeof data != 'undefined') {
@@ -127,9 +147,12 @@ function getfields(prefix_data) {
     fieldsfound = Object.keys(prefix_data[prefixes[0]])
     fields = [ "prefix" ]
     for (var field in fieldsfound) {
-        fields.push(fieldsfound[field]);
+        fieldname = fieldsfound[field];
+        if (fieldname.startsWith("advice") == false) {
+                fields.push(fieldname);
+        }
     }
-    fields.push("advice")
+    fields.push("advice");
 
     return fields
 
@@ -169,7 +192,8 @@ function populatetable(tblname, prefix_data) {
     $(tblname).dataTable( {
             "data": rows,
             "columns": colsdisp,
-            searching: false, lengthChange: false,
+            "searching": false,
+            "lengthChange": false,
             "bPaginate": false
         } );   
 }
