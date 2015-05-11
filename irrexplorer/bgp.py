@@ -132,7 +132,6 @@ class BGPWorker(multiprocessing.Process):
         self.lookup = BGPLookupWorker(self.tree, self.prefixes,
                                       self.asn_prefix_map, self.lookup_queue,
                                       self.result_queue)
-        self.bgpfeed = bgpclient()
 
     def run(self):
         self.lookup.start()
