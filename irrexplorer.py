@@ -293,8 +293,7 @@ def prefix_report(prefix):
         else:
             prefixes[p]['ripe_managed'] = False
 
-    import pprint
-    return str(pprint.pprint(prefixes))
+    return str(prefixes)
 
 
 class InputForm(Form):
