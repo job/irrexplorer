@@ -150,7 +150,7 @@ class NRTMWorker(multiprocessing.Process):
                         match the configured/expected database """
                         continue
                 except:
-                    print "ERROR: weird object: %s" % obj
+                    print "ERROR: weird object in %s: %s" % (self.dbname, obj)
                     continue
 
                 if obj['kind'] in ["route", "route6"]:
