@@ -27,31 +27,31 @@
 
     <div class="col-md-6">
         <div class="row">
-            <div class="col-md-3">
-            </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <img class="img-responsive" src="https://raw.githubusercontent.com/job/irrexplorer/master/docs/irrexplorer-logo.png" />
             </div>
-            <div class="col-md-3">
-
+            <div class="col-md-1">
+            </div>
+            <div class="col-md-7">
+                <div class="row">&nbsp;
+                </div>
+                <form id="form">
+                    <h2>Prefix</h2><input type="text" name="prefix"/>
+                    <button id="btnsearch" type="submit" class="btn btn-primary" name="search" value="Search">Search</button>
+                </form>
             </div>
         </div>
+
+        <div class="row">&nbsp;</div>
 
         <div class="row">
             <div>
 
-                <h2>Prefix</h2>
-                
-                <form>
-                
-        <form id="form">
-                    <input type="text" name="prefix"/>
-                    <button id="btnsearch" type="submit" class="btn btn-primary" name="search" value="Search">Search</button>
-        </form>
-
-<table id="example" class="display" cellspacing="0" width="100%">
-    </table>
-
+                    <div class="row" id="loading" style="display:none">
+                        <div class="col-md-2 col-md-offset-5"><img src="/static/img/loading.gif"/></div>
+                    </div>
+                <table id="example" class="display" cellspacing="0" width="100%">
+                </table>
 
             </div>
         </div>
@@ -89,11 +89,11 @@ $(document).ready(function () {
         if (pathArray[pathArray.length - 3] == "prefix") {
             prefixurl = pathArray[pathArray.length - 2] + "/" + pathArray[pathArray.length - 1];
         }
-    }
+    };
     if (prefixurl != "") {
         $('form').find('input[name="prefix"]').val(prefixurl);
         prefixsearch();
-    }
+    };
 
     $("form").submit(function (e) {
         e.preventDefault(); //prevent default form submit
@@ -102,24 +102,33 @@ $(document).ready(function () {
 
 });
 
+function state_loaded() {
+    $("#btnsearch").prop("disabled",false); 
+    $("#loading").hide();
+    $("#btnsearch").html('Search');  
+}
+
+function state_loading() {
+    $("#btnsearch").prop("disabled",true);
+    $("#btnsearch").html('Searching...');
+    $("#loading").show();
+}
+
 function prefixsearch() {
     var prefix = $('form').find('input[name="prefix"]').val();
         if (prefix.length > 0)
         {
-            $("#btnsearch").prop("disabled",true);
-            $("#btnsearch").html('Searching...');
+            state_loading();
             $.ajax({
                 url: '/prefix_json/' + prefix,
                 success: function (data) {
-                    $("#btnsearch").prop("disabled",false);
-                    $("#btnsearch").html('Search');
+                    state_loaded();
                     prefixes = JSON.parse(data);
                     populatetable('#example', prefixes);
                 },
                 failure: function(errMsg) {
+                    state_loaded();
                     alert(errMsg);
-                    $("#btnsearch").prop("disabled",false); 
-                    $("#btnsearch").html('Search');
                 },
                 cache: false
             });
@@ -163,6 +172,8 @@ function populatetable(tblname, prefix_data) {
 
     fields = getfields(prefix_data);
 
+    $("#example").hide();
+
     console.log(fields);
     rows = [];
     prefixes = Object.keys(prefix_data);
@@ -189,13 +200,23 @@ function populatetable(tblname, prefix_data) {
         coldisp = {"title": field}
         colsdisp.push(coldisp);
     }
-    $(tblname).dataTable( {
-            "data": rows,
-            "columns": colsdisp,
-            "searching": false,
-            "lengthChange": false,
-            "bPaginate": false
-        } );   
+    if ( ! $.fn.DataTable.isDataTable( '#example' ) ) {
+        $("#example").dataTable( {
+                "data": rows,
+                "columns": colsdisp,
+                "searching": false,
+                "lengthChange": false,
+                "bPaginate": false
+            } );   
+    } else {
+        // just update, already set the table up once
+        $("#example").dataTable().fnClearTable();
+        $("#example").dataTable().fnAddData(rows);
+           
+    }
+
+
+    $("#example").show();
 }
 
 </script>
