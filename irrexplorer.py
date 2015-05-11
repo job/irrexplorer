@@ -31,6 +31,7 @@ from irrexplorer import ripe
 from irrexplorer import bgp
 from irrexplorer import utils
 
+import ipaddr
 import threading
 import multiprocessing
 import radix
