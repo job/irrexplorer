@@ -161,7 +161,7 @@ class NRTMWorker(multiprocessing.Process):
                             rnode.data['origins'] = [obj['origin']]
                         else:
                             rnode = self.tree.search_exact(obj['name'])
-                            rnode.data['origins'] = set([obj['origin']] + list(rnode.data['origins']))
+                            rnode.data['origins'] = list(set([obj['origin']] + list(rnode.data['origins'])))
 
                         # add prefix to the inverse ASN map
                         if obj['origin'] not in self.asn_prefix_map:
