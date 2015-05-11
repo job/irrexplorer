@@ -281,10 +281,12 @@ def prefix_report(prefix):
             prefixes[p] = {'bgp_origin': bgp_specifics[p]['origins']}
         else:
             prefixes[p]['bgp_origin'] = bgp_specifics[p]['origins']
-    for p in irr_specifics:
-        if p not in prefixes:
-            prefixes[p] = {}
-            prefixes[p]['bgp_origin'] = False
+    for db in irr_specifics:
+        if irr_specifics[db]:
+            for p in irr_specifics[db]:
+                if p not in prefixes:
+                    prefixes[p] = {}
+                    prefixes[p]['bgp_origin'] = False
         else:
             pass
 
