@@ -84,7 +84,7 @@ class BGPLookupWorker(threading.Thread):
             if not lookup:
                 continue
             else:
-                print "received lookup!!"
+                print "received BGP lookup: %s %s" % (lookup, target)
             if lookup == "search_specifics":
                 data = None
                 pool = multiprocessing.Pool(6)
@@ -140,20 +140,26 @@ class BGPWorker(multiprocessing.Process):
         self.lookup.start()
         while True:
             self.bgpfeed = bgpclient()
-            self.temp_tree = radix.Radix()
             self.prefixes_temp = []
             self.asn_prefix_map_temp = {}
             for prefix, origin in self.bgpfeed.get():
                 self.prefixes_temp.append(prefix)
-                rnode = self.temp_tree.add(prefix)
-                rnode.data["origins"] = origin
+                # new prefix
+                if prefix not in self.prefixes and prefix in self.prefixes_temp:
+                    rnode = self.tree.add(prefix)
+                    rnode.data["origins"] = origin
+                elif prefix in self.prefixes and prefix in self.prefixes_temp:
+                    rnode = self.tree.search_exact(prefix)
+                    rnode.data["origins"] = origin
+                else:  # prefix disappeared from bgp table
+                    self.tree.delete(prefix)
                 if origin not in self.asn_prefix_map_temp.keys():
                     self.asn_prefix_map_temp[origin] = [prefix]
                 else:
                     self.asn_prefix_map_temp[origin].append(prefix)
-            self.tree = copy.deepcopy(self.temp_tree)
-            self.prefixes = copy.deepcopy(self.prefixes_temp)
-            self.asn_prefix_map = copy.deepcopy(self.asn_prefix_map_temp)
+            self.prefixes[:] = self.prefixes_temp
+            self.asn_prefix_map.clear()
+            self.asn_prefix_map.update(self.asn_prefix_map_temp)
             print "INFO: loaded the BGP tree"
             time.sleep(60 * 16)
             print "INFO: refreshing BGP tree"
