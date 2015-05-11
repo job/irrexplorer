@@ -257,7 +257,7 @@ def prefix_report(prefix):
         - return dict
     """
     tree = radix.Radix()
-    bgp_aggregate = other_query("BGP", "search_aggregate", prefix)
+    bgp_aggregate = other_query("BGP", "search_aggregate", prefix)[0]
     if bgp_aggregate:
         tree.add(bgp_aggregate)
     irr_aggregate = irr_query("search_aggregate", prefix)
