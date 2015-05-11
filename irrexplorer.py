@@ -328,20 +328,20 @@ def prefix_report(prefix):
         if prefixes[p]['ripe_managed'] \
                 and not prefixes[p]['ripe'] \
                 and not prefixes[p]['bgp_origin']:
-            prefixes[p]['advise'] = "Register this route-object in the RIPE DB, consider announcing it"
+            prefixes[p]['advice'] = "Register this route-object in the RIPE DB, consider announcing it"
             prefixes[p]['label'] = "warning"
         elif prefixes[p]['ripe_managed'] \
             and not prefixes[p]['ripe'] \
             and prefixes[p]['bgp_origin']:
-            prefixes[p]['advise'] = "Prefix is in DFZ, but registered in RIPE!"
+            prefixes[p]['advice'] = "Prefix is in DFZ, but registered in RIPE!"
             prefixes[p]['label'] = "danger"
         elif prefixes[p]['ripe_managed'] \
             and prefixes[p]['ripe'] is not prefixes[p]['bgp_origin']:
-            prefixes[p]['advise'] = "Prefix is in DFZ, but registered with wron origin in RIPE!"
+            prefixes[p]['advice'] = "Prefix is in DFZ, but registered with wron origin in RIPE!"
             prefixes[p]['label'] = "danger"
         elif prefixes[p]['ripe_managed'] \
             and prefixes[p]['ripe'] is not prefixes[p]['bgp_origin']:
-            prefixes[p]['advise'] = "Prefix is in DFZ, but registered with wron origin in RIPE!"
+            prefixes[p]['advice'] = "Prefix is in DFZ, but registered with wron origin in RIPE!"
             prefixes[p]['label'] = "danger"
 
     return prefixes
