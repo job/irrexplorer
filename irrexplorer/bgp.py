@@ -59,7 +59,7 @@ class bgpclient(object):
                     print line
                 prefixes.append((prefix, int(origin)))
             print "INFO: collected all BGP prefixes in a single list"
-            return prefixes
+            return prefixes[0:10000]
 
 
 class BGPLookupWorker(threading.Thread):
