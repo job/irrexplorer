@@ -98,7 +98,8 @@ $(document).ready(function () {
 
     $("form").submit(function (e) {
         e.preventDefault(); //prevent default form submit
-        prefixsearch();
+        window.location.href = '/prefix/' + $('form').find('input[name="prefix"]').val();
+        //prefixsearch();
     });
 
 });
@@ -149,7 +150,7 @@ function rendererImgFunction(data, alldata, fieldname) {
                     console.log(alldata['label']);
                     return "<span class='label label-" + alldata['label'] + "'>" + data + "</span>";
                 } else {
-                    return data;   
+                    return data;    
                 }
         }
     } else {
