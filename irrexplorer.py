@@ -281,6 +281,12 @@ def prefix_report(prefix):
             prefixes[p] = {'bgp_origin': bgp_specifics[p]['origins']}
         else:
             prefixes[p]['bgp_origin'] = bgp_specifics[p]['origins']
+    for p in irr_specifics:
+        if p not in prefixes:
+            prefixes[p] = {}
+            prefixes[p]['bgp_origin'] = False
+        else:
+            pass
 
     """
     irr_specifics looks like:
@@ -304,8 +310,6 @@ def prefix_report(prefix):
                 prefixes[p][db] = irr_specifics[db][p]['origins']
 
     for p in prefixes:
-        if p not in bgp_specifics:
-            prefixes[p]['bgp_origin'] = False
         if other_query("RIPE-AUTH", "is_covered", p):
             prefixes[p]['ripe_managed'] = True
         else:
