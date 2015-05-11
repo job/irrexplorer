@@ -289,9 +289,9 @@ def prefix_report(prefix):
         if p not in bgp_specifics:
             prefixes[p]['bgp_origin'] = False
         if other_query("RIPE-AUTH", "is_covered", p):
-            prefix[p]['ripe_managed'] = True
+            prefixes[p]['ripe_managed'] = True
         else:
-            prefix[p]['ripe_managed'] = False
+            prefixes[p]['ripe_managed'] = False
 
     return prefixes
 
