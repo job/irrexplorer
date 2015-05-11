@@ -272,6 +272,7 @@ def prefix_report(prefix):
     else:
         aggregate = aggregate.prefix
     bgp_specifics = other_query("BGP", "search_specifics", aggregate)
+    print bgp_specifics
     irr_specifics = irr_query("search_specifics", aggregate)
     prefixes = {}
     for p in bgp_specifics:
@@ -293,8 +294,8 @@ def prefix_report(prefix):
                 prefixes[p][db] = irr_specifics[db][p]['origins']
 
     for p in prefixes:
-#        if p not in bgp_specifics:
-#            prefixes[p]['bgp_origin'] = False
+        if p not in bgp_specifics:
+            prefixes[p]['bgp_origin'] = False
         if other_query("RIPE-AUTH", "is_covered", p):
             prefixes[p]['ripe_managed'] = True
         else:
