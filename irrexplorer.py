@@ -282,7 +282,15 @@ def prefix_report(prefix):
         else:
             prefixes[p]['bgp_origin'] = bgp_specifics[p]['origins']
 
-    print irr_specifics
+    """
+    irr_specifics looks like:
+        {'apnic': {}, 'gt': {}, 'bboi': {}, 'radb': {}, 'jpirr': {},
+        'bell': {}, 'altdb': {}, 'rgnet': {}, 'savvis': {}, 'level3': {},
+        'ripe': {'85.184.0.0/16': {'origins': [8935]}},
+        'arin': {}, 'afrinic': {}, 'tc': {}}
+    """
+    print prefixes
+
     for db in irr_specifics:
         if not irr_specifics[db]:
             for p in prefixes:
