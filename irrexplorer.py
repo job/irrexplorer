@@ -150,7 +150,7 @@ class NRTMWorker(multiprocessing.Process):
                         match the configured/expected database """
                         continue
                 except:
-                    print "ERROR: weird object: %s" % obj
+                    print "ERROR: weird object in %s: %s" % (self.dbname, obj)
                     continue
 
                 if obj['kind'] in ["route", "route6"]:
@@ -182,34 +182,33 @@ class NRTMWorker(multiprocessing.Process):
                         self.assets[obj['name']] = obj['members']
                     else:
                         del self.assets[obj['name']]
-if 1==0:
-    databases = config('irrexplorer_config.yml').databases
-    lookup_queues = {}
-    result_queues = {}
-    for dbase in databases:
-        name = dbase.keys()[0]
-        feedconfig = dbase[name]
-        feedconfig = dict(d.items()[0] for d in feedconfig)
-        lookup_queues[name] = multiprocessing.JoinableQueue()
-        result_queues[name] = multiprocessing.JoinableQueue()
-        worker = NRTMWorker(feedconfig, lookup_queues[name], result_queues[name])
-        worker.start()
 
-    # Launch helper processes for BGP & RIPE managed space lookups
-    for q in ['RIPE-AUTH', 'BGP']:
-        lookup_queues[q] = multiprocessing.JoinableQueue()
-        result_queues[q] = multiprocessing.JoinableQueue()
-    worker = bgp.BGPWorker(lookup_queues['BGP'], result_queues['BGP'])
-    worker.start()
-    worker = ripe.RIPEWorker(lookup_queues['RIPE-AUTH'],
-                             result_queues['RIPE-AUTH'])
+databases = config('irrexplorer_config.yml').databases
+lookup_queues = {}
+result_queues = {}
+for dbase in databases:
+    name = dbase.keys()[0]
+    feedconfig = dbase[name]
+    feedconfig = dict(d.items()[0] for d in feedconfig)
+    lookup_queues[name] = multiprocessing.JoinableQueue()
+    result_queues[name] = multiprocessing.JoinableQueue()
+    worker = NRTMWorker(feedconfig, lookup_queues[name], result_queues[name])
     worker.start()
 
-    import time
-    for i in range(0, 120):
-        print i
-        time.sleep(1)
+# Launch helper processes for BGP & RIPE managed space lookups
+for q in ['RIPE-AUTH', 'BGP']:
+    lookup_queues[q] = multiprocessing.JoinableQueue()
+    result_queues[q] = multiprocessing.JoinableQueue()
+worker = bgp.BGPWorker(lookup_queues['BGP'], result_queues['BGP'])
+worker.start()
+worker = ripe.RIPEWorker(lookup_queues['RIPE-AUTH'],
+                            result_queues['RIPE-AUTH'])
+worker.start()
 
+import time
+for i in range(0, 50):
+    print i
+    time.sleep(1)
 
 def irr_query(query_type, target):
     global lookup_queues
@@ -270,9 +269,9 @@ def prefix_report(prefix):
     if not aggregate:
         return """Could not find prefix in IRR or BGP tables: %s""" \
             % tree.prefixes()
-
     else:
         aggregate = aggregate.prefix
+
     bgp_specifics = other_query("BGP", "search_specifics", aggregate)
     irr_specifics = irr_query("search_specifics", aggregate)
     prefixes = {}
@@ -281,6 +280,23 @@ def prefix_report(prefix):
             prefixes[p] = {'bgp_origin': bgp_specifics[p]['origins']}
         else:
             prefixes[p]['bgp_origin'] = bgp_specifics[p]['origins']
+    for db in irr_specifics:
+        if irr_specifics[db]:
+            for p in irr_specifics[db]:
+                if p not in prefixes:
+                    prefixes[p] = {}
+                    prefixes[p]['bgp_origin'] = False
+        else:
+            pass
+
+    """
+    irr_specifics looks like:
+        {'apnic': {}, 'gt': {}, 'bboi': {}, 'radb': {}, 'jpirr': {},
+        'bell': {}, 'altdb': {}, 'rgnet': {}, 'savvis': {}, 'level3': {},
+        'ripe': {'85.184.0.0/16': {'origins': [8935]}},
+        'arin': {}, 'afrinic': {}, 'tc': {}}
+    """
+    print prefixes
 
     for db in irr_specifics:
         if not irr_specifics[db]:
@@ -295,8 +311,6 @@ def prefix_report(prefix):
                 prefixes[p][db] = irr_specifics[db][p]['origins']
 
     for p in prefixes:
-        if p not in bgp_specifics:
-            prefixes[p]['bgp_origin'] = False
         if other_query("RIPE-AUTH", "is_covered", p):
             prefixes[p]['ripe_managed'] = True
         else:
@@ -356,8 +370,8 @@ def create_app(configfile=None):
 
     @app.route('/prefix_json/<path:prefix>')
     def prefix_json(prefix):
-        prefix_data = {'209.124.186.0/24': {'advice':'xxx', 'arin': False, 'radb': [18856], 'jpirr': False, 'rgnet': False, 'bgp_origin': False, 'altdb': False, 'bell': False, 'savvis': False, 'level3': False, 'ripe': False, 'ripe_managed': False, 'afrinic': False}, '209.124.189.0/24': {'arin': False, 'radb': [26178], 'jpirr': False, 'rgnet': False, 'bgp_origin': False, 'altdb': False, 'bell': False, 'savvis': False, 'level3': False, 'ripe': False, 'ripe_managed': False, 'afrinic': False}, '209.124.177.0/24': {'arin': False, 'radb': [101], 'jpirr': False, 'rgnet': False, 'bgp_origin': False, 'altdb': False, 'bell': False, 'savvis': False, 'level3': False, 'ripe': False, 'ripe_managed': False, 'afrinic': False}, '209.124.184.0/21': {'apnic': False, 'gt': False, 'bboi': False, 'radb': [101], 'jpirr': False, 'bell': False, 'altdb': False, 'rgnet': False, 'savvis': False, 'level3': False, 'ripe': False, 'ripe_managed': False, 'arin': False, 'afrinic': False, 'bgp_origin': 101}, '209.124.176.0/21': {'apnic': False, 'gt': False, 'bboi': False, 'radb': [101], 'jpirr': False, 'bell': False, 'altdb': False, 'rgnet': False, 'savvis': False, 'level3': False, 'ripe': False, 'ripe_managed': False, 'arin': False, 'afrinic': False, 'bgp_origin': 101}, '209.124.176.0/20': {'apnic': False, 'gt': False, 'bboi': False, 'bgp_origin': 101, 'jpirr': False, 'bell': False, 'altdb': False, 'rgnet': False, 'savvis': False, 'level3': False, 'ripe': False, 'ripe_managed': False, 'arin': False, 'afrinic': False}}
-        #prefix_data = prefix_report(prefix)
+#        prefix_data = {'209.124.186.0/24': {'advice':'xxx', 'arin': False, 'radb': [18856], 'jpirr': False, 'rgnet': False, 'bgp_origin': False, 'altdb': False, 'bell': False, 'savvis': False, 'level3': False, 'ripe': False, 'ripe_managed': False, 'afrinic': False}, '209.124.189.0/24': {'arin': False, 'radb': [26178], 'jpirr': False, 'rgnet': False, 'bgp_origin': False, 'altdb': False, 'bell': False, 'savvis': False, 'level3': False, 'ripe': False, 'ripe_managed': False, 'afrinic': False}, '209.124.177.0/24': {'arin': False, 'radb': [101], 'jpirr': False, 'rgnet': False, 'bgp_origin': False, 'altdb': False, 'bell': False, 'savvis': False, 'level3': False, 'ripe': False, 'ripe_managed': False, 'afrinic': False}, '209.124.184.0/21': {'apnic': False, 'gt': False, 'bboi': False, 'radb': [101], 'jpirr': False, 'bell': False, 'altdb': False, 'rgnet': False, 'savvis': False, 'level3': False, 'ripe': False, 'ripe_managed': False, 'arin': False, 'afrinic': False, 'bgp_origin': 101}, '209.124.176.0/21': {'apnic': False, 'gt': False, 'bboi': False, 'radb': [101], 'jpirr': False, 'bell': False, 'altdb': False, 'rgnet': False, 'savvis': False, 'level3': False, 'ripe': False, 'ripe_managed': False, 'arin': False, 'afrinic': False, 'bgp_origin': 101}, '209.124.176.0/20': {'apnic': False, 'gt': False, 'bboi': False, 'bgp_origin': 101, 'jpirr': False, 'bell': False, 'altdb': False, 'rgnet': False, 'savvis': False, 'level3': False, 'ripe': False, 'ripe_managed': False, 'arin': False, 'afrinic': False}}
+        prefix_data = prefix_report(prefix)
         return json.dumps(prefix_data)
 
 
