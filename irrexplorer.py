@@ -34,6 +34,7 @@ from irrexplorer import utils
 import threading
 import multiprocessing
 import radix
+import json
 
 from flask import Flask, render_template, request, flash, redirect, \
     url_for
@@ -347,10 +348,16 @@ def create_app(configfile=None):
     def autnum(autnum):
         return str(irr_query("inverseasn", autnum))
 
-    @app.route('/prefix/<path:prefix>')
-    def prefix(prefix):
-        return prefix_report(prefix)
-#        return str(query("search_specifics", prefix))
+    @app.route('/prefix')
+    def prefix():
+        #return prefix_report(prefix)
+        return render_template('prefix.html')
+
+    @app.route('/prefix_json/<path:prefix>')
+    def prefix_json(prefix):
+        prefix_data = prefix_report(prefix)
+        return json.dumps(prefix_data)
+
 
 #    @app.route('/asset/<asset>')
 #    def asset(asset):
