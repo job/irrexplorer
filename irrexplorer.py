@@ -273,11 +273,12 @@ def prefix_report(prefix):
             prefixes[p] = {'bgp_origin': bgp_specifics[p]['origins']}
         else:
             prefixes[p]['bgp_origin'] = bgp_specifics[p]['origins']
+
     for db in irr_specifics:
         if not irr_specifics[db]:
-            prefixes[p][db] = False
+            for p in prefixes:
+                prefixes[p][db] = False
             continue
-        #FIXME irr_query() should return a dict in dict, not list in dict
         for p in irr_specifics[db]:
             if p not in prefixes:
                 prefixes[p] = {}
