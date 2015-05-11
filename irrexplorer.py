@@ -326,6 +326,7 @@ def prefix_report(prefix):
     # default, primary, succes, info, warning, danger
     for p in prefixes:
         print p
+        print prefixes[p]
         if prefixes[p]['ripe_managed'] \
                 and not prefixes[p]['ripe'] \
                 and not prefixes[p]['bgp_origin']:
