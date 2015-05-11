@@ -270,9 +270,9 @@ def prefix_report(prefix):
     if not aggregate:
         return """Could not find prefix in IRR or BGP tables: %s""" \
             % tree.prefixes()
-
     else:
         aggregate = aggregate.prefix
+
     bgp_specifics = other_query("BGP", "search_specifics", aggregate)
     irr_specifics = irr_query("search_specifics", aggregate)
     prefixes = {}
@@ -282,6 +282,7 @@ def prefix_report(prefix):
         else:
             prefixes[p]['bgp_origin'] = bgp_specifics[p]['origins']
 
+    print irr_specifics
     for db in irr_specifics:
         if not irr_specifics[db]:
             for p in prefixes:
