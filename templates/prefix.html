@@ -135,7 +135,8 @@ function prefixsearch() {
         };
 }
 
-function rendererImgFunction(data, type, row) {
+function rendererImgFunction(data, alldata, fieldname) {
+    console.log(alldata['label']);
     if (typeof data != 'undefined') {
         switch (data.toString()) {
             case "true":
@@ -143,7 +144,12 @@ function rendererImgFunction(data, type, row) {
             case "false":
                 return "<img src='/static/img/false.png'>";
             default:
-                return data;
+                if (fieldname == "advice") {
+                    console.log(alldata['label']);
+                    return "<span class='label label-" + alldata['label'] + "'>" + data + "</span>";
+                } else {
+                    return data;   
+                }
         }
     } else {
         return "";
@@ -157,11 +163,14 @@ function getfields(prefix_data) {
 
     fields = ["prefix", "bgp_origin"];
     fieldsend = ["ripe_managed", "advice"];
+    fieldshide = ["label"];
     for (var field in fieldsfound) {
         fieldname = fieldsfound[field];
         if (fieldsend.indexOf(fieldname) == -1) {
             if (fields.indexOf(fieldname) == -1) {
-                fields.push(fieldname);
+                if (fieldshide.indexOf(fieldname) == -1) {
+                    fields.push(fieldname);
+                }
             }
         }
     }
@@ -191,7 +200,7 @@ function populatetable(tblname, prefix_data) {
             if (field == "prefix") {
                 row.push(prefix);
             } else {
-                row.push(rendererImgFunction(prefixprops[field],undefined,undefined))
+                row.push(rendererImgFunction(prefixprops[field], prefixprops, field))
             }
         }
         //console.log(row);
