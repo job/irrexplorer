@@ -27,6 +27,7 @@
 
 import utils
 
+import copy
 import radix
 import time
 import urllib2
@@ -126,15 +127,16 @@ class BGPWorker(multiprocessing.Process):
         multiprocessing.Process.__init__(self)
         self.lookup_queue = lookup_queue
         self.result_queue = result_queue
-        self.tree = None
-        self.prefixes = None
-        self.asn_prefix_map = None
+        self.tree = radix.Radix()
+        self.prefixes = []
+        self.asn_prefix_map = {}
         self.dbname = "BGP"
         self.lookup = BGPLookupWorker(self.tree, self.prefixes,
                                       self.asn_prefix_map, self.lookup_queue,
                                       self.result_queue)
 
     def run(self):
+        self.lookup.setDaemon(True)
         self.lookup.start()
         while True:
             self.bgpfeed = bgpclient()
@@ -149,9 +151,9 @@ class BGPWorker(multiprocessing.Process):
                     self.asn_prefix_map_temp[origin] = [prefix]
                 else:
                     self.asn_prefix_map_temp[origin].append(prefix)
-            self.tree = self.temp_tree
-            self.prefixes = self.prefixes_temp
-            self.asn_prefix_map = self.asn_prefix_map_temp
+            self.tree = copy.deepcopy(self.temp_tree)
+            self.prefixes = copy.deepcopy(self.prefixes_temp)
+            self.asn_prefix_map = copy.deepcopy(self.asn_prefix_map_temp)
             print "INFO: loaded the BGP tree"
             time.sleep(60 * 16)
             print "INFO: refreshing BGP tree"
