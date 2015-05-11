@@ -161,6 +161,7 @@ class NRTMWorker(multiprocessing.Process):
                         except ValueError:
                             print "ERROR: non-valid stuff in %s: %s" \
                                 % (self.dbname, obj)
+                            continue
                         if not self.tree.search_exact(obj['name']):
                             # FIXME does sometimes fails in the pure python
                             # py-radix
