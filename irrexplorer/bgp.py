@@ -99,7 +99,10 @@ class BGPLookupWorker(threading.Thread):
                 self.result_queue.put(results)
 
             elif lookup == "search_aggregate":
-                rnode = self.tree.search_worst(target)
+                try:
+                    rnode = self.tree.search_worst(target)
+                except ValueError:  # not a valid prefix
+                    rnode = None
                 if not rnode:
                     self.result_queue.put(None)
                 else:
