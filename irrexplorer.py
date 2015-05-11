@@ -272,7 +272,6 @@ def prefix_report(prefix):
     else:
         aggregate = aggregate.prefix
     bgp_specifics = other_query("BGP", "search_specifics", aggregate)
-    print bgp_specifics
     irr_specifics = irr_query("search_specifics", aggregate)
     prefixes = {}
     for p in bgp_specifics:
