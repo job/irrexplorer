@@ -1,0 +1,179 @@
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "bootstrap/fixes.html" as fixes %}
+{% import "bootstrap/utils.html" as util %}
+
+{% block styles %}
+{{super()}}
+<style>
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 20px;
+}
+.centered {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+</style>
+<link rel="stylesheet" type="text/css" href="http://cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="col-md-3">
+    </div>
+
+    <div class="col-md-6">
+        <div class="row">
+            <div class="col-md-3">
+            </div>
+            <div class="col-md-6">
+                <img class="center-block img-responsive" src="https://raw.githubusercontent.com/job/irrexplorer/master/docs/irrexplorer-logo.png" />
+            </div>
+            <div class="col-md-3">
+            </div>
+        </div>
+
+        <div class="row">
+            <div>
+
+                <h2>Prefix</h2>
+                
+                <form>
+                
+        <form id="form">
+                    <input type="text" name="prefix"/>
+                    <button id="btnsearch" type="submit" class="btn btn-primary" name="search" value="Search">Search</button>
+        </form>
+
+<table id="example" class="display" cellspacing="0" width="100%">
+    </table>
+
+
+            </div>
+        </div>
+        <div class="row">
+        </div>
+    </div>
+
+    <div class="col-md-3">
+    </div>
+
+</div>
+<div>
+    <div class="pull-right">
+        Created by <a href="mailto:job@ntt.net">Job Snijders</a>, source code available on <a href="https://github.com/job/irrexplorer">Github</a>.
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block scripts %}
+{{super()}}
+<script type="text/javascript" src="//cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function () {
+    //$('#example').DataTable();
+    $("form").submit(function (e) {
+        e.preventDefault(); //prevent default form submit
+        var prefix = $('form').find('input[name="prefix"]').val();
+        $("#btnsearch").prop("disabled",true);
+        $("#btnsearch").html('Searching...');
+        $.ajax({
+            url: '/prefix_json/' + prefix,
+            success: function (data) {
+                //alert('x');
+                $("#btnsearch").prop("disabled",false);
+                $("#btnsearch").html('Search');
+                //alert(data);
+                prefixes = JSON.parse(data);
+                populatetable('#example', prefixes);
+            },
+            failure: function(errMsg) {
+                alert(errMsg);
+                $("#btnsearch").prop("disabled",false); 
+                $("#btnsearch").html('Search');
+            },
+            cache: false
+        });
+
+    });
+});
+
+function rendererImgFunction(data, type, row) {
+    if (typeof data != 'undefined') {
+        switch (data.toString()) {
+            case "true":
+                return "<img src='/static/img/true.png'>";
+            case "false":
+                return "<img src='/static/img/false.png'>";
+            default:
+                return data;
+        }
+    } else {
+        return "";
+    }
+}
+
+function populatetable(tblname, prefix_data) {
+    console.log(prefix_data);
+
+    fields = [
+        "prefix", "bgp_origin", "ripe_managed", "ripe", "altdb", "level3"
+    ];
+    console.log(fields);
+    rows = [];
+    prefixes = Object.keys(prefix_data);
+    for (var pfxint in prefixes) {
+        prefix = prefixes[pfxint];
+        prefixprops = prefix_data[prefix];
+        //console.log(prefixprops);
+        row = [
+        ];
+        for (var f in fields) {
+            field = fields[f];
+            if (field == "prefix") {
+                row.push(prefix);
+            } else {
+                row.push(prefixprops[field])
+            }
+        }
+        console.log(row);
+        rows.push(row);
+    };
+
+    colsdisp = [];
+    for (var f in fields) {
+        field = fields[f];
+        coldisp = {"title": field}
+        colsdisp.push(coldisp);
+    }
+    $(tblname).dataTable( {
+            "data": rows,
+            "columns": colsdisp,
+            searching: false, lengthChange: false,
+            "bPaginate": false,
+            'aoColumnDefs': [
+                 { 'mRender': rendererImgFunction, 'aTargets': [ 1, 2, 3, 4, 5 ] },
+                 { 'mData': 1, 'aTargets': [ 1 ] },
+                 { 'mData': 2, 'aTargets': [ 2 ] },
+                 { 'mData': 3, 'aTargets': [ 3 ] },
+                 { 'mData': 4, 'aTargets': [ 4 ] },
+                 { 'mData': 5, 'aTargets': [ 5 ] }
+            ]
+        } );   
+}
+
+</script>
+{% endblock %}
+
+{% block head %}
+{{super()}}
+{{fixes.ie8()}}
+
+{% endblock %}
