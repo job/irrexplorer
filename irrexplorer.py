@@ -259,6 +259,7 @@ def prefix_report(prefix):
     tree = radix.Radix()
     bgp_aggregate = other_query("BGP", "search_aggregate", prefix)
     if bgp_aggregate:
+        bgp_aggregate = bgp_aggregate[0]
         tree.add(bgp_aggregate)
     irr_aggregate = irr_query("search_aggregate", prefix)
     for r in irr_aggregate:
@@ -272,7 +273,6 @@ def prefix_report(prefix):
     else:
         aggregate = aggregate.prefix
     bgp_specifics = other_query("BGP", "search_specifics", aggregate)
-    print bgp_specifics
     irr_specifics = irr_query("search_specifics", aggregate)
     prefixes = {}
     for p in bgp_specifics:

@@ -59,7 +59,7 @@ class bgpclient(object):
                     print line
                 prefixes.append((prefix, int(origin)))
             print "INFO: collected all BGP prefixes in a single list"
-            return prefixes
+            return prefixes[0:10000]
 
 
 class BGPLookupWorker(threading.Thread):
@@ -87,8 +87,8 @@ class BGPLookupWorker(threading.Thread):
                 print "received BGP lookup: %s %s" % (lookup, target)
             if lookup == "search_specifics":
                 data = None
-                pool = multiprocessing.Pool(6)
-                parts = [self.prefixes[i::6] for i in range(6)]
+                pool = multiprocessing.Pool(12)
+                parts = [self.prefixes[i::12] for i in range(12)]
                 job_args = [(target, p) for p in parts]
                 specifics = pool.map(utils.find_more_sp_helper, job_args)
                 # next line flattens the list of lists
@@ -138,28 +138,40 @@ class BGPWorker(multiprocessing.Process):
     def run(self):
         self.lookup.setDaemon(True)
         self.lookup.start()
+        self.firststart = True
         while True:
             self.bgpfeed = bgpclient()
             self.prefixes_temp = []
             self.asn_prefix_map_temp = {}
-            for prefix, origin in self.bgpfeed.get():
-                self.prefixes_temp.append(prefix)
-                # new prefix
-                if prefix not in self.prefixes and prefix in self.prefixes_temp:
+            if self.firststart:
+                for prefix, origin in self.bgpfeed.get():
                     rnode = self.tree.add(prefix)
-                    rnode.data["origins"] = origin
-                elif prefix in self.prefixes and prefix in self.prefixes_temp:
-                    rnode = self.tree.search_exact(prefix)
-                    rnode.data["origins"] = origin
-                else:  # prefix disappeared from bgp table
-                    self.tree.delete(prefix)
-                if origin not in self.asn_prefix_map_temp.keys():
-                    self.asn_prefix_map_temp[origin] = [prefix]
-                else:
-                    self.asn_prefix_map_temp[origin].append(prefix)
-            self.prefixes[:] = self.prefixes_temp
-            self.asn_prefix_map.clear()
-            self.asn_prefix_map.update(self.asn_prefix_map_temp)
+                    rnode.data['origins'] = origin
+                    self.prefixes.append(prefix)
+                    if origin not in self.asn_prefix_map.keys():
+                        self.asn_prefix_map[origin] = [prefix]
+                    else:
+                        self.asn_prefix_map[origin].append(prefix)
+                self.firststart = False
+            else:
+                for prefix, origin in self.bgpfeed.get():
+                    self.prefixes_temp.append(prefix)
+                    # new prefix
+                    if prefix not in self.prefixes and prefix in self.prefixes_temp:
+                        rnode = self.tree.add(prefix)
+                        rnode.data["origins"] = origin
+                    elif prefix in self.prefixes and prefix in self.prefixes_temp:
+                        rnode = self.tree.search_exact(prefix)
+                        rnode.data["origins"] = origin
+                    else:  # prefix disappeared from bgp table
+                        self.tree.delete(prefix)
+                    if origin not in self.asn_prefix_map_temp.keys():
+                        self.asn_prefix_map_temp[origin] = [prefix]
+                    else:
+                        self.asn_prefix_map_temp[origin].append(prefix)
+                self.prefixes[:] = self.prefixes_temp
+                self.asn_prefix_map.clear()
+                self.asn_prefix_map.update(self.asn_prefix_map_temp)
             print "INFO: loaded the BGP tree"
             time.sleep(60 * 16)
             print "INFO: refreshing BGP tree"

@@ -99,12 +99,13 @@ def parse_dump(dumpfile):
     for line in dumpfile:
         if line.startswith(('%', '#')):
             continue
-        if line.strip():
+        if line.startswith(" ") or line.strip():
             rpsl_object.append(line)
         else:
             if rpsl_object:
                 yield parse_object(rpsl_object)
             rpsl_object = []
+
 
 def parse_nrtm_stream(f):
     """
