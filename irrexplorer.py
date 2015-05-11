@@ -229,6 +229,7 @@ def irr_query(query_type, target):
         if i in ['BGP', 'RIPE-AUTH']:
             continue
         lookup_queues[i].join()
+    time.sleep(1)
     result = {}
     for i in result_queues:
         if i in ['BGP', 'RIPE-AUTH']:
