@@ -120,19 +120,31 @@ function rendererImgFunction(data, type, row) {
     }
 }
 
+function getfields(prefix_data) {
+
+    prefixes = Object.keys(prefix_data);
+    fieldsfound = Object.keys(prefix_data[prefixes[0]])
+    fields = [ "prefix" ]
+    for (var field in fieldsfound) {
+        fields.push(fieldsfound[field]);
+    }
+    fields.push("advice")
+
+    return fields
+
+}
+
 function populatetable(tblname, prefix_data) {
     console.log(prefix_data);
 
-    fields = [
-        "prefix", "bgp_origin", "ripe_managed", "ripe", "altdb", "level3"
-    ];
+    fields = getfields(prefix_data);
+
     console.log(fields);
     rows = [];
     prefixes = Object.keys(prefix_data);
     for (var pfxint in prefixes) {
         prefix = prefixes[pfxint];
         prefixprops = prefix_data[prefix];
-        //console.log(prefixprops);
         row = [
         ];
         for (var f in fields) {
@@ -140,10 +152,10 @@ function populatetable(tblname, prefix_data) {
             if (field == "prefix") {
                 row.push(prefix);
             } else {
-                row.push(prefixprops[field])
+                row.push(rendererImgFunction(prefixprops[field],undefined,undefined))
             }
         }
-        console.log(row);
+        //console.log(row);
         rows.push(row);
     };
 
@@ -157,15 +169,7 @@ function populatetable(tblname, prefix_data) {
             "data": rows,
             "columns": colsdisp,
             searching: false, lengthChange: false,
-            "bPaginate": false,
-            'aoColumnDefs': [
-                 { 'mRender': rendererImgFunction, 'aTargets': [ 1, 2, 3, 4, 5 ] },
-                 { 'mData': 1, 'aTargets': [ 1 ] },
-                 { 'mData': 2, 'aTargets': [ 2 ] },
-                 { 'mData': 3, 'aTargets': [ 3 ] },
-                 { 'mData': 4, 'aTargets': [ 4 ] },
-                 { 'mData': 5, 'aTargets': [ 5 ] }
-            ]
+            "bPaginate": false
         } );   
 }
 
