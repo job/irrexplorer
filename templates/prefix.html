@@ -24,17 +24,16 @@
 
 {% block content %}
 <div class="container">
-    <div class="col-md-3">
-    </div>
 
     <div class="col-md-6">
         <div class="row">
             <div class="col-md-3">
             </div>
             <div class="col-md-6">
-                <img class="center-block img-responsive" src="https://raw.githubusercontent.com/job/irrexplorer/master/docs/irrexplorer-logo.png" />
+                <img class="img-responsive" src="https://raw.githubusercontent.com/job/irrexplorer/master/docs/irrexplorer-logo.png" />
             </div>
             <div class="col-md-3">
+                
             </div>
         </div>
 
@@ -82,26 +81,28 @@ $(document).ready(function () {
     $("form").submit(function (e) {
         e.preventDefault(); //prevent default form submit
         var prefix = $('form').find('input[name="prefix"]').val();
-        $("#btnsearch").prop("disabled",true);
-        $("#btnsearch").html('Searching...');
-        $.ajax({
-            url: '/prefix_json/' + prefix,
-            success: function (data) {
-                //alert('x');
-                $("#btnsearch").prop("disabled",false);
-                $("#btnsearch").html('Search');
-                //alert(data);
-                prefixes = JSON.parse(data);
-                populatetable('#example', prefixes);
-            },
-            failure: function(errMsg) {
-                alert(errMsg);
-                $("#btnsearch").prop("disabled",false); 
-                $("#btnsearch").html('Search');
-            },
-            cache: false
-        });
-
+        if (prefix.length > 0)
+        {
+            $("#btnsearch").prop("disabled",true);
+            $("#btnsearch").html('Searching...');
+            $.ajax({
+                url: '/prefix_json/' + prefix,
+                success: function (data) {
+                    //alert('x');
+                    $("#btnsearch").prop("disabled",false);
+                    $("#btnsearch").html('Search');
+                    //alert(data);
+                    prefixes = JSON.parse(data);
+                    populatetable('#example', prefixes);
+                },
+                failure: function(errMsg) {
+                    alert(errMsg);
+                    $("#btnsearch").prop("disabled",false); 
+                    $("#btnsearch").html('Search');
+                },
+                cache: false
+            });
+        };
     });
 });
 
