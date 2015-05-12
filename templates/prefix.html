@@ -163,8 +163,8 @@ function getfields(prefix_data) {
     prefixes = Object.keys(prefix_data);
     fieldsfound = Object.keys(prefix_data[prefixes[0]]).sort();
 
-    fields = ["prefix", "bgp_origin"];
-    fieldsend = ["ripe_managed", "advice"];
+    fields = ["prefix", "bgp_origin", "advice"];
+    fieldsend = ["ripe_managed"];
     fieldshide = ["label"];
     for (var field in fieldsfound) {
         fieldname = fieldsfound[field];
