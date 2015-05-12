@@ -485,7 +485,10 @@ def create_app(configfile=None):
 
     @app.route('/prefix_json/<path:prefix>')
     def prefix_json(prefix):
-#        prefix_data = {'209.124.186.0/24': {'advice':'xxx', 'arin': False, 'radb': [18856], 'jpirr': False, 'rgnet': False, 'bgp_origin': False, 'altdb': False, 'bell': False, 'savvis': False, 'level3': False, 'ripe': False, 'ripe_managed': False, 'afrinic': False}, '209.124.189.0/24': {'arin': False, 'radb': [26178], 'jpirr': False, 'rgnet': False, 'bgp_origin': False, 'altdb': False, 'bell': False, 'savvis': False, 'level3': False, 'ripe': False, 'ripe_managed': False, 'afrinic': False}, '209.124.177.0/24': {'arin': False, 'radb': [101], 'jpirr': False, 'rgnet': False, 'bgp_origin': False, 'altdb': False, 'bell': False, 'savvis': False, 'level3': False, 'ripe': False, 'ripe_managed': False, 'afrinic': False}, '209.124.184.0/21': {'apnic': False, 'gt': False, 'bboi': False, 'radb': [101], 'jpirr': False, 'bell': False, 'altdb': False, 'rgnet': False, 'savvis': False, 'level3': False, 'ripe': False, 'ripe_managed': False, 'arin': False, 'afrinic': False, 'bgp_origin': 101}, '209.124.176.0/21': {'apnic': False, 'gt': False, 'bboi': False, 'radb': [101], 'jpirr': False, 'bell': False, 'altdb': False, 'rgnet': False, 'savvis': False, 'level3': False, 'ripe': False, 'ripe_managed': False, 'arin': False, 'afrinic': False, 'bgp_origin': 101}, '209.124.176.0/20': {'apnic': False, 'gt': False, 'bboi': False, 'bgp_origin': 101, 'jpirr': False, 'bell': False, 'altdb': False, 'rgnet': False, 'savvis': False, 'level3': False, 'ripe': False, 'ripe_managed': False, 'arin': False, 'afrinic': False}}
+        try:
+            ipaddr.IPNetwork(prefix)
+        except ValueError:
+            return "Unparseable input"
         prefix_data = prefix_report(prefix)
         return json.dumps(prefix_data)
 
