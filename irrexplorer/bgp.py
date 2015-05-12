@@ -177,7 +177,7 @@ class BGPWorker(multiprocessing.Process):
                 self.asn_prefix_map.update(self.asn_prefix_map_temp)
             print "INFO: loaded the BGP tree"
             #FIXME during refresh the lookup thread is not available
-            time.sleep(100 * 16)
+            time.sleep(60 * 16 * 24)
             print "INFO: refreshing BGP tree"
 
 if __name__ == "__main__":
