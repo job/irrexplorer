@@ -395,8 +395,7 @@ def prefix_report(prefix):
                 "Prefix in DFZ, but no route-object anywhere"
             prefixes[p]['label'] = "danger"
 
-        elif not prefixes[p]['bgp_origin'] \
-                and len(anywhere) > 1:
+        elif not prefixes[p]['bgp_origin']:
             prefixes[p]['advice'] = \
                 "Not seen in BGP, but (legacy?) route-objects exist, consider clean-up"
             prefixes[p]['label'] = "warning"
