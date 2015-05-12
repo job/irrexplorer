@@ -327,7 +327,7 @@ def prefix_report(prefix):
     for p in prefixes:
         print p
         print prefixes[p]
-        if prefix[p]['ripe_managed'] \
+        if prefixes[p]['ripe_managed'] \
                 and prefix[p]['bgp_origin'] == prefix[p]['ripe']:
             prefixes[p]['advice'] = \
                 "Looks good"
@@ -347,14 +347,14 @@ def prefix_report(prefix):
             prefixes[p]['label'] = "warning"
 
         elif prefixes[p]['ripe_managed'] \
-            and not prefixes[p]['ripe'] \
-            and prefixes[p]['bgp_origin']:
+                and not prefixes[p]['ripe'] \
+                and prefixes[p]['bgp_origin']:
             prefixes[p]['advice'] = \
-                "Prefix is in DFZ, but registered in RIPE!"
+                "Prefix is in DFZ, but NOT registered in RIPE!"
             prefixes[p]['label'] = "danger"
 
         elif prefixes[p]['ripe_managed'] \
-            and prefixes[p]['bgp_origin'] not in prefixes[p]['ripe']:
+                and prefixes[p]['bgp_origin'] not in prefixes[p]['ripe']:
             prefixes[p]['advice'] = \
                 "Prefix is in DFZ, but registered with wrong origin in RIPE!"
             prefixes[p]['label'] = "danger"
