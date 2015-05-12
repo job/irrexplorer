@@ -330,25 +330,42 @@ def prefix_report(prefix):
 
         anywhere = []
         for db in ['afrinic', 'altdb', 'apnic', 'arin', 'bboi', 'bell', 'gt',
-                   'jpirr', 'level3', 'nttcom', 'radb', 'rgnet', 'ripe',
-                   'savvis', 'tc', 'ripe']:
+                   'jpirr', 'level3', 'nttcom', 'radb', 'rgnet', 'savvis',
+                   'tc', 'ripe']:
             if prefixes[p][db]:
                 for entry in prefixes[p][db]:
                     anywhere.append(entry)
         anywhere = list(set(anywhere))
 
+        anywhere_not_ripe = []
+        for db in ['afrinic', 'altdb', 'apnic', 'arin', 'bboi', 'bell', 'gt',
+                   'jpirr', 'level3', 'nttcom', 'radb', 'rgnet', 'savvis',
+                   'tc']:
+            if prefixes[p][db]:
+                for entry in prefixes[p][db]:
+                    anywhere_not_ripe.append(entry)
+        anywhere_not_ripe = list(set(anywhere_not_ripe))
+
         if prefixes[p]['ripe_managed'] \
                 and prefixes[p]['bgp_origin'] in prefixes[p]['ripe'] \
-                and len(anywhere) == 1:
+                and len(anywhere) == 1 \
+                and prefixes[p]['bgp_origin'] not in anywhere_not_ripe:
             prefixes[p]['advice'] = \
                 "Perfect"
             prefixes[p]['label'] = "success"
 
         elif prefixes[p]['ripe_managed'] \
                 and prefixes[p]['bgp_origin'] in prefixes[p]['ripe'] \
-                and len(set(anywhere) - set(prefixes[p]['ripe'])) > 0:
+                and [prefixes[p]['bgp_origin']] == anywhere_not_ripe:
             prefixes[p]['advice'] = \
                 "Proper RIPE DB object, but foreign or proxy objects also exist"
+            prefixes[p]['label'] = "warning"
+
+        elif prefixes[p]['ripe_managed'] \
+                and prefixes[p]['bgp_origin'] in prefixes[p]['ripe'] \
+                and prefixes[p]['bgp_origin'] in anywhere_not_ripe:
+            prefixes[p]['advice'] = \
+                "Proper RIPE DB object, but foreign objects with different origin also exist"
             prefixes[p]['label'] = "warning"
 
         elif prefixes[p]['ripe_managed'] \
