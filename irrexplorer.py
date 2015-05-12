@@ -333,7 +333,7 @@ def prefix_report(prefix):
             if db == "ripe":
                 continue
             if not prefixes[p][db]:
-                prefixes[p][db] = None
+                prefixes[p][db] = "-"
         if prefixes[p]['ripe_managed'] \
                 and not prefixes[p]['ripe'] \
                 and not prefixes[p]['bgp_origin']:
@@ -346,7 +346,7 @@ def prefix_report(prefix):
             prefixes[p]['label'] = "danger"
         elif prefixes[p]['ripe_managed'] \
             and prefixes[p]['bgp_origin'] not in prefixes[p]['ripe']:
-            prefixes[p]['advice'] = "Prefix is in DFZ, but registered with wron origin in RIPE!"
+            prefixes[p]['advice'] = "Prefix is in DFZ, but registered with wrong origin in RIPE!"
             prefixes[p]['label'] = "danger"
 
     return prefixes
