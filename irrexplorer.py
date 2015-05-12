@@ -377,11 +377,29 @@ def prefix_report(prefix):
                 "Prefix is in DFZ, but registered with wrong origin in RIPE!"
             prefixes[p]['label'] = "danger"
 
+        elif prefixes[p]['bgp_origin'] in anywhere \
+                and len(anywhere) == 1:
+            prefixes[p]['advice'] = \
+                "Looks good: in BGP consistent origin AS in route-objects"
+            prefixes[p]['label'] = "success"
+
+        elif prefixes[p]['bgp_origin'] in anywhere \
+                and len(anywhere) > 1:
+            prefixes[p]['advice'] = \
+                "Multiple route-object exist with different origins"
+            prefixes[p]['label'] = 'warning'
+
         elif prefixes[p]['bgp_origin'] \
                 and prefixes[p]['bgp_origin'] not in anywhere:
             prefixes[p]['advice'] = \
                 "Prefix in DFZ, but no route-object anywhere"
             prefixes[p]['label'] = "danger"
+
+        elif not prefixes[p]['bgp_origin'] \
+                and len(anywhere) > 1:
+            prefixes[p]['advice'] = \
+                "Not seen in BGP, but (legacy?) route-objects exist, consider clean-up"
+            prefixes[p]['label'] = "warning"
 
         for db in ['afrinic', 'altdb', 'apnic', 'arin', 'bboi', 'bell', 'gt',
                    'jpirr', 'level3', 'nttcom', 'radb', 'rgnet', 'ripe',
