@@ -328,13 +328,13 @@ def prefix_report(prefix):
         print p
         print prefixes[p]
         if prefixes[p]['ripe_managed'] \
-                and prefix[p]['bgp_origin'] == prefix[p]['ripe']:
+                and prefixes[p]['bgp_origin'] == prefixes[p]['ripe']:
             prefixes[p]['advice'] = \
                 "Looks good"
             prefixes[p]['label'] = "success"
 
-        elif prefix[p]['ripe_managed'] \
-                and prefix[p]['bgp_origin'] in prefix[p]['ripe']:
+        elif prefixes[p]['ripe_managed'] \
+                and prefixes[p]['bgp_origin'] in prefixes[p]['ripe']:
             prefixes[p]['advice'] = \
                 "Looks good, but duplicate entry exists in RIPE DB"
             prefixes[p]['label'] = "success"
@@ -362,7 +362,7 @@ def prefix_report(prefix):
         for db in ['afrinic', 'altdb', 'apnic', 'arin', 'bboi', 'bell', 'gt',
                    'jpirr', 'level3', 'nttcom', 'radb', 'rgnet', 'ripe',
                    'savvis', 'tc']:
-            if db == "ripe" and prefix[p]['ripe_managed']:
+            if db == "ripe" and prefixes[p]['ripe_managed']:
                 continue
             if not prefixes[p][db]:
                 prefixes[p][db] = "-"
