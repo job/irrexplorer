@@ -372,6 +372,7 @@ def prefix_report(prefix):
             prefixes[p]['label'] = "danger"
 
         elif prefixes[p]['ripe_managed'] \
+                and prefixes[p]['bgp_origin'] \
                 and prefixes[p]['bgp_origin'] not in prefixes[p]['ripe']:
             prefixes[p]['advice'] = \
                 "Prefix is in DFZ, but registered with wrong origin in RIPE!"
