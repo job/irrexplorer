@@ -327,12 +327,29 @@ def prefix_report(prefix):
     for p in prefixes:
         print p
         print prefixes[p]
+
+        anywhere = []
+        for db in ['afrinic', 'altdb', 'apnic', 'arin', 'bboi', 'bell', 'gt',
+                   'jpirr', 'level3', 'nttcom', 'radb', 'rgnet', 'ripe',
+                   'savvis', 'tc', 'ripe']:
+            if prefixes[p][db]:
+                for entry in prefixes[p][db]:
+                    anywhere.append(entry)
+        anywhere = list(set(anywhere))
+
         if prefixes[p]['ripe_managed'] \
                 and prefixes[p]['bgp_origin'] in prefixes[p]['ripe'] \
-                and len(prefixes[p]['ripe']) == 1:
+                and len(anywhere) == 1:
             prefixes[p]['advice'] = \
-                "Looks good"
+                "Perfect"
             prefixes[p]['label'] = "success"
+
+        elif prefixes[p]['ripe_managed'] \
+                and prefixes[p]['bgp_origin'] in prefixes[p]['ripe'] \
+                and len(set(anywhere) - set(prefixes[p]['ripe'])) > 0:
+            prefixes[p]['advice'] = \
+                "Proper RIPE DB object, but foreign or proxy objects also exist"
+            prefixes[p]['label'] = "warning"
 
         elif prefixes[p]['ripe_managed'] \
                 and prefixes[p]['bgp_origin'] in prefixes[p]['ripe']:
@@ -348,8 +365,8 @@ def prefix_report(prefix):
             prefixes[p]['label'] = "warning"
 
         elif prefixes[p]['ripe_managed'] \
-                and not prefixes[p]['ripe'] \
-                and prefixes[p]['bgp_origin']:
+                and prefixes[p]['bgp_origin'] \
+                and not prefixes[p]['ripe']:
             prefixes[p]['advice'] = \
                 "Prefix is in DFZ, but NOT registered in RIPE!"
             prefixes[p]['label'] = "danger"
@@ -358,6 +375,12 @@ def prefix_report(prefix):
                 and prefixes[p]['bgp_origin'] not in prefixes[p]['ripe']:
             prefixes[p]['advice'] = \
                 "Prefix is in DFZ, but registered with wrong origin in RIPE!"
+            prefixes[p]['label'] = "danger"
+
+        elif prefixes[p]['bgp_origin'] \
+                and prefixes[p]['bgp_origin'] not in anywhere:
+            prefixes[p]['advice'] = \
+                "Prefix in DFZ, but no route-object anywhere"
             prefixes[p]['label'] = "danger"
 
         for db in ['afrinic', 'altdb', 'apnic', 'arin', 'bboi', 'bell', 'gt',
