@@ -347,6 +347,7 @@ def prefix_report(prefix):
         anywhere_not_ripe = list(set(anywhere_not_ripe))
 
         if prefixes[p]['ripe_managed'] \
+                and prefixes[p]['ripe'] \
                 and prefixes[p]['bgp_origin'] in prefixes[p]['ripe'] \
                 and len(anywhere) == 1 \
                 and prefixes[p]['bgp_origin'] not in anywhere_not_ripe:
@@ -355,6 +356,7 @@ def prefix_report(prefix):
             prefixes[p]['label'] = "success"
 
         elif prefixes[p]['ripe_managed'] \
+                and prefixes[p]['ripe'] \
                 and prefixes[p]['bgp_origin'] in prefixes[p]['ripe'] \
                 and [prefixes[p]['bgp_origin']] == anywhere_not_ripe:
             prefixes[p]['advice'] = \
@@ -362,6 +364,7 @@ def prefix_report(prefix):
             prefixes[p]['label'] = "warning"
 
         elif prefixes[p]['ripe_managed'] \
+                and prefixes[p]['ripe'] \
                 and prefixes[p]['bgp_origin'] in prefixes[p]['ripe'] \
                 and prefixes[p]['bgp_origin'] in anywhere_not_ripe:
             prefixes[p]['advice'] = \
@@ -369,6 +372,7 @@ def prefix_report(prefix):
             prefixes[p]['label'] = "warning"
 
         elif prefixes[p]['ripe_managed'] \
+                and prefixes[p]['ripe'] \
                 and prefixes[p]['bgp_origin'] in prefixes[p]['ripe']:
             prefixes[p]['advice'] = \
                 "Looks good, but multiple entries exists in RIPE DB"
@@ -389,6 +393,7 @@ def prefix_report(prefix):
             prefixes[p]['label'] = "danger"
 
         elif prefixes[p]['ripe_managed'] \
+                and prefixes[p]['ripe'] \
                 and prefixes[p]['bgp_origin'] \
                 and prefixes[p]['bgp_origin'] not in prefixes[p]['ripe']:
             prefixes[p]['advice'] = \
