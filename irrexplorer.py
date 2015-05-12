@@ -328,7 +328,8 @@ def prefix_report(prefix):
         print p
         print prefixes[p]
         if prefixes[p]['ripe_managed'] \
-                and prefixes[p]['bgp_origin'] == prefixes[p]['ripe']:
+                and prefixes[p]['bgp_origin'] in prefixes[p]['ripe'] \
+                and len(prefixes[p]['ripe']) == 1:
             prefixes[p]['advice'] = \
                 "Looks good"
             prefixes[p]['label'] = "success"
@@ -336,7 +337,7 @@ def prefix_report(prefix):
         elif prefixes[p]['ripe_managed'] \
                 and prefixes[p]['bgp_origin'] in prefixes[p]['ripe']:
             prefixes[p]['advice'] = \
-                "Looks good, but duplicate entry exists in RIPE DB"
+                "Looks good, but multiple entries exists in RIPE DB"
             prefixes[p]['label'] = "success"
 
         elif prefixes[p]['ripe_managed'] \
