@@ -307,10 +307,9 @@ def prefix_report(prefix):
     print "prefix_report: Lookup irr_specifics: %s" % irr_specifics
 
     for db in irr_specifics:
-        if not irr_specifics[db]:
-            for p in prefixes:
-                prefixes[p][db] = False
-            continue
+        # set all db sources to False initially, later fill them
+        for p in prefixes:
+            prefixes[p][db] = False
         for p in irr_specifics[db]:
             if p not in prefixes:
                 prefixes[p] = {}
