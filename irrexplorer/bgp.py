@@ -91,6 +91,7 @@ class BGPLookupWorker(threading.Thread):
                 parts = [self.prefixes[i::12] for i in range(12)]
                 job_args = [(target, p) for p in parts]
                 specifics = pool.map(utils.find_more_sp_helper, job_args)
+                pool.terminate()
                 # next line flattens the list of lists
                 for prefix in [item for sublist in specifics for item in sublist]:
                     data = self.tree.search_exact(prefix).data

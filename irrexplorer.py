@@ -70,6 +70,7 @@ class LookupWorker(threading.Thread):
                 parts = [self.tree.prefixes()[i::6] for i in range(6)]  # split all pfx in 4 lists
                 job_args = [(target, p) for p in parts]  # workaround pool() only accepts 1 arg
                 specifics = pool.map(utils.find_more_sp_helper, job_args)
+                pool.terminate()
                 #FIXME - memleaking here, we need to either close() or terminate()
 
                 # next line flattens the list of lists
