@@ -215,7 +215,7 @@ worker = ripe.RIPEWorker(lookup_queues['RIPE-AUTH'],
 worker.start()
 
 import time
-for i in range(0, 50):
+for i in range(0, 600):
     print i
     time.sleep(1)
 
