@@ -327,27 +327,45 @@ def prefix_report(prefix):
     for p in prefixes:
         print p
         print prefixes[p]
-        for db in ['afrinic', 'altdb', 'apnic', 'arin', 'bboi', 'bell', 'gt',
-                   'jpirr', 'level3', 'nttcom', 'radb', 'rgnet', 'ripe',
-                   'savvis', 'tc']:
-            if db == "ripe":
-                continue
-            if not prefixes[p][db]:
-                prefixes[p][db] = "-"
-        if prefixes[p]['ripe_managed'] \
+        if prefix[p]['ripe_managed'] \
+                and prefix[p]['bgp_origin'] == prefix[p]['ripe']:
+            prefixes[p]['advice'] = \
+                "Looks good"
+            prefixes[p]['label'] = "success"
+
+        elif prefix[p]['ripe_managed'] \
+                and prefix[p]['bgp_origin'] in prefix[p]['ripe']:
+            prefixes[p]['advice'] = \
+                "Looks good, but duplicate entry exists in RIPE DB"
+            prefixes[p]['label'] = "success"
+
+        elif prefixes[p]['ripe_managed'] \
                 and not prefixes[p]['ripe'] \
                 and not prefixes[p]['bgp_origin']:
-            prefixes[p]['advice'] = "Register this route-object in the RIPE DB, consider announcing it"
+            prefixes[p]['advice'] = \
+                "Route objects in foreign registries exist, consider moving them to RIPE DB"
             prefixes[p]['label'] = "warning"
+
         elif prefixes[p]['ripe_managed'] \
             and not prefixes[p]['ripe'] \
             and prefixes[p]['bgp_origin']:
-            prefixes[p]['advice'] = "Prefix is in DFZ, but registered in RIPE!"
+            prefixes[p]['advice'] = \
+                "Prefix is in DFZ, but registered in RIPE!"
             prefixes[p]['label'] = "danger"
+
         elif prefixes[p]['ripe_managed'] \
             and prefixes[p]['bgp_origin'] not in prefixes[p]['ripe']:
-            prefixes[p]['advice'] = "Prefix is in DFZ, but registered with wrong origin in RIPE!"
+            prefixes[p]['advice'] = \
+                "Prefix is in DFZ, but registered with wrong origin in RIPE!"
             prefixes[p]['label'] = "danger"
+
+        for db in ['afrinic', 'altdb', 'apnic', 'arin', 'bboi', 'bell', 'gt',
+                   'jpirr', 'level3', 'nttcom', 'radb', 'rgnet', 'ripe',
+                   'savvis', 'tc']:
+            if db == "ripe" and prefix[p]['ripe_managed']:
+                continue
+            if not prefixes[p][db]:
+                prefixes[p][db] = "-"
 
     return prefixes
 
