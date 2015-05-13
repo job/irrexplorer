@@ -4,18 +4,22 @@ databases:
         - dump: 'ftp://ftp.radb.net/radb/dbase/altdb.db.gz'
         - nrtmhost: 'whois.altdb.net'
         - nrtmport: 43
+        - dbname: 'ALTDB'
     - apnic:
         - serial: 'ftp://ftp.radb.net/radb/dbase/APNIC.CURRENTSERIAL'
         - dump': 'ftp://ftp.radb.net/radb/dbase/apnic.db.gz'
         - nrtmhost: 'rr.ntt.net'
         - nrtmport: 43
+        - dbname: 'APNIC'
     - level3:
         - serial: 'ftp://ftp.radb.net/radb/dbase/LEVEL3.CURRENTSERIAL'
         - dump: 'ftp://ftp.radb.net/radb/dbase/level3.db.gz'
         - nrtmhost: rr.ntt.net
         - nrtmport: 43
+        - dbname: 'LEVEL3'
     - radb:
         - serial: 'ftp://ftp.radb.net/radb/dbase/RADB.CURRENTSERIAL'
         - dump: 'ftp://ftp.radb.net/radb/dbase/radb.db.gz'
         - nrtmhost: 'whois.radb.net'
         - nrtmport: 43
+        - dbname: 'RADB'
