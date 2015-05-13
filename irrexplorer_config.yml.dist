@@ -7,7 +7,7 @@ databases:
         - dbname: 'ALTDB'
     - apnic:
         - serial: 'ftp://ftp.radb.net/radb/dbase/APNIC.CURRENTSERIAL'
-        - dump': 'ftp://ftp.radb.net/radb/dbase/apnic.db.gz'
+        - dump: 'ftp://ftp.radb.net/radb/dbase/apnic.db.gz'
         - nrtmhost: 'rr.ntt.net'
         - nrtmport: 43
         - dbname: 'APNIC'
