@@ -50,6 +50,8 @@ class client(object):
             self.dump = self.fetch_dump(dump)
         else:
             self.dump = file(dump)
+            if dump.endswith('.gz'):
+                self.dump = gzip.GzipFile(fileobj=self.dump)
 
     def fetch_dump(self, dumpurl):
         req = urllib2.Request(dumpurl)
