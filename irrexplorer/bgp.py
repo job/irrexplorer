@@ -135,6 +135,7 @@ class BGPWorker(multiprocessing.Process):
         self.prefixes = []
         self.asn_prefix_map = {}
         self.dbname = "BGP"
+        self.ready_event = multiprocessing.Event()
         self.lookup = BGPLookupWorker(self.tree, self.prefixes,
                                       self.asn_prefix_map, self.lookup_queue,
                                       self.result_queue)
@@ -177,6 +178,7 @@ class BGPWorker(multiprocessing.Process):
                 self.asn_prefix_map.clear()
                 self.asn_prefix_map.update(self.asn_prefix_map_temp)
             print "INFO: loaded the BGP tree"
+            self.ready_event.set()
             #FIXME during refresh the lookup thread is not available
             time.sleep(60 * 16 * 24)
             print "INFO: refreshing BGP tree"

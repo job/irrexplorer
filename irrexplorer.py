@@ -125,6 +125,7 @@ class NRTMWorker(multiprocessing.Process):
         self.dbname = feedconfig['dbname']
         self.asn_prefix_map = {}
         self.assets = {}
+        self.ready_event = multiprocessing.Event()
         self.lookup = LookupWorker(self.tree, self.asn_prefix_map, self.assets,
                                    self.lookup_queue, self.result_queue)
 
@@ -193,9 +194,17 @@ class NRTMWorker(multiprocessing.Process):
                     else:
                         del self.assets[obj['name']]
 
+        print 'Done parsing database %s' % self.dbname
+        self.ready_event.set()
+
+
+
 databases = config('irrexplorer_config.yml').databases
 lookup_queues = {}
 result_queues = {}
+
+nrtm_workers = []
+
 for dbase in databases:
     name = dbase.keys()[0]
     feedconfig = dbase[name]
@@ -204,21 +213,34 @@ for dbase in databases:
     result_queues[name] = multiprocessing.JoinableQueue()
     worker = NRTMWorker(feedconfig, lookup_queues[name], result_queues[name])
     worker.start()
+    nrtm_workers.append(worker)
 
 # Launch helper processes for BGP & RIPE managed space lookups
 for q in ['RIPE-AUTH', 'BGP']:
     lookup_queues[q] = multiprocessing.JoinableQueue()
     result_queues[q] = multiprocessing.JoinableQueue()
-worker = bgp.BGPWorker(lookup_queues['BGP'], result_queues['BGP'])
-worker.start()
-worker = ripe.RIPEWorker(lookup_queues['RIPE-AUTH'],
-                            result_queues['RIPE-AUTH'])
-worker.start()
 
-import time
-for i in range(0, 600):
-    print i
-    time.sleep(1)
+bgp_worker = bgp.BGPWorker(lookup_queues['BGP'], result_queues['BGP'])
+bgp_worker.start()
+
+ripe_worker = ripe.RIPEWorker(lookup_queues['RIPE-AUTH'], result_queues['RIPE-AUTH'])
+ripe_worker.start()
+ripe_worker.ready_event.wait() # instant with current code
+
+# wait until all workers are ready
+for idx, nw in  enumerate(nrtm_workers):
+    # nw.ready_event.wait()
+    # somehow just wait() doesn't work, but with timeout it does...
+    if nw.ready_event.wait(10):
+        print 'NRTM worker %i ready' % idx
+    else:
+        print 'NRTM worker %i still waiting' % idx
+
+print 'All NRTM workers ready'
+
+bgp_worker.ready_event.wait()
+print 'BGP worker ready, continuing'
+
 
 def irr_query(query_type, target):
     global lookup_queues
