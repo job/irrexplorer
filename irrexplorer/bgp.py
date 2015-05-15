@@ -189,7 +189,8 @@ if __name__ == "__main__":
 
     a = BGPWorker(lookup_queue, result_queue)
     a.start()
-    time.sleep(120)
+    a.ready_event.wait()
+
     lookup_queue.put(("prefixset", ["8.8.8.0/24", "4.0.0.0/8"]))
     lookup_queue.join()
     print result_queue.get()
