@@ -76,6 +76,7 @@ class RIPEWorker(multiprocessing.Process):
         self.tree = radix.Radix()
         self.prefixes = []
         self.dbname = "RIPE-AUTH"
+        self.ready_event = multiprocessing.Event()
         self.lookup = RIPELookupWorker(self.tree, self.prefixes,
                                        self.lookup_queue, self.result_queue)
         self.lookup.setDaemon(True)
@@ -83,6 +84,8 @@ class RIPEWorker(multiprocessing.Process):
 
     def run(self):
         print "INFO: loaded the RIPE managed tree"
+        self.ready_event.set() # yay
+
 
 if __name__ == "__main__":
     lookup_queue = multiprocessing.JoinableQueue()
@@ -90,7 +93,7 @@ if __name__ == "__main__":
 
     a = RIPEWorker(lookup_queue, result_queue)
     a.start()
-    time.sleep(1)
+    a.ready_event.wait()
     lookup_queue.put(("is_covered", "194.33.96.0/24"))
     lookup_queue.join()
     print result_queue.get()

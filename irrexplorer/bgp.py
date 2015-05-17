@@ -135,6 +135,7 @@ class BGPWorker(multiprocessing.Process):
         self.prefixes = []
         self.asn_prefix_map = {}
         self.dbname = "BGP"
+        self.ready_event = multiprocessing.Event()
         self.lookup = BGPLookupWorker(self.tree, self.prefixes,
                                       self.asn_prefix_map, self.lookup_queue,
                                       self.result_queue)
@@ -152,10 +153,7 @@ class BGPWorker(multiprocessing.Process):
                     rnode = self.tree.add(prefix)
                     rnode.data['origins'] = origin
                     self.prefixes.append(prefix)
-                    if origin not in self.asn_prefix_map.keys():
-                        self.asn_prefix_map[origin] = [prefix]
-                    else:
-                        self.asn_prefix_map[origin].append(prefix)
+                    self.asn_prefix_map.setdefault(origin, []).append(prefix)
                 self.firststart = False
             else:
                 for prefix, origin in self.bgpfeed.get():
@@ -169,14 +167,12 @@ class BGPWorker(multiprocessing.Process):
                         rnode.data["origins"] = origin
                     else:  # prefix disappeared from bgp table
                         self.tree.delete(prefix)
-                    if origin not in self.asn_prefix_map_temp.keys():
-                        self.asn_prefix_map_temp[origin] = [prefix]
-                    else:
-                        self.asn_prefix_map_temp[origin].append(prefix)
+                    self.asn_prefix_map_temp.setdefault(origin, []).append(prefix)
                 self.prefixes[:] = self.prefixes_temp
                 self.asn_prefix_map.clear()
                 self.asn_prefix_map.update(self.asn_prefix_map_temp)
             print "INFO: loaded the BGP tree"
+            self.ready_event.set()
             #FIXME during refresh the lookup thread is not available
             time.sleep(60 * 16 * 24)
             print "INFO: refreshing BGP tree"
@@ -187,7 +183,8 @@ if __name__ == "__main__":
 
     a = BGPWorker(lookup_queue, result_queue)
     a.start()
-    time.sleep(120)
+    a.ready_event.wait()
+
     lookup_queue.put(("prefixset", ["8.8.8.0/24", "4.0.0.0/8"]))
     lookup_queue.join()
     print result_queue.get()
