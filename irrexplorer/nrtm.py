@@ -88,6 +88,6 @@ class client(object):
                     if serial > self.serial:
                         self.serial = serial
                         yield cmd, serial, obj
-                print "sleeping 60 seconds before reconnecting to %s (%s)" % \
+                print "sleeping 300 seconds before reconnecting to %s (%s)" % \
                     (self.host, self.dbname)
-                time.sleep(60)
+                time.sleep(300)
