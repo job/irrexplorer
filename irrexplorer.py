@@ -38,11 +38,17 @@ import radix
 import json
 
 from flask import Flask, render_template, request, flash, redirect, \
-    url_for
+    url_for, abort
 from flask_bootstrap import Bootstrap
 from flask_wtf import Form
 from wtforms import TextField, SubmitField
 from wtforms.validators import Required
+
+
+
+class NoPrefixError(Exception):
+    pass
+
 
 
 class LookupWorker(threading.Thread):
@@ -280,6 +286,13 @@ def ripe_query():
     pass
 
 
+IRR_DBS = ['afrinic', 'altdb', 'apnic', 'arin', 'bboi', 'bell', 'gt', 'jpirr', 'level3', 'nttcom', 'radb', 'rgnet', 'savvis', 'tc', 'ripe']
+
+IRR_DBS_EXCEPT_RIPE = IRR_DBS[:]
+IRR_DBS_EXCEPT_RIPE.remove('ripe')
+
+
+
 def prefix_report(prefix):
     """
         - find least specific
@@ -299,10 +312,9 @@ def prefix_report(prefix):
             tree.add(irr_aggregate[r][0])
     aggregate = tree.search_worst(prefix)
     if not aggregate:
-        return """Could not find prefix in IRR or BGP tables: %s""" \
-            % tree.prefixes()
-    else:
-        aggregate = aggregate.prefix
+        raise NoPrefixError("Could not find any matching prefix in IRR or BGP tables for %s" % prefix)
+
+    aggregate = aggregate.prefix
 
     bgp_specifics = other_query("BGP", "search_specifics", aggregate)
     irr_specifics = irr_query("search_specifics", aggregate)
@@ -318,8 +330,6 @@ def prefix_report(prefix):
                 if p not in prefixes:
                     prefixes[p] = {}
                     prefixes[p]['bgp_origin'] = False
-        else:
-            pass
 
     """
     irr_specifics looks like:
@@ -336,11 +346,7 @@ def prefix_report(prefix):
         for p in prefixes:
             prefixes[p][db] = False
         for p in irr_specifics[db]:
-            if p not in prefixes:
-                prefixes[p] = {}
-                prefixes[p][db] = irr_specifics[db][p]['origins']
-            else:
-                prefixes[p][db] = irr_specifics[db][p]['origins']
+            prefixes.setdefault(p, {})[db] = irr_specifics[db][p]['origins']
 
     for p in prefixes:
         if other_query("RIPE-AUTH", "is_covered", p):
@@ -354,106 +360,89 @@ def prefix_report(prefix):
         print prefixes[p]
 
         anywhere = []
-        for db in ['afrinic', 'altdb', 'apnic', 'arin', 'bboi', 'bell', 'gt',
-                   'jpirr', 'level3', 'nttcom', 'radb', 'rgnet', 'savvis',
-                   'tc', 'ripe']:
+        for db in IRR_DBS:
+            if not db in prefixes[p]:
+                continue
             if prefixes[p][db]:
                 for entry in prefixes[p][db]:
                     anywhere.append(entry)
         anywhere = list(set(anywhere))
 
         anywhere_not_ripe = []
-        for db in ['afrinic', 'altdb', 'apnic', 'arin', 'bboi', 'bell', 'gt',
-                   'jpirr', 'level3', 'nttcom', 'radb', 'rgnet', 'savvis',
-                   'tc']:
+        for db in IRR_DBS_EXCEPT_RIPE:
+            if not db in prefixes[p]:
+                continue
             if prefixes[p][db]:
                 for entry in prefixes[p][db]:
                     anywhere_not_ripe.append(entry)
         anywhere_not_ripe = list(set(anywhere_not_ripe))
 
-        if prefixes[p]['ripe_managed'] \
-                and prefixes[p]['ripe'] \
-                and prefixes[p]['bgp_origin'] in prefixes[p]['ripe'] \
-                and len(anywhere) == 1 \
-                and prefixes[p]['bgp_origin'] not in anywhere_not_ripe:
-            prefixes[p]['advice'] = \
-                "Perfect"
-            prefixes[p]['label'] = "success"
+        if prefixes[p]['ripe_managed']:
 
-        elif prefixes[p]['ripe_managed'] \
-                and prefixes[p]['ripe'] \
-                and prefixes[p]['bgp_origin'] in prefixes[p]['ripe'] \
-                and [prefixes[p]['bgp_origin']] == anywhere_not_ripe:
-            prefixes[p]['advice'] = \
-                "Proper RIPE DB object, but foreign or proxy objects also exist"
+            if prefixes[p]['ripe']:
+
+                if prefixes[p]['bgp_origin'] in prefixes[p]['ripe']:
+
+                    if len(anywhere) == 1 and prefixes[p]['bgp_origin'] not in anywhere_not_ripe:
+                        prefixes[p]['advice'] = "Perfect"
+                        prefixes[p]['label'] = "success"
+
+                    elif prefixes[p]['bgp_origin'] == anywhere_not_ripe:
+                        prefixes[p]['advice'] = "Proper RIPE DB object, but foreign or proxy objects also exist"
+                        prefixes[p]['label'] = "warning"
+
+                    elif prefixes[p]['bgp_origin'] in anywhere_not_ripe:
+                        prefixes[p]['advice'] = "Proper RIPE DB object, but foreign objects with different origin also exist"
+                        prefixes[p]['label'] = "warning"
+
+                    else:
+                        prefixes[p]['advice'] = "Looks good, but multiple entries exists in RIPE DB"
+                        prefixes[p]['label'] = "success"
+
+                elif prefixes[p]['bgp_origin']:
+                    prefixes[p]['advice'] = "Prefix is in DFZ, but registered with wrong origin in RIPE!"
+                    prefixes[p]['label'] = "danger"
+
+                else:
+                    # same as last else clause, not sure if this could actually be first
+                    prefixes[p]['advice'] = "Not seen in BGP, but (legacy?) route-objects exist, consider clean-up"
+                    prefixes[p]['label'] = "warning"
+
+            else:   # no ripe registration
+
+                if prefixes[p]['bgp_origin']:
+                    prefixes[p]['advice'] = "Prefix is in DFZ, but NOT registered in RIPE!"
+                    prefixes[p]['label'] = "danger"
+
+                else:
+                    prefixes[p]['advice'] = "Route objects in foreign registries exist, consider moving them to RIPE DB"
+                    prefixes[p]['label'] = "warning"
+
+        elif prefixes[p]['bgp_origin']: # not ripe managed
+
+            if prefixes[p]['bgp_origin'] in anywhere:
+
+                if len(anywhere) == 1:
+                    prefixes[p]['advice'] = "Looks good: in BGP consistent origin AS in route-objects"
+                    prefixes[p]['label'] = "success"
+                else:
+                    prefixes[p]['advice'] = "Multiple route-object exist with different origins"
+                    prefixes[p]['label'] = 'warning'
+
+            else:
+                prefixes[p]['advice'] = "Prefix in DFZ, but no route-object anywhere"
+                prefixes[p]['label'] = "danger"
+
+        else: # not ripe managed, no bgp origin
+            prefixes[p]['advice'] = "Not seen in BGP, but (legacy?) route-objects exist, consider clean-up"
             prefixes[p]['label'] = "warning"
 
-        elif prefixes[p]['ripe_managed'] \
-                and prefixes[p]['ripe'] \
-                and prefixes[p]['bgp_origin'] in prefixes[p]['ripe'] \
-                and prefixes[p]['bgp_origin'] in anywhere_not_ripe:
-            prefixes[p]['advice'] = \
-                "Proper RIPE DB object, but foreign objects with different origin also exist"
-            prefixes[p]['label'] = "warning"
 
-        elif prefixes[p]['ripe_managed'] \
-                and prefixes[p]['ripe'] \
-                and prefixes[p]['bgp_origin'] in prefixes[p]['ripe']:
-            prefixes[p]['advice'] = \
-                "Looks good, but multiple entries exists in RIPE DB"
-            prefixes[p]['label'] = "success"
-
-        elif prefixes[p]['ripe_managed'] \
-                and not prefixes[p]['ripe'] \
-                and not prefixes[p]['bgp_origin']:
-            prefixes[p]['advice'] = \
-                "Route objects in foreign registries exist, consider moving them to RIPE DB"
-            prefixes[p]['label'] = "warning"
-
-        elif prefixes[p]['ripe_managed'] \
-                and prefixes[p]['bgp_origin'] \
-                and not prefixes[p]['ripe']:
-            prefixes[p]['advice'] = \
-                "Prefix is in DFZ, but NOT registered in RIPE!"
-            prefixes[p]['label'] = "danger"
-
-        elif prefixes[p]['ripe_managed'] \
-                and prefixes[p]['ripe'] \
-                and prefixes[p]['bgp_origin'] \
-                and prefixes[p]['bgp_origin'] not in prefixes[p]['ripe']:
-            prefixes[p]['advice'] = \
-                "Prefix is in DFZ, but registered with wrong origin in RIPE!"
-            prefixes[p]['label'] = "danger"
-
-        elif prefixes[p]['bgp_origin'] in anywhere \
-                and len(anywhere) == 1:
-            prefixes[p]['advice'] = \
-                "Looks good: in BGP consistent origin AS in route-objects"
-            prefixes[p]['label'] = "success"
-
-        elif prefixes[p]['bgp_origin'] in anywhere \
-                and len(anywhere) > 1:
-            prefixes[p]['advice'] = \
-                "Multiple route-object exist with different origins"
-            prefixes[p]['label'] = 'warning'
-
-        elif prefixes[p]['bgp_origin'] \
-                and prefixes[p]['bgp_origin'] not in anywhere:
-            prefixes[p]['advice'] = \
-                "Prefix in DFZ, but no route-object anywhere"
-            prefixes[p]['label'] = "danger"
-
-        elif not prefixes[p]['bgp_origin']:
-            prefixes[p]['advice'] = \
-                "Not seen in BGP, but (legacy?) route-objects exist, consider clean-up"
-            prefixes[p]['label'] = "warning"
-
-        for db in ['afrinic', 'altdb', 'apnic', 'arin', 'bboi', 'bell', 'gt',
-                   'jpirr', 'level3', 'nttcom', 'radb', 'rgnet', 'ripe',
-                   'savvis', 'tc']:
-            if db == "ripe" and prefixes[p]['ripe_managed']:
+        for db in IRR_DBS:
+            if db == "ripe" and 'ripe_managed' in prefixes[p] and prefixes[p]['ripe_managed']:
                 continue
-            if not prefixes[p][db]:
+            # fill out blanks
+            if not db in prefixes[p] or not prefixes[p][db]:
                 prefixes[p][db] = "-"
 
     return prefixes
@@ -512,10 +501,15 @@ def create_app(configfile=None):
     def prefix_json(prefix):
         try:
             ipaddr.IPNetwork(prefix)
+            prefix_data = prefix_report(prefix)
+            return json.dumps(prefix_data)
         except ValueError:
-            return "Unparseable input"
-        prefix_data = prefix_report(prefix)
-        return json.dumps(prefix_data)
+            msg = 'Could not parse input %s as prefix' % prefix
+            print msg
+            abort(400, msg)
+        except NoPrefixError as e:
+            print e
+            abort(400, str(e))
 
 
 #    @app.route('/asset/<asset>')

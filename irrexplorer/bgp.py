@@ -53,10 +53,13 @@ class bgpclient(object):
         prefixes = []
         if self.bgpdump:
             for line in self.bgpdump.split('\n'):
+                line = line.strip()
+                if not line:
+                    continue
                 try:
                     prefix, origin = line.strip().split(' ')
-                except:
-                    print line
+                except Exception as e:
+                    print 'BGP line split error:', e, line
                 prefixes.append((prefix, int(origin)))
             print "INFO: collected all BGP prefixes in a single list"
             return prefixes
