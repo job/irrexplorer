@@ -356,6 +356,8 @@ def prefix_report(prefix):
 
         anywhere = []
         for db in IRR_DBS:
+            if not db in prefixes[p]:
+                continue
             if prefixes[p][db]:
                 for entry in prefixes[p][db]:
                     anywhere.append(entry)
@@ -363,6 +365,8 @@ def prefix_report(prefix):
 
         anywhere_not_ripe = []
         for db in IRR_DBS_EXCEPT_RIPE:
+            if not db in prefixes[p]:
+                continue
             if prefixes[p][db]:
                 for entry in prefixes[p][db]:
                     anywhere_not_ripe.append(entry)
@@ -446,9 +450,10 @@ def prefix_report(prefix):
             prefixes[p]['label'] = "warning"
 
         for db in IRR_DBS:
-            if db == "ripe" and prefixes[p]['ripe_managed']:
+            if db == "ripe" and 'ripe_managed' in prefixes[p] and prefixes[p]['ripe_managed']:
                 continue
-            if not prefixes[p][db]:
+            # fill out blanks
+            if not db in prefixes[p] or not prefixes[p][db]:
                 prefixes[p][db] = "-"
 
     return prefixes
