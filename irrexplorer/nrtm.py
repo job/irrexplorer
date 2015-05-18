@@ -87,6 +87,8 @@ class client(object):
                 f.write('-k -g {}:3:{}-LAST\n'.format(self.dbname, self.serial))
                 f.flush()
                 for cmd, serial, obj in parser.parse_nrtm_stream(f):
+                    print "%s: %s %s @ %s" % (self.dbname, cmd, obj['name'],
+                                              serial)
                     if serial > self.serial:
                         self.serial = serial
                         yield cmd, serial, obj
