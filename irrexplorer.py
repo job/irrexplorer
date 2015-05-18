@@ -334,9 +334,7 @@ def prefix_report(prefix):
         for p in prefixes:
             prefixes[p][db] = False
         for p in irr_specifics[db]:
-            if p not in prefixes:
-                prefixes[p] = {}
-            prefixes[p][db] = irr_specifics[db][p]['origins']
+            prefixes.setdefault(p, {})[db] = irr_specifics[db][p]['origins']
 
     for p in prefixes:
         if other_query("RIPE-AUTH", "is_covered", p):
