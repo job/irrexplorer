@@ -318,8 +318,6 @@ def prefix_report(prefix):
                 if p not in prefixes:
                     prefixes[p] = {}
                     prefixes[p]['bgp_origin'] = False
-        else:
-            pass
 
     """
     irr_specifics looks like:
