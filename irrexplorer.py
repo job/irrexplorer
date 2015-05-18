@@ -280,6 +280,13 @@ def ripe_query():
     pass
 
 
+IRR_DBS = ['afrinic', 'altdb', 'apnic', 'arin', 'bboi', 'bell', 'gt', 'jpirr', 'level3', 'nttcom', 'radb', 'rgnet', 'savvis', 'tc', 'ripe']
+
+IRR_DBS_EXCEPT_RIPE = IRR_DBS[:]
+IRR_DBS_EXCEPT_RIPE.remove('ripe')
+
+
+
 def prefix_report(prefix):
     """
         - find least specific
@@ -348,18 +355,14 @@ def prefix_report(prefix):
         print prefixes[p]
 
         anywhere = []
-        for db in ['afrinic', 'altdb', 'apnic', 'arin', 'bboi', 'bell', 'gt',
-                   'jpirr', 'level3', 'nttcom', 'radb', 'rgnet', 'savvis',
-                   'tc', 'ripe']:
+        for db in IRR_DBS:
             if prefixes[p][db]:
                 for entry in prefixes[p][db]:
                     anywhere.append(entry)
         anywhere = list(set(anywhere))
 
         anywhere_not_ripe = []
-        for db in ['afrinic', 'altdb', 'apnic', 'arin', 'bboi', 'bell', 'gt',
-                   'jpirr', 'level3', 'nttcom', 'radb', 'rgnet', 'savvis',
-                   'tc']:
+        for db in IRR_DBS_EXCEPT_RIPE:
             if prefixes[p][db]:
                 for entry in prefixes[p][db]:
                     anywhere_not_ripe.append(entry)
@@ -442,9 +445,7 @@ def prefix_report(prefix):
                 "Not seen in BGP, but (legacy?) route-objects exist, consider clean-up"
             prefixes[p]['label'] = "warning"
 
-        for db in ['afrinic', 'altdb', 'apnic', 'arin', 'bboi', 'bell', 'gt',
-                   'jpirr', 'level3', 'nttcom', 'radb', 'rgnet', 'ripe',
-                   'savvis', 'tc']:
+        for db in IRR_DBS:
             if db == "ripe" and prefixes[p]['ripe_managed']:
                 continue
             if not prefixes[p][db]:
