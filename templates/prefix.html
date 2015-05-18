@@ -18,6 +18,14 @@
   left: 50%;
   transform: translate(-50%, -50%);
 }
+#error {
+    font-size: 14pt;
+    background-color: #FFA5A5;
+    display: none;
+    padding: 10px 20px;
+    border-radius: 2px;
+}
+
 td { white-space: nowrap; }
 </style>
 <link rel="stylesheet" type="text/css" href="http://cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css">
@@ -51,8 +59,8 @@ td { white-space: nowrap; }
                     <div class="row" id="loading" style="display:none">
                         <div class="col-md-2 col-md-offset-5"><img src="/static/img/loading.gif"/></div>
                     </div>
-                <table id="example" class="display" cellspacing="0" width="100%">
-                </table>
+                <table id="example" class="display" cellspacing="0" width="100%"></table>
+                <div id="error"></div>
 
             </div>
         </div>
@@ -128,9 +136,12 @@ function prefixsearch() {
                     prefixes = JSON.parse(data);
                     populatetable('#example', prefixes);
                 },
-                failure: function(errMsg) {
+                error: function(error) {
                     state_loaded();
-                    alert(errMsg);
+                    errMsg = $(error.responseText).filter("p").text();
+                    console.log(errMsg);
+                    $("#error").text(errMsg);
+                    $("#error").show()
                 },
                 cache: false
             });

@@ -38,11 +38,17 @@ import radix
 import json
 
 from flask import Flask, render_template, request, flash, redirect, \
-    url_for
+    url_for, abort
 from flask_bootstrap import Bootstrap
 from flask_wtf import Form
 from wtforms import TextField, SubmitField
 from wtforms.validators import Required
+
+
+
+class NoPrefixError(Exception):
+    pass
+
 
 
 class LookupWorker(threading.Thread):
@@ -306,10 +312,9 @@ def prefix_report(prefix):
             tree.add(irr_aggregate[r][0])
     aggregate = tree.search_worst(prefix)
     if not aggregate:
-        return """Could not find prefix in IRR or BGP tables: %s""" \
-            % tree.prefixes()
-    else:
-        aggregate = aggregate.prefix
+        raise NoPrefixError("Could not find any matching prefix in IRR or BGP tables for %s" % prefix)
+
+    aggregate = aggregate.prefix
 
     bgp_specifics = other_query("BGP", "search_specifics", aggregate)
     irr_specifics = irr_query("search_specifics", aggregate)
@@ -496,10 +501,15 @@ def create_app(configfile=None):
     def prefix_json(prefix):
         try:
             ipaddr.IPNetwork(prefix)
+            prefix_data = prefix_report(prefix)
+            return json.dumps(prefix_data)
         except ValueError:
-            return "Unparseable input"
-        prefix_data = prefix_report(prefix)
-        return json.dumps(prefix_data)
+            msg = 'Could not parse input %s as prefix' % prefix
+            print msg
+            abort(400, msg)
+        except NoPrefixError as e:
+            print e
+            abort(400, str(e))
 
 
 #    @app.route('/asset/<asset>')
