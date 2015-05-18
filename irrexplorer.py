@@ -372,82 +372,66 @@ def prefix_report(prefix):
                     anywhere_not_ripe.append(entry)
         anywhere_not_ripe = list(set(anywhere_not_ripe))
 
-        if prefixes[p]['ripe_managed'] \
-                and prefixes[p]['ripe'] \
-                and prefixes[p]['bgp_origin'] in prefixes[p]['ripe'] \
-                and len(anywhere) == 1 \
-                and prefixes[p]['bgp_origin'] not in anywhere_not_ripe:
-            prefixes[p]['advice'] = \
-                "Perfect"
-            prefixes[p]['label'] = "success"
+        if prefixes[p]['ripe_managed']:
 
-        elif prefixes[p]['ripe_managed'] \
-                and prefixes[p]['ripe'] \
-                and prefixes[p]['bgp_origin'] in prefixes[p]['ripe'] \
-                and [prefixes[p]['bgp_origin']] == anywhere_not_ripe:
-            prefixes[p]['advice'] = \
-                "Proper RIPE DB object, but foreign or proxy objects also exist"
+            if prefixes[p]['ripe']:
+
+                if prefixes[p]['bgp_origin'] in prefixes[p]['ripe']:
+
+                    if len(anywhere) == 1 and prefixes[p]['bgp_origin'] not in anywhere_not_ripe:
+                        prefixes[p]['advice'] = "Perfect"
+                        prefixes[p]['label'] = "success"
+
+                    elif prefixes[p]['bgp_origin'] == anywhere_not_ripe:
+                        prefixes[p]['advice'] = "Proper RIPE DB object, but foreign or proxy objects also exist"
+                        prefixes[p]['label'] = "warning"
+
+                    elif prefixes[p]['bgp_origin'] in anywhere_not_ripe:
+                        prefixes[p]['advice'] = "Proper RIPE DB object, but foreign objects with different origin also exist"
+                        prefixes[p]['label'] = "warning"
+
+                    else:
+                        prefixes[p]['advice'] = "Looks good, but multiple entries exists in RIPE DB"
+                        prefixes[p]['label'] = "success"
+
+                elif prefixes[p]['bgp_origin']:
+                    prefixes[p]['advice'] = "Prefix is in DFZ, but registered with wrong origin in RIPE!"
+                    prefixes[p]['label'] = "danger"
+
+                else:
+                    # same as last else clause, not sure if this could actually be first
+                    prefixes[p]['advice'] = "Not seen in BGP, but (legacy?) route-objects exist, consider clean-up"
+                    prefixes[p]['label'] = "warning"
+
+            else:   # no ripe registration
+
+                if prefixes[p]['bgp_origin']:
+                    prefixes[p]['advice'] = "Prefix is in DFZ, but NOT registered in RIPE!"
+                    prefixes[p]['label'] = "danger"
+
+                else:
+                    prefixes[p]['advice'] = "Route objects in foreign registries exist, consider moving them to RIPE DB"
+                    prefixes[p]['label'] = "warning"
+
+        elif prefixes[p]['bgp_origin']: # not ripe managed
+
+            if prefixes[p]['bgp_origin'] in anywhere:
+
+                if len(anywhere) == 1:
+                    prefixes[p]['advice'] = "Looks good: in BGP consistent origin AS in route-objects"
+                    prefixes[p]['label'] = "success"
+                else:
+                    prefixes[p]['advice'] = "Multiple route-object exist with different origins"
+                    prefixes[p]['label'] = 'warning'
+
+            else:
+                prefixes[p]['advice'] = "Prefix in DFZ, but no route-object anywhere"
+                prefixes[p]['label'] = "danger"
+
+        else: # not ripe managed, no bgp origin
+            prefixes[p]['advice'] = "Not seen in BGP, but (legacy?) route-objects exist, consider clean-up"
             prefixes[p]['label'] = "warning"
 
-        elif prefixes[p]['ripe_managed'] \
-                and prefixes[p]['ripe'] \
-                and prefixes[p]['bgp_origin'] in prefixes[p]['ripe'] \
-                and prefixes[p]['bgp_origin'] in anywhere_not_ripe:
-            prefixes[p]['advice'] = \
-                "Proper RIPE DB object, but foreign objects with different origin also exist"
-            prefixes[p]['label'] = "warning"
-
-        elif prefixes[p]['ripe_managed'] \
-                and prefixes[p]['ripe'] \
-                and prefixes[p]['bgp_origin'] in prefixes[p]['ripe']:
-            prefixes[p]['advice'] = \
-                "Looks good, but multiple entries exists in RIPE DB"
-            prefixes[p]['label'] = "success"
-
-        elif prefixes[p]['ripe_managed'] \
-                and not prefixes[p]['ripe'] \
-                and not prefixes[p]['bgp_origin']:
-            prefixes[p]['advice'] = \
-                "Route objects in foreign registries exist, consider moving them to RIPE DB"
-            prefixes[p]['label'] = "warning"
-
-        elif prefixes[p]['ripe_managed'] \
-                and prefixes[p]['bgp_origin'] \
-                and not prefixes[p]['ripe']:
-            prefixes[p]['advice'] = \
-                "Prefix is in DFZ, but NOT registered in RIPE!"
-            prefixes[p]['label'] = "danger"
-
-        elif prefixes[p]['ripe_managed'] \
-                and prefixes[p]['ripe'] \
-                and prefixes[p]['bgp_origin'] \
-                and prefixes[p]['bgp_origin'] not in prefixes[p]['ripe']:
-            prefixes[p]['advice'] = \
-                "Prefix is in DFZ, but registered with wrong origin in RIPE!"
-            prefixes[p]['label'] = "danger"
-
-        elif prefixes[p]['bgp_origin'] in anywhere \
-                and len(anywhere) == 1:
-            prefixes[p]['advice'] = \
-                "Looks good: in BGP consistent origin AS in route-objects"
-            prefixes[p]['label'] = "success"
-
-        elif prefixes[p]['bgp_origin'] in anywhere \
-                and len(anywhere) > 1:
-            prefixes[p]['advice'] = \
-                "Multiple route-object exist with different origins"
-            prefixes[p]['label'] = 'warning'
-
-        elif prefixes[p]['bgp_origin'] \
-                and prefixes[p]['bgp_origin'] not in anywhere:
-            prefixes[p]['advice'] = \
-                "Prefix in DFZ, but no route-object anywhere"
-            prefixes[p]['label'] = "danger"
-
-        elif not prefixes[p]['bgp_origin']:
-            prefixes[p]['advice'] = \
-                "Not seen in BGP, but (legacy?) route-objects exist, consider clean-up"
-            prefixes[p]['label'] = "warning"
 
         for db in IRR_DBS:
             if db == "ripe" and 'ripe_managed' in prefixes[p] and prefixes[p]['ripe_managed']:
