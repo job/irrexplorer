@@ -88,6 +88,7 @@ class client(object):
                 f.flush()
                 for cmd, serial, obj in parser.parse_nrtm_stream(f):
                     if serial > self.serial:
+                        print "%s: %s %s @ %s" % (self.dbname, cmd, obj, serial)
                         self.serial = serial
                         yield cmd, serial, obj
                 print "sleeping 300 seconds before reconnecting to %s (%s)" % \
