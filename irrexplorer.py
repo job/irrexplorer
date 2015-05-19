@@ -31,6 +31,7 @@ from irrexplorer import ripe
 from irrexplorer import bgp
 from irrexplorer import utils
 
+import time
 import ipaddr
 import threading
 import multiprocessing
@@ -301,6 +302,9 @@ def prefix_report(prefix):
         - check all prefixes whether they are RIPE managed or not
         - return dict
     """
+
+    t_start = time.time()
+
     tree = radix.Radix()
     bgp_aggregate = other_query("BGP", "search_aggregate", prefix)
     if bgp_aggregate:
@@ -444,6 +448,11 @@ def prefix_report(prefix):
             # fill out blanks
             if not db in prefixes[p] or not prefixes[p][db]:
                 prefixes[p][db] = "-"
+
+    t_delta = time.time() - t_start
+    print
+    print 'Time for prefix report for %s: %f' % (prefix, t_delta)
+    print
 
     return prefixes
 
