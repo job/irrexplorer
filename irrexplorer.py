@@ -67,11 +67,14 @@ class LookupWorker(threading.Thread):
             results = {}
             if not lookup:
                 continue
+
             if lookup == "search_specifics":
                 data = None
                 for rnode in self.tree.search_covered(target):
-                    results[rnode.prefix] = {}
-                    results[rnode.prefix]['origins'] = rnode.data['origins']
+                    prefix = rnode.prefix
+                    origins = rnode.data['origins']
+                    results[prefix] = {}
+                    results[prefix]['origins'] = origins
                 self.result_queue.put(results)
 
             elif lookup == "search_aggregate":
