@@ -69,21 +69,9 @@ class LookupWorker(threading.Thread):
                 continue
             if lookup == "search_specifics":
                 data = None
-                # cheat a little by simple sharding!
-                # split all prefixes in 6 chunks, have each list worked
-                # on by a Proces()
-                pool = multiprocessing.Pool(6)
-                parts = [self.tree.prefixes()[i::6] for i in range(6)]  # split all pfx in 4 lists
-                job_args = [(target, p) for p in parts]  # workaround pool() only accepts 1 arg
-                specifics = pool.map(utils.find_more_sp_helper, job_args)
-                pool.terminate()
-                #FIXME - memleaking here, we need to either close() or terminate()
-
-                # next line flattens the list of lists
-                for prefix in [item for sublist in specifics for item in sublist]:
-                    data = self.tree.search_exact(prefix).data
-                    results[prefix] = {}
-                    results[prefix]['origins'] = data['origins']
+                for rnode in self.tree.search_covered(target):
+                    results[rnode.prefix] = {}
+                    results[rnode.prefix]['origins'] = rnode.data['origins']
                 self.result_queue.put(results)
 
             elif lookup == "search_aggregate":

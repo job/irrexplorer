@@ -90,16 +90,9 @@ class BGPLookupWorker(threading.Thread):
                 print "received BGP lookup: %s %s" % (lookup, target)
             if lookup == "search_specifics":
                 data = None
-                pool = multiprocessing.Pool(12)
-                parts = [self.prefixes[i::12] for i in range(12)]
-                job_args = [(target, p) for p in parts]
-                specifics = pool.map(utils.find_more_sp_helper, job_args)
-                pool.terminate()
-                # next line flattens the list of lists
-                for prefix in [item for sublist in specifics for item in sublist]:
-                    data = self.tree.search_exact(prefix).data
-                    results[prefix] = {}
-                    results[prefix]['origins'] = data['origins']
+                for rnode in self.tree.search_covered(target):
+                    results[rnode.prefix] = {}
+                    results[rnode.prefix]['origins'] = rnode.data['origins']
                 self.result_queue.put(results)
 
             elif lookup == "search_aggregate":
