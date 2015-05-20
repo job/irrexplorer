@@ -160,7 +160,9 @@ function rendererImgFunction(data, alldata, fieldname) {
                 if (fieldname == "advice") {
                     console.log(alldata['label']);
                     return "<span class='label label-" + alldata['label'] + "'>" + data + "</span>";
-                } else {
+                } else if (fieldname == "bgp_origin") {
+                    return "<a href=\"http://lg.ring.nlnog.net/query/" + data + "\">" + data + "</a>";    
+                else {
                     return data;    
                 }
         }
