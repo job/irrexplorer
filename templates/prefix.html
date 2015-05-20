@@ -148,7 +148,7 @@ function prefixsearch() {
         };
 }
 
-function rendererImgFunction(data, alldata, fieldname) {
+function rendererImgFunction(data, alldata, fieldname, prefix) {
     console.log(alldata['label']);
     if (typeof data != 'undefined') {
         switch (data.toString()) {
@@ -161,7 +161,7 @@ function rendererImgFunction(data, alldata, fieldname) {
                     console.log(alldata['label']);
                     return "<span class='label label-" + alldata['label'] + "'>" + data + "</span>";
                 } else if (fieldname == "bgp_origin") {
-                    return "<a href=\"http://lg.ring.nlnog.net/query/" + alldata['prefix'] + "\">" + data + "</a>";
+                    return "<a href=\"http://lg.ring.nlnog.net/query/" + prefix + "\">" + data + "</a>";
                 }
                 else {
                     return data;    
@@ -216,7 +216,7 @@ function populatetable(tblname, prefix_data) {
             if (field == "prefix") {
                 row.push(prefix);
             } else {
-                row.push(rendererImgFunction(prefixprops[field], prefixprops, field))
+                row.push(rendererImgFunction(prefixprops[field], prefixprops, field, prefix))
             }
         }
         //console.log(row);
