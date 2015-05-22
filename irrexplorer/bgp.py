@@ -56,7 +56,7 @@ class bgpclient(object):
                 except Exception as e:
                     print 'BGP line split error:', e, line
                 prefixes.append((prefix, int(origin)))
-            print "INFO: collected all BGP prefixes in a single list"
+            print "INFO: Collected all prefixes, %i elements" % len(prefixes)
             return prefixes
 
 
