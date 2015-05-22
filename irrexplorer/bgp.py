@@ -157,12 +157,13 @@ class BGPWorker(multiprocessing.Process):
                 for prefix, origin in self.bgpfeed.get():
                     self.prefixes_temp.append(prefix)
                     # new prefix
-                    if prefix not in self.prefixes and prefix in self.prefixes_temp:
-                        rnode = self.tree.add(prefix)
-                        rnode.data["origins"] = origin
-                    elif prefix in self.prefixes and prefix in self.prefixes_temp:
-                        rnode = self.tree.search_exact(prefix)
-                        rnode.data["origins"] = origin
+                    if prefix in self.prefixes_temp:
+                        if prefix in self.prefixes:
+                            rnode = self.tree.search_exact(prefix)
+                            rnode.data["origins"] = origin
+                        else:
+                            rnode = self.tree.add(prefix)
+                            rnode.data["origins"] = origin
                     else:  # prefix disappeared from bgp table
                         self.tree.delete(prefix)
                     self.asn_prefix_map_temp.setdefault(origin, []).append(prefix)
