@@ -136,40 +136,29 @@ class BGPWorker(multiprocessing.Process):
     def run(self):
         self.lookup.setDaemon(True)
         self.lookup.start()
-        self.firststart = True
+
         while True:
+
             self.bgpfeed = bgpclient()
-            self.prefixes_temp = []
-            self.asn_prefix_map_temp = {}
-            if self.firststart:
-                for prefix, origin in self.bgpfeed.get():
-                    rnode = self.tree.add(prefix)
-                    rnode.data['origins'] = origin
-                    self.prefixes.append(prefix)
-                    self.asn_prefix_map.setdefault(origin, []).append(prefix)
-                self.firststart = False
-            else:
-                for prefix, origin in self.bgpfeed.get():
-                    self.prefixes_temp.append(prefix)
-                    # new prefix
-                    if prefix in self.prefixes_temp:
-                        if prefix in self.prefixes:
-                            rnode = self.tree.search_exact(prefix)
-                            rnode.data["origins"] = origin
-                        else:
-                            rnode = self.tree.add(prefix)
-                            rnode.data["origins"] = origin
-                    else:  # prefix disappeared from bgp table
-                        self.tree.delete(prefix)
-                    self.asn_prefix_map_temp.setdefault(origin, []).append(prefix)
-                self.prefixes[:] = self.prefixes_temp
-                self.asn_prefix_map.clear()
-                self.asn_prefix_map.update(self.asn_prefix_map_temp)
-            print "INFO: loaded the BGP tree"
+
+            new_tree = radix.Radix()
+            new_asn_prefix_map = {}
+            new_prefixes = []
+
+            for prefix, origin in self.bgpfeed.get():
+                rnode = new_tree.add(prefix)
+                rnode.data['origins'] = origin
+                new_prefixes.append(prefix)
+                new_asn_prefix_map.setdefault(origin, []).append(prefix)
+
+                self.tree = new_tree
+                self.asn_prefix_map = new_asn_prefix_map
+                self.prefixes = new_prefixes
+
+            print "INFO: Loaded BGP tree"
             self.ready_event.set()
-            #FIXME during refresh the lookup thread is not available
             time.sleep(60 * 16 * 24)
-            print "INFO: refreshing BGP tree"
+            print "INFO: Refreshing BGP tree"
 
 if __name__ == "__main__":
     lookup_queue = multiprocessing.JoinableQueue()
