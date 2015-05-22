@@ -39,8 +39,6 @@ class bgpclient(object):
     """ Ingest a BGP tables from NLNOG RING project """
     def __init__(self, bgpdump=None):
 
-        super(bgpclient, self).__init__()
-
         self.bgpdump = \
             self.fetch_dump("http://lg01.infra.ring.nlnog.net/table.txt")
 

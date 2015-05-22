@@ -36,7 +36,6 @@ class client(object):
     """nrtm client class"""
     def __init__(self, serial=None, serialoverride=None, dump=None,
                  nrtmhost=None, nrtmport=43, dbname=None):
-        super(client, self).__init__()
         self.dbname = dbname
         if serialoverride is not None:
             self.serial = serialoverride

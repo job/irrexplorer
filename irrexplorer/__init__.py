@@ -11,7 +11,6 @@ import yaml
 class config(object):
     """config stub object for nrtm testing"""
     def __init__(self, cfgfile):
-        super(config, self).__init__()
         data = yaml.load(open(cfgfile))
         self.databases = data['databases']
 
