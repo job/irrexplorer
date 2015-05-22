@@ -25,9 +25,6 @@
 # ARISING IN ANY WAY OUT OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import utils
-
-import copy
 import radix
 import time
 import urllib2
