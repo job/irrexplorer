@@ -41,7 +41,7 @@ UPDATE_INTERVAL = 300 # seconds
 
 class BGPClient(object):
 
-    def __init__(self, bgp_source=DEFAULT_BGP_SOURCE):
+    def __init__(self, bgp_source):
         self.bgp_source = bgp_source
 
 
@@ -136,7 +136,7 @@ class BGPWorker(multiprocessing.Process):
     """
     Launch bgpclient() instance, provide a lookup thread
     """
-    def __init__(self, lookup_queue, result_queue, bgp_source):
+    def __init__(self, lookup_queue, result_queue, bgp_source=DEFAULT_BGP_SOURCE):
 
         multiprocessing.Process.__init__(self)
 
