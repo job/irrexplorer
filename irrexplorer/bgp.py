@@ -25,9 +25,6 @@
 # ARISING IN ANY WAY OUT OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import utils
-
-import copy
 import radix
 import time
 import urllib2
@@ -35,34 +32,43 @@ import threading
 import multiprocessing
 
 
-class bgpclient(object):
-    """ Ingest a BGP tables from NLNOG RING project """
-    def __init__(self, bgpdump=None):
+# bgp table from NLNOG RING project
+DEFAULT_BGP_SOURCE = "http://lg01.infra.ring.nlnog.net/table.txt"
 
-        super(bgpclient, self).__init__()
+UPDATE_INTERVAL = 300 # seconds
 
-        self.bgpdump = \
-            self.fetch_dump("http://lg01.infra.ring.nlnog.net/table.txt")
 
-    def fetch_dump(self, dumpurl):
-        req = urllib2.Request(dumpurl)
-        response = urllib2.urlopen(req)
-        return response.read()
+
+class BGPClient(object):
+
+    def __init__(self, bgp_source):
+        self.bgp_source = bgp_source
+
+
+    def fetch_table(self):
+        if self.bgp_source.startswith('http://') or self.bgp_source.startswith('https://'):
+            req = urllib2.Request(self.bgp_source)
+            response = urllib2.urlopen(req)
+            return response.read()
+        else:
+            # probably a file
+            return open(self.bgp_source).read()
 
     def get(self):
         prefixes = []
-        if self.bgpdump:
-            for line in self.bgpdump.split('\n'):
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    prefix, origin = line.strip().split(' ')
-                except Exception as e:
-                    print 'BGP line split error:', e, line
-                prefixes.append((prefix, int(origin)))
-            print "INFO: collected all BGP prefixes in a single list"
-            return prefixes
+        table_data = self.fetch_table()
+        for line in table_data.split('\n'):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                prefix, origin = line.strip().split(' ')
+                origin = int(origin)
+            except Exception as e:
+                print 'BGP line parse error:', e, line
+            prefixes.append((prefix, origin))
+        print "INFO: Collected all prefixes, %i elements" % len(prefixes)
+        return prefixes
 
 
 class BGPLookupWorker(threading.Thread):
@@ -118,6 +124,11 @@ class BGPLookupWorker(threading.Thread):
             elif lookup == "prefixset":
                 self.result_queue.put(set(target) & set(self.prefixes))
 
+            elif lookup == "exit":
+                self.result_queue.put("exit-confirm")
+                self.lookup_queue.task_done()
+                break
+
             self.lookup_queue.task_done()
 
 
@@ -125,55 +136,64 @@ class BGPWorker(multiprocessing.Process):
     """
     Launch bgpclient() instance, provide a lookup thread
     """
-    def __init__(self, lookup_queue, result_queue):
+    def __init__(self, lookup_queue, result_queue, bgp_source=DEFAULT_BGP_SOURCE):
+
         multiprocessing.Process.__init__(self)
+
         self.lookup_queue = lookup_queue
         self.result_queue = result_queue
+
+        self.bgp_client = BGPClient(bgp_source)
         self.tree = radix.Radix()
         self.prefixes = []
         self.asn_prefix_map = {}
         self.dbname = "BGP"
         self.ready_event = multiprocessing.Event()
-        self.lookup = BGPLookupWorker(self.tree, self.prefixes,
-                                      self.asn_prefix_map, self.lookup_queue,
-                                      self.result_queue)
+
+        self.lookup_worker = None
+
+
+    def updateTree(self):
+
+        new_tree = radix.Radix()
+        new_asn_prefix_map = {}
+        new_prefixes = []
+
+        t_start = time.time()
+        for prefix, origin in self.bgp_client.get():
+            rnode = new_tree.add(prefix)
+            rnode.data['origins'] = origin
+            new_prefixes.append(prefix)
+            new_asn_prefix_map.setdefault(origin, []).append(prefix)
+
+        print 'BGP tree update time', round(time.time() - t_start, 2)
+
+        self.tree = new_tree
+        self.asn_prefix_map = new_asn_prefix_map
+        self.prefixes = new_prefixes
+
 
     def run(self):
-        self.lookup.setDaemon(True)
-        self.lookup.start()
-        self.firststart = True
+
         while True:
-            self.bgpfeed = bgpclient()
-            self.prefixes_temp = []
-            self.asn_prefix_map_temp = {}
-            if self.firststart:
-                for prefix, origin in self.bgpfeed.get():
-                    rnode = self.tree.add(prefix)
-                    rnode.data['origins'] = origin
-                    self.prefixes.append(prefix)
-                    self.asn_prefix_map.setdefault(origin, []).append(prefix)
-                self.firststart = False
-            else:
-                for prefix, origin in self.bgpfeed.get():
-                    self.prefixes_temp.append(prefix)
-                    # new prefix
-                    if prefix not in self.prefixes and prefix in self.prefixes_temp:
-                        rnode = self.tree.add(prefix)
-                        rnode.data["origins"] = origin
-                    elif prefix in self.prefixes and prefix in self.prefixes_temp:
-                        rnode = self.tree.search_exact(prefix)
-                        rnode.data["origins"] = origin
-                    else:  # prefix disappeared from bgp table
-                        self.tree.delete(prefix)
-                    self.asn_prefix_map_temp.setdefault(origin, []).append(prefix)
-                self.prefixes[:] = self.prefixes_temp
-                self.asn_prefix_map.clear()
-                self.asn_prefix_map.update(self.asn_prefix_map_temp)
-            print "INFO: loaded the BGP tree"
+
+            self.updateTree()
+
+            if self.lookup_worker:
+                # let current lookup worker process current requests, and have it exit
+                self.lookup_queue.put(("exit", 1))
+                self.lookup_queue.join()
+                self.result_queue.get()
+
+            # start new lookup thread
+            self.lookup_worker = BGPLookupWorker(self.tree, self.prefixes, self.asn_prefix_map, self.lookup_queue, self.result_queue)
+            self.lookup_worker.daemon = True
+            self.lookup_worker.start()
+
+            print "INFO: Loaded BGP tree"
             self.ready_event.set()
-            #FIXME during refresh the lookup thread is not available
-            time.sleep(60 * 16 * 24)
-            print "INFO: refreshing BGP tree"
+            time.sleep(UPDATE_INTERVAL)
+            print "INFO: Refreshing BGP tree"
 
 if __name__ == "__main__":
     lookup_queue = multiprocessing.JoinableQueue()
