@@ -387,7 +387,7 @@ def prefix_report(prefix):
                         prefixes[p]['label'] = "warning"
 
                     elif prefixes[p]['bgp_origin'] in anywhere_not_ripe:
-                        prefixes[p]['advice'] = "Proper RIPE DB object, but foreign objects with different origin also exist"
+                        prefixes[p]['advice'] = "Proper RIPE DB object, but foreign objects also exist, consider removing these"
                         prefixes[p]['label'] = "warning"
 
                     else:
