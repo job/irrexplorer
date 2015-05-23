@@ -88,11 +88,11 @@ class LookupWorker(threading.Thread):
                     self.result_queue.put((prefix, data))
 
             elif lookup == "search_exact":
-                rnode = self.tree.search_exact(target)
-                prefix = rnode.prefix
-                origins = rnode.data['origins']
-                results[prefix] = {}
-                results[prefix]['origins'] = origins
+                for rnode in [self.tree.search_exact(target)]:
+                    prefix = rnode.prefix
+                    origins = rnode.data['origins']
+                    results[prefix] = {}
+                    results[prefix]['origins'] = origins
                 self.result_queue.put(results)
 
             elif lookup == "inverseasn":
