@@ -107,7 +107,7 @@ class BGPLookupWorker(threading.Thread):
             elif lookup == "search_exact":
                 rnode = self.tree.search_exact(target)
                 if not rnode:
-                    self.result_queue.put(None)
+                    self.result_queue.put({})
                 else:
                     prefix = rnode.prefix
                     origins = rnode.data['origins']
