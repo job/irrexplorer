@@ -91,11 +91,11 @@ $(document).ready(function () {
     // if something is present then search straight away
     prefixurl = "";
     var pathArray = window.location.pathname.split( '/' );
-    if (pathArray[pathArray.length - 1 ] != "prefix") {
-        if (pathArray[pathArray.length - 2] == "prefix") {
+    if (pathArray[pathArray.length - 1 ] != "exact_prefix") {
+        if (pathArray[pathArray.length - 2] == "exact_prefix") {
             prefixurl = pathArray[pathArray.length - 1];
         }
-        if (pathArray[pathArray.length - 3] == "prefix") {
+        if (pathArray[pathArray.length - 3] == "exact_prefix") {
             prefixurl = pathArray[pathArray.length - 2] + "/" + pathArray[pathArray.length - 1];
         }
     };
@@ -106,7 +106,7 @@ $(document).ready(function () {
 
     $("form").submit(function (e) {
         e.preventDefault(); //prevent default form submit
-        window.location.href = '/prefix/' + $('form').find('input[name="prefix"]').val();
+        window.location.href = '/exact_prefix/' + $('form').find('input[name="prefix"]').val();
         //prefixsearch();
     });
 
@@ -130,7 +130,7 @@ function prefixsearch() {
         {
             state_loading();
             $.ajax({
-                url: '/prefix_json/' + prefix,
+                url: '/exact_prefix_json/' + prefix,
                 success: function (data) {
                     state_loaded();
                     prefixes = JSON.parse(data);
