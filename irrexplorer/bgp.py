@@ -94,6 +94,7 @@ class BGPLookupWorker(threading.Thread):
                 continue
             else:
                 print "received BGP lookup: %s %s" % (lookup, target)
+
             if lookup == "search_specifics":
                 data = None
                 for rnode in self.tree.search_covered(target):
@@ -101,6 +102,15 @@ class BGPLookupWorker(threading.Thread):
                     origins = rnode.data['origins']
                     results[prefix] = {}
                     results[prefix]['origins'] = origins
+                self.result_queue.put(results)
+
+            elif lookup == "search_exact":
+                data = None
+                rnode = self.tree.search_exact(target)
+                prefix = rnode.prefix
+                origins = rnode.data['origins']
+                results[prefix] = {}
+                results[prefix]['origins'] = origins
                 self.result_queue.put(results)
 
             elif lookup == "search_aggregate":
