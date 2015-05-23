@@ -304,8 +304,8 @@ def prefix_report(prefix, exact=False):
     t_start = time.time()
 
     if exact:
-        bgp_specifics = other_query("BGP", "search_exact", aggregate)
-        irr_specifics = irr_query("search_exact", aggregate)
+        bgp_specifics = other_query("BGP", "search_exact", prefix)
+        irr_specifics = irr_query("search_exact", prefix)
     else:
         tree = radix.Radix()
         bgp_aggregate = other_query("BGP", "search_aggregate", prefix)
