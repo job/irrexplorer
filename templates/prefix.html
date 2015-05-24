@@ -260,10 +260,8 @@ function populatetable(tblname, prefix_data) {
                 "columns": colsdisp,
                 "searching": false,
                 "lengthChange": false,
-                "bPaginate": false
-                "columnDefs": [
-                        { type: 'ip-address', targets: 0 }
-                ]
+                "bPaginate": false,
+                "columnDefs": [ { 'type': 'ip-address', 'targets': 0 } ]
             } );
     } else {
         // just update, already set the table up once
