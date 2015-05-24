@@ -84,6 +84,7 @@ td { white-space: nowrap; }
 {% block scripts %}
 {{super()}}
 <script type="text/javascript" src="//cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="//cdn.datatables.net/plug-ins/1.10.7/sorting/ip-address.js"></script>
 <script type="text/javascript">
 // source: https://github.com/h5bp/html5-boilerplate/blob/master/src/js/plugins.js
 // Avoid `console` errors in browsers that lack a console.
@@ -260,6 +261,9 @@ function populatetable(tblname, prefix_data) {
                 "searching": false,
                 "lengthChange": false,
                 "bPaginate": false
+                "columnDefs": [
+                        { type: 'ip-address', targets: 0 }
+                ]
             } );
     } else {
         // just update, already set the table up once
