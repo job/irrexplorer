@@ -440,7 +440,7 @@ def prefix_report(prefix, exact=False):
                     prefixes[p]['label'] = 'warning'
 
             else:
-                prefixes[p]['advice'] = "Prefix in DFZ, but no route-object anywhere"
+                prefixes[p]['advice'] = "Prefix in DFZ, but no route-object with correct origin anywhere"
                 prefixes[p]['label'] = "danger"
 
         else: # not ripe managed, no bgp origin
