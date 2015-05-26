@@ -185,8 +185,6 @@ function rendererImgFunction(data, alldata, fieldname, prefix) {
                 if (fieldname == "advice") {
                     console.log(alldata['label']);
                     return "<span class='label label-" + alldata['label'] + "'>" + data + "</span>";
-                } else if (fieldname == "prefix") {
-                    return "<a href=\"/exact_prefix/" + prefix + "\">" + data + "</a>";
                 } else if (fieldname == "bgp_origin") {
                     return "<a href=\"http://lg.ring.nlnog.net/query/" + prefix + "\">" + data + "</a>";
                 }
@@ -241,7 +239,7 @@ function populatetable(tblname, prefix_data) {
         for (var f in fields) {
             field = fields[f];
             if (field == "prefix") {
-                row.push(prefix);
+                row.push('<a href="/exact_prefix/' + prefix + '">' + prefix + '</a>');
             } else {
                 row.push(rendererImgFunction(prefixprops[field], prefixprops, field, prefix))
             }
