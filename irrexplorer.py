@@ -163,8 +163,8 @@ class NRTMWorker(multiprocessing.Process):
                         """ ignore updates for which the source does not
                         match the configured/expected database """
                         continue
-                except:
-                    print "ERROR: weird object in %s: %s" % (self.dbname, obj)
+                except KeyError:
+                    print "ERROR: NRTM object without source in %s: %s" % (self.dbname, obj)
                     continue
 
                 if obj['kind'] in ["route", "route6"]:
@@ -194,8 +194,7 @@ class NRTMWorker(multiprocessing.Process):
                             self.tree.delete(obj['name'])
                             self.asn_prefix_map[obj['origin']].remove(obj['name'])
                         except KeyError:
-                            print "ERROR: could not remove this object from the tree in %s" % self.dbname
-                            print obj
+                            print "ERROR: Could not remove object from the tree in %s: %s" % (self.dbname, obj)
 
                 if obj['kind'] == "as-set":
                     if cmd == "ADD":
@@ -293,6 +292,44 @@ IRR_DBS = ['afrinic', 'altdb', 'apnic', 'arin', 'bboi', 'bell', 'gt', 'jpirr', '
 
 IRR_DBS_EXCEPT_RIPE = IRR_DBS[:]
 IRR_DBS_EXCEPT_RIPE.remove('ripe')
+
+
+def prefix_post_process(prefixes):
+
+    # build list of databases with no relevant information
+    db_entries = {}
+
+    for pfi in prefixes.values():
+        for db, info in pfi.items():
+            if db in IRR_DBS: # skip advice, ripe managed, etc
+                db_entries.setdefault(db, []).append( bool(info) )
+
+    db_truncate = [ db for db, dbil in db_entries.items() if any(dbil) is False ]
+    print 'db truncate', db_truncate
+
+    # remove databases with no relevant data from result
+    for pfi in prefixes.values():
+        for db in db_truncate:
+            if db in pfi: # less code than try+except
+                pfi.pop(db)
+
+    # create list of database with information
+    db_info = db_entries.keys()
+    for db in db_truncate:
+        db_info.remove(db)
+
+    print 'db info', db_info
+
+    # make some nice blanks
+    for prefix in prefixes:
+        for db in db_info:
+            if not db in prefixes[prefix] or not prefixes[prefix][db]:
+                prefixes[prefix][db] = "-"
+
+    msg = 'No relevant information databases %s' % str( ' '.join(db_truncate) )
+
+    return prefixes, msg
+
 
 
 def prefix_report(prefix, exact=False):
@@ -448,12 +485,9 @@ def prefix_report(prefix, exact=False):
             prefixes[p]['label'] = "warning"
 
 
-        for db in IRR_DBS:
-            if db == "ripe" and 'ripe_managed' in prefixes[p] and prefixes[p]['ripe_managed']:
-                continue
-            # fill out blanks
-            if not db in prefixes[p] or not prefixes[p][db]:
-                prefixes[p][db] = "-"
+    prefixes, msg = prefix_post_process(prefixes)
+    print msg # have to get this into the web page as well...
+
 
     t_delta = time.time() - t_start
     print
@@ -522,29 +556,44 @@ def create_app(configfile=None):
     def prefix_json(prefix):
         try:
             ipaddr.IPNetwork(prefix)
-            prefix_data = prefix_report(prefix)
-            return json.dumps(prefix_data)
         except ValueError:
             msg = 'Could not parse input %s as prefix' % prefix
             print msg
             abort(400, msg)
+        try:
+            prefix_data = prefix_report(prefix)
+            return json.dumps(prefix_data)
         except NoPrefixError as e:
             print e
             abort(400, str(e))
+        except Exception as e:
+            print e
+            msg = 'Error processing prefix %s: %s' % (prefix, str(e))
+            print msg
+            abort(500, msg)
+
 
     @app.route('/exact_prefix_json/<path:prefix>')
     def exact_prefix_json(prefix):
         try:
             ipaddr.IPNetwork(prefix)
-            prefix_data = prefix_report(prefix, exact=True)
-            return json.dumps(prefix_data)
         except ValueError:
             msg = 'Could not parse input %s as prefix' % prefix
             print msg
             abort(400, msg)
+
+        try:
+            prefix_data = prefix_report(prefix, exact=True)
+            return json.dumps(prefix_data)
         except NoPrefixError as e:
             print e
             abort(400, str(e))
+        except Exception as e:
+            print e
+            msg = 'Error processing prefix %s: %s' % (prefix, str(e))
+            print msg
+            abort(500, msg)
+
 
 #    @app.route('/asset/<asset>')
 #    def asset(asset):
