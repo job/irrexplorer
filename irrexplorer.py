@@ -544,6 +544,15 @@ def create_app(configfile=None):
             print e
             abort(400, str(e))
 
+        try:
+            prefix_data = prefix_report(prefix)
+            return json.dumps(prefix_data)
+        except Exception as e:
+            print e
+            msg = 'Error processing prefix %s: %s' % (prefix, str(e))
+            print msg
+            abort(500, msg)
+
 
 #    @app.route('/asset/<asset>')
 #    def asset(asset):
