@@ -326,7 +326,7 @@ def prefix_post_process(prefixes):
             if not db in prefixes[prefix] or not prefixes[prefix][db]:
                 prefixes[prefix][db] = "-"
 
-    msg = 'No relevant information for prefix %s in databases %s' % (prefix, str( ' '.join(db_truncate) ) )
+    msg = 'No relevant information databases %s' % str( ' '.join(db_truncate) )
 
     return prefixes, msg
 
