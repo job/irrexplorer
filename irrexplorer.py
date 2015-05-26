@@ -87,6 +87,17 @@ class LookupWorker(threading.Thread):
                     data = rnode.data
                     self.result_queue.put((prefix, data))
 
+            elif lookup == "search_exact":
+                rnode = self.tree.search_exact(target)
+                if not rnode:
+                    self.result_queue.put({})
+                else:
+                    prefix = rnode.prefix
+                    origins = rnode.data['origins']
+                    results[prefix] = {}
+                    results[prefix]['origins'] = origins
+                    self.result_queue.put(results)
+
             elif lookup == "inverseasn":
                 if target in self.asn_prefix_map:
                     self.result_queue.put(self.asn_prefix_map[target])
@@ -321,7 +332,7 @@ def prefix_post_process(prefixes):
 
 
 
-def prefix_report(prefix):
+def prefix_report(prefix, exact=False):
     """
         - find least specific
         - search in BGP for more specifics
@@ -332,23 +343,28 @@ def prefix_report(prefix):
 
     t_start = time.time()
 
-    tree = radix.Radix()
-    bgp_aggregate = other_query("BGP", "search_aggregate", prefix)
-    if bgp_aggregate:
-        bgp_aggregate = bgp_aggregate[0]
-        tree.add(bgp_aggregate)
-    irr_aggregate = irr_query("search_aggregate", prefix)
-    for r in irr_aggregate:
-        if irr_aggregate[r]:
-            tree.add(irr_aggregate[r][0])
-    aggregate = tree.search_worst(prefix)
-    if not aggregate:
-        raise NoPrefixError("Could not find any matching prefix in IRR or BGP tables for %s" % prefix)
+    if exact:
+        bgp_specifics = other_query("BGP", "search_exact", prefix)
+        irr_specifics = irr_query("search_exact", prefix)
+    else:
+        tree = radix.Radix()
+        bgp_aggregate = other_query("BGP", "search_aggregate", prefix)
+        if bgp_aggregate:
+            bgp_aggregate = bgp_aggregate[0]
+            tree.add(bgp_aggregate)
+        irr_aggregate = irr_query("search_aggregate", prefix)
+        for r in irr_aggregate:
+            if irr_aggregate[r]:
+                tree.add(irr_aggregate[r][0])
+        aggregate = tree.search_worst(prefix)
+        if not aggregate:
+            raise NoPrefixError("Could not find any matching prefix in IRR or BGP tables for %s" % prefix)
 
-    aggregate = aggregate.prefix
+        aggregate = aggregate.prefix
 
-    bgp_specifics = other_query("BGP", "search_specifics", aggregate)
-    irr_specifics = irr_query("search_specifics", aggregate)
+        bgp_specifics = other_query("BGP", "search_specifics", aggregate)
+        irr_specifics = irr_query("search_specifics", aggregate)
+
     prefixes = {}
     for p in bgp_specifics:
         if p not in prefixes:
@@ -423,7 +439,7 @@ def prefix_report(prefix):
                         prefixes[p]['label'] = "warning"
 
                     elif prefixes[p]['bgp_origin'] in anywhere_not_ripe:
-                        prefixes[p]['advice'] = "Proper RIPE DB object, but foreign objects with different origin also exist"
+                        prefixes[p]['advice'] = "Proper RIPE DB object, but foreign objects also exist, consider removing these"
                         prefixes[p]['label'] = "warning"
 
                     else:
@@ -461,7 +477,7 @@ def prefix_report(prefix):
                     prefixes[p]['label'] = 'warning'
 
             else:
-                prefixes[p]['advice'] = "Prefix in DFZ, but no route-object anywhere"
+                prefixes[p]['advice'] = "Prefix in DFZ, but no route-object with correct origin anywhere"
                 prefixes[p]['label'] = "danger"
 
         else: # not ripe managed, no bgp origin
@@ -530,6 +546,12 @@ def create_app(configfile=None):
     def prefix_search(prefix):
         return render_template('prefix.html')
 
+    @app.route('/exact_prefix/<path:prefix>')
+    @app.route('/exact_prefix/', defaults={'prefix': None})
+    @app.route('/exact_prefix', defaults={'prefix': None})
+    def exact_prefix_search(prefix):
+        return render_template('exact_prefix.html')
+
     @app.route('/prefix_json/<path:prefix>')
     def prefix_json(prefix):
         try:
@@ -551,6 +573,20 @@ def create_app(configfile=None):
             print msg
             abort(500, msg)
 
+
+    @app.route('/exact_prefix_json/<path:prefix>')
+    def exact_prefix_json(prefix):
+        try:
+            ipaddr.IPNetwork(prefix)
+            prefix_data = prefix_report(prefix, exact=True)
+            return json.dumps(prefix_data)
+        except ValueError:
+            msg = 'Could not parse input %s as prefix' % prefix
+            print msg
+            abort(400, msg)
+        except NoPrefixError as e:
+            print e
+            abort(400, str(e))
 
 #    @app.route('/asset/<asset>')
 #    def asset(asset):

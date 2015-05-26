@@ -44,8 +44,8 @@ td { white-space: nowrap; }
             <div class="col-md-7">
                 <div class="row">&nbsp;
                 </div>
-                <form id="form" class="form-inline">
-                    <h2>Prefix</h2><input type="text" name="prefix" class="form-control" />
+                <form id="form">
+                    <h2>Prefix</h2><input type="text" name="prefix"/>
                     <button id="btnsearch" type="submit" class="btn btn-primary" name="search" value="Search">Search</button>
                 </form>
             </div>
@@ -84,43 +84,18 @@ td { white-space: nowrap; }
 {% block scripts %}
 {{super()}}
 <script type="text/javascript" src="//cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>
-<script type="text/javascript" src="//cdn.datatables.net/plug-ins/1.10.7/sorting/ip-address.js"></script>
 <script type="text/javascript">
-// source: https://github.com/h5bp/html5-boilerplate/blob/master/src/js/plugins.js
-// Avoid `console` errors in browsers that lack a console.
-(function() {
-    var method;
-    var noop = function () {};
-    var methods = [
-        'assert', 'clear', 'count', 'debug', 'dir', 'dirxml', 'error',
-        'exception', 'group', 'groupCollapsed', 'groupEnd', 'info', 'log',
-        'markTimeline', 'profile', 'profileEnd', 'table', 'time', 'timeEnd',
-        'timeline', 'timelineEnd', 'timeStamp', 'trace', 'warn'
-    ];
-    var length = methods.length;
-    var console = (window.console = window.console || {});
-
-    while (length--) {
-        method = methods[length];
-
-        // Only stub undefined methods.
-        if (!console[method]) {
-            console[method] = noop;
-        }
-    }
-}());
-
 $(document).ready(function () {
 
     // look at what is after /prefix/ in the URL
     // if something is present then search straight away
     prefixurl = "";
     var pathArray = window.location.pathname.split( '/' );
-    if (pathArray[pathArray.length - 1 ] != "prefix") {
-        if (pathArray[pathArray.length - 2] == "prefix") {
+    if (pathArray[pathArray.length - 1 ] != "exact_prefix") {
+        if (pathArray[pathArray.length - 2] == "exact_prefix") {
             prefixurl = pathArray[pathArray.length - 1];
         }
-        if (pathArray[pathArray.length - 3] == "prefix") {
+        if (pathArray[pathArray.length - 3] == "exact_prefix") {
             prefixurl = pathArray[pathArray.length - 2] + "/" + pathArray[pathArray.length - 1];
         }
     };
@@ -131,7 +106,7 @@ $(document).ready(function () {
 
     $("form").submit(function (e) {
         e.preventDefault(); //prevent default form submit
-        window.location.href = '/prefix/' + $('form').find('input[name="prefix"]').val();
+        window.location.href = '/exact_prefix/' + $('form').find('input[name="prefix"]').val();
         //prefixsearch();
     });
 
@@ -155,7 +130,7 @@ function prefixsearch() {
         {
             state_loading();
             $.ajax({
-                url: '/prefix_json/' + prefix,
+                url: '/exact_prefix_json/' + prefix,
                 success: function (data) {
                     state_loaded();
                     prefixes = JSON.parse(data);
@@ -178,9 +153,9 @@ function rendererImgFunction(data, alldata, fieldname, prefix) {
     if (typeof data != 'undefined') {
         switch (data.toString()) {
             case "true":
-                return "<img alt='T' title='True' src='/static/img/true.png'>";
+                return "<img src='/static/img/true.png'>";
             case "false":
-                return "<img alt='F' title='False' src='/static/img/false.png'>";
+                return "<img src='/static/img/false.png'>";
             default:
                 if (fieldname == "advice") {
                     console.log(alldata['label']);
@@ -189,7 +164,7 @@ function rendererImgFunction(data, alldata, fieldname, prefix) {
                     return "<a href=\"http://lg.ring.nlnog.net/query/" + prefix + "\">" + data + "</a>";
                 }
                 else {
-                    return data;
+                    return data;    
                 }
         }
     } else {
@@ -260,9 +235,8 @@ function populatetable(tblname, prefix_data) {
                 "columns": colsdisp,
                 "searching": false,
                 "lengthChange": false,
-                "bPaginate": false,
-                "columnDefs": [ { 'type': 'ip-address', 'targets': 0 } ]
-            } );
+                "bPaginate": false
+            } );   
     } else {
         // just update, already set the table up once
         $("#example").dataTable().fnClearTable();
