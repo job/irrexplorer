@@ -560,13 +560,12 @@ def create_app(configfile=None):
             msg = 'Could not parse input %s as prefix' % prefix
             print msg
             abort(400, msg)
-        except NoPrefixError as e:
-            print e
-            abort(400, str(e))
-
         try:
             prefix_data = prefix_report(prefix)
             return json.dumps(prefix_data)
+        except NoPrefixError as e:
+            print e
+            abort(400, str(e))
         except Exception as e:
             print e
             msg = 'Error processing prefix %s: %s' % (prefix, str(e))
@@ -578,15 +577,23 @@ def create_app(configfile=None):
     def exact_prefix_json(prefix):
         try:
             ipaddr.IPNetwork(prefix)
-            prefix_data = prefix_report(prefix, exact=True)
-            return json.dumps(prefix_data)
         except ValueError:
             msg = 'Could not parse input %s as prefix' % prefix
             print msg
             abort(400, msg)
+
+        try:
+            prefix_data = prefix_report(prefix, exact=True)
+            return json.dumps(prefix_data)
         except NoPrefixError as e:
             print e
             abort(400, str(e))
+        except Exception as e:
+            print e
+            msg = 'Error processing prefix %s: %s' % (prefix, str(e))
+            print msg
+            abort(500, msg)
+
 
 #    @app.route('/asset/<asset>')
 #    def asset(asset):
