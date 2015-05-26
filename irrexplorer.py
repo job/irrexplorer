@@ -152,8 +152,8 @@ class NRTMWorker(multiprocessing.Process):
                         """ ignore updates for which the source does not
                         match the configured/expected database """
                         continue
-                except:
-                    print "ERROR: weird object in %s: %s" % (self.dbname, obj)
+                except KeyError:
+                    print "ERROR: NRTM object without source in %s: %s" % (self.dbname, obj)
                     continue
 
                 if obj['kind'] in ["route", "route6"]:
@@ -183,8 +183,7 @@ class NRTMWorker(multiprocessing.Process):
                             self.tree.delete(obj['name'])
                             self.asn_prefix_map[obj['origin']].remove(obj['name'])
                         except KeyError:
-                            print "ERROR: could not remove this object from the tree in %s" % self.dbname
-                            print obj
+                            print "ERROR: Could not remove object from the tree in %s: %s" % (self.dbname, obj)
 
                 if obj['kind'] == "as-set":
                     if cmd == "ADD":
