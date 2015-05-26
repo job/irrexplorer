@@ -534,8 +534,6 @@ def create_app(configfile=None):
     def prefix_json(prefix):
         try:
             ipaddr.IPNetwork(prefix)
-            prefix_data = prefix_report(prefix)
-            return json.dumps(prefix_data)
         except ValueError:
             msg = 'Could not parse input %s as prefix' % prefix
             print msg
