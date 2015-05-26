@@ -106,7 +106,7 @@ $(document).ready(function () {
 
     $("form").submit(function (e) {
         e.preventDefault(); //prevent default form submit
-        window.location.href = '/exact_prefix/' + $('form').find('input[name="prefix"]').val();
+        window.location.href = '/prefix/' + $('form').find('input[name="prefix"]').val();
         //prefixsearch();
     });
 
