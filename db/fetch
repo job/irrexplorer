@@ -1,0 +1,42 @@
+#!/usr/bin/env python
+
+# Tool to fetch databases from irrexplorer yaml config file
+
+import sys
+import urllib
+
+import yaml
+
+
+
+def fetch(url):
+    file_name = url.split('/')[-1]
+    print 'Fetching %s --> %s' % (url, file_name)
+    urllib.urlretrieve(url, filename=file_name)
+
+
+def main():
+
+    if len(sys.argv) == 1:
+        print 'No argument(s) given'
+        sys.exit(1)
+
+    for yml_cfg in sys.argv[1:]:
+        cfg = yaml.load(open(yml_cfg))
+
+        if not 'databases' in cfg:
+            print 'No database in %s' % yml_cfg
+            continue
+
+        for db in cfg['databases']:
+            for db_name, db_info in db.items():
+                for dbe in db_info:
+                    for dbk, dbv in dbe.items():
+                        if dbk in ('serial', 'dump'):
+                            fetch(dbv)
+
+
+
+if __name__ == '__main__':
+    main()
+

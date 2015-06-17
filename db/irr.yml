@@ -1,0 +1,32 @@
+databases:
+    - altdb:
+        - serial: 'ftp://ftp.radb.net/radb/dbase/ALTDB.CURRENTSERIAL'
+        - dump: 'ftp://ftp.radb.net/radb/dbase/altdb.db.gz'
+        - nrtmhost: 'whois.altdb.net'
+        - nrtmport: 43
+        - dbname: 'ALTDB'
+    - arin:
+        - serial: 'ftp://ftp.radb.net/radb/dbase/ARIN.CURRENTSERIAL'
+        - dump: 'ftp://ftp.radb.net/radb/dbase/arin.db.gz'
+        - nrtmhost: 'rr.ntt.net'
+        - nrtmport: 43
+        - dbname: 'ARIN'
+    - level3:
+        - serial: 'ftp://ftp.radb.net/radb/dbase/LEVEL3.CURRENTSERIAL'
+        - dump: 'ftp://ftp.radb.net/radb/dbase/level3.db.gz'
+        - nrtmhost: 'rr.ntt.net'
+        - nrtmport: 43
+        - dbname: 'LEVEL3'
+    - radb:
+        - serial: 'ftp://ftp.radb.net/radb/dbase/RADB.CURRENTSERIAL'
+        - dump: 'ftp://ftp.radb.net/radb/dbase/radb.db.gz'
+        - nrtmhost: 'whois.radb.net'
+        - nrtmport: 43
+        - dbname: 'RADB'
+    - ripe:
+        - serial: 'ftp://ftp.ripe.net/ripe/dbase/RIPE.CURRENTSERIAL'
+        - dump: 'ftp://ftp.ripe.net/ripe/dbase/ripe.db.gz'
+        - nrtmhost: 'rr.ntt.net'
+        - nrtmport: 43
+        - dbname: 'RIPE'
+
