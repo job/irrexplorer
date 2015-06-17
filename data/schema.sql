@@ -10,6 +10,11 @@ CREATE TABLE sources (
     name        text                UNIQUE NOT NULL
 );
 
+CREATE TABLE managed_routes (
+    route       cidr                NOT NULL,
+    source_id   integer             NOT NULL REFERENCES sources(id)
+);
+
 
 -- consider expanding this with start/end timestamp later
 CREATE TABLE routes (
@@ -36,6 +41,31 @@ CREATE TABLE as_sets (
     CONSTRAINT unique_macro_source UNIQUE (as_macro, source_id)
 );
 
+
+
+CREATE OR REPLACE FUNCTION create_managed_route (
+    in_route                cidr,
+    in_source               varchar
+)
+RETURNS integer AS $inserted$
+
+DECLARE
+    source_id               integer;
+    result                  integer;
+BEGIN
+    -- check if we have source, create if not
+    SELECT sources.id INTO source_id FROM sources WHERE name = in_source;
+    IF NOT FOUND THEN
+        INSERT INTO sources (name) VALUES (in_source) RETURNING id INTO source_id;
+    END IF;
+
+    INSERT INTO managed_routes (route, source_id) VALUES (in_route, source_id);
+
+    result = 1;
+    return result;
+END;
+$inserted$
+LANGUAGE plpgsql;
 
 
 CREATE OR REPLACE FUNCTION create_route (
