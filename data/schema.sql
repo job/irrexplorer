@@ -50,7 +50,7 @@ DECLARE
     result                  integer;
 BEGIN
     -- check if we have source, create if not
-    SELECT source.id INTO source_id FROM sources WHERE name = in_source;
+    SELECT sources.id INTO source_id FROM sources WHERE name = in_source;
     IF NOT FOUND THEN
         INSERT INTO sources (name) VALUES (in_source) RETURNING id INTO source_id;
     END IF;
@@ -77,7 +77,7 @@ DECLARE
     result                  integer;
 BEGIN
     -- check if we have source, create if not
-    SELECT source.id INTO source_id FROM sources WHERE name = in_source;
+    SELECT sources.id INTO source_id FROM sources WHERE name = in_source;
     IF NOT FOUND THEN
         INSERT INTO sources (name) VALUES (in_source) RETURNING id INTO source_id;
     END IF;
@@ -89,5 +89,4 @@ BEGIN
 END;
 $inserted$
 LANGUAGE plpgsql;
-
 
