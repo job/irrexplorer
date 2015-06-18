@@ -8,11 +8,16 @@ code, and getting something to work.
 
 ./fetch irr.yml
 
-Create file with SQL insert statements:
+# Create file with SQL insert statements:
 
 zcat *.db*.gz | ./create_inserts > irr.sql
 
-And the ripe managed space
+# BGP route table dump
+
+wget http://lg01.infra.ring.nlnog.net/table.txt
+./create_bgp_insert < table.txt > bgp.sql
+
+# And the ripe managed space
 
 cat ../data/ripe-managed-space.txt |./create_ripe_managed  > ripe_managed.sql
 
@@ -30,5 +35,6 @@ As irrexplorer user
 => \i ../data/schema.sql
 => \i ripe_managed.sql
 => \i irr.sql
+=> \i bgp.sql
 
 
