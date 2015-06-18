@@ -86,7 +86,7 @@ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION create_route (
     in_route                cidr,
-    in_asn                  integer,
+    in_asn                  bigint,
     in_source               varchar
 )
 RETURNS integer AS $inserted$
