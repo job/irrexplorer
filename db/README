@@ -8,9 +8,9 @@ code, and getting something to work.
 
 ./fetch irr.yml
 
-Do this for all your fetched databases:
+Create file with SQL insert statements:
 
-zcat db1.db.gz |./create_inserts > db1.sql
+zcat *.db*.gz | ./create_inserts > irr.sql
 
 And the ripe managed space
 
@@ -29,7 +29,6 @@ As irrexplorer user
 
 => \i ../data/schema.sql
 => \i ripe_managed.sql
-=> \i db1.sql
-=> \i db2.sql
+=> \i irr.sql
 
 
