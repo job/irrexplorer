@@ -16,6 +16,13 @@ CREATE TABLE managed_routes (
 );
 
 
+CREATE VIEW managed_routes_view AS
+    SELECT
+        route, name AS source
+    FROM
+        managed_routes LEFT OUTER JOIN sources ON (managed_routes.source_id = sources.id);
+
+
 -- consider expanding this with start/end timestamp later
 CREATE TABLE routes (
     route       cidr                NOT NULL,
@@ -32,6 +39,11 @@ CREATE TABLE routes (
 
 CREATE INDEX route_gist ON routes USING gist (route inet_ops);
 
+CREATE VIEW routes_view AS
+    SELECT
+        route, asn, name AS source
+    FROM routes LEFT OUTER JOIN sources ON (routes.source_id = sources.id);
+
 
 CREATE TABLE as_sets (
     as_macro    text                NOT NULL,
@@ -40,6 +52,12 @@ CREATE TABLE as_sets (
 
     CONSTRAINT unique_macro_source UNIQUE (as_macro, source_id)
 );
+
+
+CREATE VIEW as_sets_view AS
+    SELECT
+        as_macro, members, name AS source
+    FROM as_sets LEFT OUTER JOIN sources ON (as_sets.source_id = sources.id);
 
 
 
