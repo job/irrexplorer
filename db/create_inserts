@@ -34,11 +34,6 @@ def main():
 
         if line.startswith('route:'):
             route = readAttr(line)
-            pfl = int(route.split('/',1)[1])
-            if pfl < 8 or pfl > 24:
-                print >> sys.stderr, '-- Invalid prefix length for route', route, 'skipping'
-                route = None
-                continue
 
         elif line.startswith('origin:'):
             origin = readAttr(line)[2:]
