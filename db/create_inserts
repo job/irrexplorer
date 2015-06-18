@@ -25,11 +25,17 @@ def main():
     origin = None
     source = None
 
+    i = 1
+    print 'BEGIN;'
     for line in sys.stdin:
 
         if line.strip() == '': # new block
             if route and origin and source:
                 print INSERT % (route, origin, source)
+                i += 1
+                if i % 5000 == 0:
+                    print 'COMMIT;'
+                    print 'BEGIN;'
             route = origin = source = None
 
         if line.startswith('route:'):
@@ -46,6 +52,8 @@ def main():
     # dangling route
     if route and origin and source:
         print INSERT % (route, origin, source)
+
+    print 'COMMIT;'
 
 
 if __name__ == '__main__':
