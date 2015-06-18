@@ -32,7 +32,7 @@ CREATE TABLE routes (
     -- The unique constraint may not be the best from an efficiancy point of view,
     -- but having duplicates is likely to cause weird results
     CONSTRAINT unique_entry UNIQUE (route, asn, source_id),
-    CONSTRAINT positive_asn CHECK (asn > 0),
+    CONSTRAINT positive_asn CHECK (asn > 0)
 );
 
 CREATE INDEX route_gist ON routes USING gist (route inet_ops);
