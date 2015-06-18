@@ -4,42 +4,55 @@ import sys
 
 INSERT = "SELECT create_route ('%s', %i, '%s');"
 
+
 def readAttr(line):
     sp = line.split(':',1)[1]
     if '#' in sp:
         sp = sp.split('#',1)[0]
     return sp.strip()
 
-route  = None
-origin = None
-source = None
 
-for line in sys.stdin:
+def convertASDot(origin):
+    if '.' in origin:
+        high, low = map(int, origin.split('.'))
+        origin = (high << 16) + low
+    return origin
 
-    if line.strip() == '': # new block
-        if route and origin and source:
-            print INSERT % (route, origin, source)
-        route = origin = source = None
 
-    if line.startswith('route:'):
-        route = readAttr(line)
-        pfl = int(route.split('/',1)[1])
-        if pfl < 8 or pfl > 24:
-            print >> sys.stderr, '-- Invalid prefix length for route', route, 'skipping'
-            route = None
-            continue
+def main():
 
-    elif line.startswith('origin:'):
-        try:
-            origin = int(readAttr(line)[2:])
-        except ValueError as e:
-            print >> sys.stderr, 'Bad origin for route %s: %s' % (route, readAttr(line))
-            route = None
+    route  = None
+    origin = None
+    source = None
 
-    elif line.startswith('source:'):
-        source = readAttr(line).lower()
+    for line in sys.stdin:
 
-# dangling route
-if route and origin and source:
-    print INSERT % (route, origin, source)
+        if line.strip() == '': # new block
+            if route and origin and source:
+                print INSERT % (route, origin, source)
+            route = origin = source = None
+
+        if line.startswith('route:'):
+            route = readAttr(line)
+            pfl = int(route.split('/',1)[1])
+            if pfl < 8 or pfl > 24:
+                print >> sys.stderr, '-- Invalid prefix length for route', route, 'skipping'
+                route = None
+                continue
+
+        elif line.startswith('origin:'):
+            origin = readAttr(line)[2:]
+            origin = convertASDot(origin)
+            origin = int(origin)
+
+        elif line.startswith('source:'):
+            source = readAttr(line).lower()
+
+    # dangling route
+    if route and origin and source:
+        print INSERT % (route, origin, source)
+
+
+if __name__ == '__main__':
+    main()
 
