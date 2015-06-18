@@ -26,7 +26,7 @@ CREATE VIEW managed_routes_view AS
 -- consider expanding this with start/end timestamp later
 CREATE TABLE routes (
     route       cidr                NOT NULL,
-    asn         integer             NOT NULL,
+    asn         bigint              NOT NULL,
     source_id   integer             NOT NULL REFERENCES sources(id),
 
     -- The unique constraint may not be the best from an efficiancy point of view,
