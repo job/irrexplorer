@@ -33,8 +33,6 @@ CREATE TABLE routes (
     -- but having duplicates is likely to cause weird results
     CONSTRAINT unique_entry UNIQUE (route, asn, source_id),
     CONSTRAINT positive_asn CHECK (asn > 0),
-    CONSTRAINT valid_lengths CHECK ( (family(route) = 4 AND masklen(route) >= 8 AND masklen(route) <= 24) or
-                                     (family(route) = 6 AND masklen(route) <= 48) )
 );
 
 CREATE INDEX route_gist ON routes USING gist (route inet_ops);
