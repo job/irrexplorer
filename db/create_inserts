@@ -37,7 +37,7 @@ for line in sys.stdin:
             route = None
 
     elif line.startswith('source:'):
-        source = readAttr(line).upper()
+        source = readAttr(line).lower()
 
 # dangling route
 if route and origin and source:

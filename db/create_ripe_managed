@@ -6,5 +6,5 @@ INSERT = "SELECT create_managed_route ('%s', '%s');"
 
 for line in sys.stdin:
 
-    print INSERT % (line.strip(), 'RIPE')
+    print INSERT % (line.strip(), 'ripe')
 
