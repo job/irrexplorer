@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Copyright (c) 2015, NORDUnet A/S
 #
 # This file is part of IRR Explorer
