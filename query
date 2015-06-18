@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+# Copyright (c) 2015, NORDUnet A/S
+
+import sys
+
+from irrexplorer import sqldb
+
+
+def main():
+
+    if len(sys.argv) == 1:
+        print "No argument given"
+        sys.exit(1)
+
+    dsn = "dbname=irrexplorer"
+    db = sqldb.IRRSQLDatabase(dsn)
+
+    for arg in sys.argv[1:]:
+        try:
+            arg = int(arg)
+            as_routes = db.query_as(arg)
+            for route, source in as_routes:
+                print route, source
+        except ValueError:
+            routes = db.query_prefix(arg)
+            for route, asn, source in routes:
+                print route, asn, source
+
+
+
+if __name__ == '__main__':
+    main()
