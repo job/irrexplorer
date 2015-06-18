@@ -379,7 +379,7 @@ def prefix_report(prefix, exact=False):
         for db in IRR_DBS_EXCEPT_RIPE:
             if db in pfx_source:
                 for entry in ps[db]:
-                    anywhere_not_ripe.set(entry)
+                    anywhere_not_ripe.add(entry)
 #        anywhere_not_ripe = list(set(anywhere_not_ripe))
         anywhere_not_ripe = list(anywhere_not_ripe) # otherwise comparison will fail
         print 'anywhere not ripe', anywhere_not_ripe
