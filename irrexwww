@@ -26,7 +26,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from irrexplorer import config, utils, sqldb
+from irrexplorer import utils, sqldb
 
 import time
 import ipaddr
@@ -117,18 +117,8 @@ def prefix_report(prefix, exact=False):
     routes = pgdb.query_prefix(prefix, exact=False)
     prefixes = {}
     for pfx, asn, source in routes:
-        print pfx,asn, source
         ps = prefixes.setdefault(pfx, {}).setdefault(SOURCE, {})
         ps.setdefault(source, []).append(asn)
-#        prefixes[pfx].setdefault('sources', set()).add(source)
-#        prefixes[pfx].setdefault('origin', []).append(asn)
-
-#    # json deserializer craps out on sets
-#    for pfx_data in prefixes.values():
-#        for origin, asn in pfx_data[SOURCE].items():
-#            pfx_data[SOURCE][origin] = 
-#        print pfx_data
-#        pfx_data[SOURCE] = list(pfx_data[SOURCE])
 
     print 'prefixes'
     for pd in prefixes.items():
@@ -205,7 +195,7 @@ def prefix_report(prefix, exact=False):
 
     for pfx, pfx_data in prefixes.items():
         managed_routes = pgdb.query_managed_prefix(pfx) # this can be done better
-        print 'pmr', pfx, managed_routes
+        print 'Managed routes for prefix %s --> %s' % (pfx, managed_routes)
         if managed_routes: # we only do ripe at the moment
             pfx_data['ripe_managed'] = True
         else:
@@ -320,7 +310,6 @@ def prefix_report(prefix, exact=False):
     print 'advice:'
     for p,d in prefixes.items():
         print p,d
-    print
 
     ## currently we don't need the  post-process at all
     # prefixes, msg = prefix_post_process(prefixes)
@@ -329,7 +318,7 @@ def prefix_report(prefix, exact=False):
 
     t_delta = time.time() - t_start
     print
-    print 'Time for prefix report for %s: %f' % (prefix, t_delta)
+    print 'Time for prefix report for %s: %s' % (prefix, round(t_delta,2))
     print
 
     return prefixes
@@ -340,6 +329,8 @@ def as_report(as_number):
 
     print 'as_report', as_number
 
+    t_start = time.time()
+
     prefixes = pgdb.query_as(as_number)
 
     result = { 'prefixes':{} }
@@ -347,14 +338,18 @@ def as_report(as_number):
         #result.setdefault(result, {}).setdefault('source', []).append(source)
         result['prefixes'].setdefault(route, []).append(source)
 
+    t_delta = time.time() - t_start
+    print
+    print 'Time for as report for %s: %s' % (as_number, round(t_delta,2))
+    print
+
     # print result
     return result
 
 
 
 class InputForm(Form):
-    field2 = TextField('Data', description='Input ASN, AS-SET or Prefix.',
-                       validators=[Required()])
+    field = TextField('Data', description='Input ASN, AS-SET or Prefix.', validators=[Required()])
     submit_button = SubmitField('Submit')
 
 
@@ -364,13 +359,13 @@ def create_app(configfile=None):
     Bootstrap(app)
 
     @app.route('/', methods=['GET', 'POST'])
-    def index_old():
+    def index():
         form = InputForm()
         if request.method == 'GET':
             return render_template('index.html', form=form)
 
         if request.method == 'POST':
-            data = form.field2.data
+            data = form.field.data
             try:
                 int(data)
                 data = "AS%s" % data
@@ -383,10 +378,6 @@ def create_app(configfile=None):
             elif utils.is_ipnetwork(data):
                 flash('Just one field is required, fill it in!')
                 return redirect(url_for('prefix_search', prefix=data))
-
-        #FIXME no support for as-set digging for now
-        #            elif data.startswith('AS'):
-        #                return redirect(url_for('asset', asset=data))
 
             else:
                 return render_template('index.html', form=form)
