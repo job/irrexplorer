@@ -214,20 +214,16 @@ def prefix_report(prefix, exact=False):
 
             if 'ripe' in pfx_source:
 
-                #if prefixes[p]['bgp_origin'] in prefixes[p]['ripe']:
                 if bgp_origin and bgp_origin in pfx_source['ripe']:
 
-                    #if len(anywhere) == 1 and pf  prefixes[p]['bgp_origin'] not in anywhere_not_ripe:
                     if len(anywhere) == 1 and bgp_origin not in anywhere_not_ripe:
                         pfx_data['advice'] = "Perfect"
                         pfx_data['label'] = "success"
 
-                    #elif pfx_data['bgp_origin'] == anywhere_not_ripe:
                     elif bgp_origin == anywhere_not_ripe:
                         pfx_data['advice'] = "Proper RIPE DB object, but foreign or proxy objects also exist"
                         pfx_data['label'] = "warning"
 
-                    #elif prefixes[p]['bgp_origin'] in anywhere_not_ripe:
                     elif bgp_origin in anywhere_not_ripe:
                         pfx_data['advice'] = "Proper RIPE DB object, but foreign objects also exist, consider removing these"
                         pfx_data['label'] = "warning"
@@ -236,7 +232,6 @@ def prefix_report(prefix, exact=False):
                         pfx_data['advice'] = "Looks good, but multiple entries exists in RIPE DB"
                         pfx_data['label'] = "success"
 
-                #elif prefixes[p]['bgp_origin']:
                 elif BGP in pfx_source:
                     pfx_data['advice'] = "Prefix is in DFZ, but registered with wrong origin in RIPE!"
                     pfx_data['label'] = "danger"
@@ -248,8 +243,7 @@ def prefix_report(prefix, exact=False):
 
             else:   # no ripe registration
 
-                #if prefixes[p]['bgp_origin']:
-                if True: # no bgp data
+                if bgp_origin:
                     pfx_data['advice'] = "Prefix is in DFZ, but NOT registered in RIPE!"
                     pfx_data['label'] = "danger"
 
@@ -257,10 +251,8 @@ def prefix_report(prefix, exact=False):
                     pfx_data['advice'] = "Route objects in foreign registries exist, consider moving them to RIPE DB"
                     pfx_data['label'] = "warning"
 
-        #elif prefixes[p]['bgp_origin']: # not ripe managed
-        elif bgp_origin: # not ripe managed
+        elif bgp_origin: # not ripe managed, but have bgp_origin
 
-            #if prefixes[p]['bgp_origin'] in anywhere:
             if bgp_origin in anywhere:
 
                 if len(anywhere) == 1:
