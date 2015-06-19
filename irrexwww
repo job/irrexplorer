@@ -189,14 +189,14 @@ def prefix_report(prefix, exact=False):
         anywhere = set()
         for db in IRR_DBS:
             if db in pfx_source:
-                for entry in ps[db]:
+                for entry in pfx_source[db]:
                     anywhere.add(entry)
         anywhere = list(anywhere)
 
         anywhere_not_ripe = set()
         for db in IRR_DBS:
             if db in pfx_source and db != 'ripe':
-                for entry in ps[db]:
+                for entry in pfx_source[db]:
                     anywhere_not_ripe.add(entry)
         anywhere_not_ripe = list(anywhere_not_ripe)
 
