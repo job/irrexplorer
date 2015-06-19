@@ -185,7 +185,7 @@ function rendererImgFunction(data, alldata, fieldname, prefix) {
                 if (fieldname == "advice") {
                     console.log(alldata['label']);
                     return "<span class='label label-" + alldata['label'] + "'>" + data + "</span>";
-                } else if (fieldname == "bgp_origin") {
+                } else if (fieldname == "bgp") {
                     return "<a href=\"http://lg.ring.nlnog.net/query/" + prefix + "\">" + data + "</a>";
                 }
                 else {
@@ -202,7 +202,7 @@ function getfields(prefix_data) {
     prefixes = Object.keys(prefix_data);
     fieldsfound = Object.keys(prefix_data[prefixes[0]]).sort();
 
-    fields = ["prefix", "bgp_origin", "advice"];
+    fields = ["prefix", "bgp", "advice"];
     fieldsend = ["ripe_managed"];
     fieldshide = ["label"];
     for (var field in fieldsfound) {
