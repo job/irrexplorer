@@ -2,7 +2,12 @@
 
 import sys
 
-INSERT = "SELECT create_route ('%s', %i, '%s');"
+
+AS_SET = 'as-set'
+ROUTE  = 'route'
+
+CREATE_ROUTE = "SELECT create_route ('%s', %i, '%s');"
+CREATE_AS_SET = "SELECT create_as_set ('%s', '%s', '%s');"
 
 
 def readAttr(line):
@@ -19,27 +24,50 @@ def convertASDot(origin):
     return origin
 
 
-def main():
+def sqlEmitter():
 
-    route  = None
-    origin = None
-    source = None
-
-    i = 1
     print 'BEGIN;'
-    for line in sys.stdin:
+    i = 0
 
-        if line.strip() == '': # new block
-            if route and origin and source:
-                print INSERT % (route, origin, source)
-                i += 1
-                if i % 5000 == 0:
-                    print 'COMMIT;'
-                    print 'BEGIN;'
-            route = origin = source = None
+    while True:
+        stm = yield None
+        if stm:
+            print stm
+            i += 1
+            if i % 5000 == 0:
+                print 'COMMIT;'
+                print 'BEGIN;'
+        else:
+            print 'COMMIT;'
+            break
 
-        if line.startswith('route:'):
-            route = readAttr(line)
+
+def irrParser(datasource):
+
+    obj_type = None
+    object_  = None
+    origin   = None
+    source   = None
+    members  = []
+
+    for line in datasource:
+
+        if line == '\n': # new block
+            if obj_type == AS_SET:
+                yield AS_SET, (object_, members, source)
+            elif obj_type == ROUTE:
+                yield ROUTE, (object_, origin, source)
+
+            obj_type = object_ = origin = source = None
+            members = []
+
+        if line.startswith('route:') or line.startswith('route6:'):
+            object_ = readAttr(line)
+            obj_type = ROUTE
+
+        elif line.startswith('as-set:'):
+            object_ = readAttr(line)
+            obj_type = AS_SET
 
         elif line.startswith('origin:'):
             origin = readAttr(line)[2:]
@@ -49,11 +77,32 @@ def main():
         elif line.startswith('source:'):
             source = readAttr(line).lower()
 
-    # dangling route
-    if route and origin and source:
-        print INSERT % (route, origin, source)
+        elif line.startswith('members:'):
+            members += [ m.strip() for m in readAttr(line).split(',') ]
 
-    print 'COMMIT;'
+
+def main():
+
+    se = sqlEmitter()
+    se.next() # need to start generator first
+    sqlEmit = se.send
+
+    parser = irrParser(sys.stdin)
+
+    for obj, values in parser:
+
+        if obj == AS_SET:
+            members = '{' + ','.join(values[1]) + '}' # convert to postgresql array syntax
+            stm = CREATE_AS_SET % (values[0], members, values[2])
+        elif obj == ROUTE:
+            stm = CREATE_ROUTE % values
+
+        sqlEmit(stm);
+
+    try:
+        sqlEmit(None) # so get the last commit with us
+    except StopIteration:
+        pass # expected
 
 
 if __name__ == '__main__':
