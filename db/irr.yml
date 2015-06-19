@@ -11,12 +11,24 @@ databases:
         - nrtmhost: 'rr.ntt.net'
         - nrtmport: 43
         - dbname: 'ARIN'
+    - apnic-as:
+        - dump: 'https://ftp.apnic.net/apnic/whois/apnic.db.as-set.gz'
+    - apnic-route:
+        - dump: 'https://ftp.apnic.net/apnic/whois/apnic.db.route.gz'
+    - apnic-route6:
+        - dump: 'https://ftp.apnic.net/apnic/whois/apnic.db.route6.gz'
     - level3:
         - serial: 'ftp://ftp.radb.net/radb/dbase/LEVEL3.CURRENTSERIAL'
         - dump: 'ftp://ftp.radb.net/radb/dbase/level3.db.gz'
         - nrtmhost: 'rr.ntt.net'
         - nrtmport: 43
         - dbname: 'LEVEL3'
+    - nttcom:
+        - serial: 'ftp://ftp.radb.net/radb/dbase/NTTCOM.CURRENTSERIAL'
+        - dump: 'ftp://ftp.radb.net/radb/dbase/nttcom.db.gz'
+        - nrtmhost: 'rr.ntt.net'
+        - nrtmport: 43
+        - dbname: 'NTTCOM'
     - radb:
         - serial: 'ftp://ftp.radb.net/radb/dbase/RADB.CURRENTSERIAL'
         - dump: 'ftp://ftp.radb.net/radb/dbase/radb.db.gz'
