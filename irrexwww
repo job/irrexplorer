@@ -342,14 +342,14 @@ def create_app(configfile=None):
             data = form.field.data
             try:
                 int(data)
-                data = "AS%s" % data
+                return redirect(url_for('asn_search', asn=data))
             except ValueError:
                 pass
 
-            if utils.is_autnum(data):
-                return redirect(url_for('asn_search', asn=data))
+#            if utils.is_autnum(data):
+#                return redirect(url_for('asn_search', asn=data))
 
-            elif utils.is_ipnetwork(data):
+            if utils.is_ipnetwork(data):
                 flash('Just one field is required, fill it in!')
                 return redirect(url_for('prefix_search', prefix=data))
 
