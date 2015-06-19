@@ -301,10 +301,16 @@ def as_report(as_number):
 
     prefixes = pgdb.query_as(as_number)
 
-    result = { 'prefixes':{} }
+#    result = { 'prefixes':{}, 'macros':[] }
+    result = {}
     for route, source in prefixes:
-        #result.setdefault(result, {}).setdefault('source', []).append(source)
-        result['prefixes'].setdefault(route, []).append(source)
+        #result['prefixes'].setdefault(route, []).append(source)
+        #result.setdefault(route, []).append(source)
+        result.setdefault(route, {})[source] = True
+
+#       macros = pgdb.query_as_contain('AS' + as_number)
+#    for macro, source in macros:
+#        result['macros'].append(macro)
 
     t_delta = time.time() - t_start
     print
