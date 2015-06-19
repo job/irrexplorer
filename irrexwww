@@ -278,6 +278,10 @@ def prefix_report(prefix, exact=False):
     for p,d in prefixes.items():
         print '%s: %s' % (p,d['advice'])
 
+    # OK, this is not how i want to do things, but I have the javascript stuff
+    for pfx_data in prefixes.values():
+        pfx_data.update(pfx_data.pop(SOURCE))
+
     ## currently we don't need the  post-process at all
     # prefixes, msg = prefix_post_process(prefixes)
     # print msg # have to get this into the web page as well...
