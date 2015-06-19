@@ -1,40 +1,15 @@
 How to setup to postgres for irrexplorer and load data into it.
 
-Later this will be nicer process, for now the focus is on minimal amount of
-code, and getting something to work.
+First create a database for IRRExplorer:
 
+$ sudo su - postgres
+$ createdb irrexplorer
 
-### Fetching database
+Then load the schema
 
-./fetch irr.yml
+psql irrexplorer -f ../data/schema.sql
 
-# Create file with SQL insert statements:
+Run bootstrap to download IRR databases and load up database.
 
-zcat *.db*.gz | ./create_inserts > irr.sql
-
-# BGP route table dump
-
-wget http://lg01.infra.ring.nlnog.net/table.txt
-./create_bgp_insert < table.txt > bgp.sql
-
-# And the ripe managed space
-
-cat ../data/ripe-managed-space.txt |./create_ripe_managed  > ripe_managed.sql
-
-
-### Loading database
-
-As postgres user
-
-# createdb irrexplorer
-
-As irrexplorer user
-
-# psql irrexploer
-
-=> \i ../data/schema.sql
-=> \i ripe_managed.sql
-=> \i irr.sql
-=> \i bgp.sql
-
+Read bootstrap if you are interested in the details :-)
 

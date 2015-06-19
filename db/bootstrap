@@ -1,0 +1,29 @@
+#!/bin/sh
+
+# Fetch irr databases
+
+./fetch irr.yml
+
+# Create file with SQL insert statements:
+
+zcat *.db*.gz | ./create_inserts > irr.sql
+
+# BGP route table dump
+
+wget http://lg01.infra.ring.nlnog.net/table.txt
+./create_bgp_insert < table.txt > bgp.sql
+
+# And the ripe managed space
+
+cat ../data/ripe-managed-space.txt |./create_ripe_managed  > ripe_managed.sql
+
+
+### Loading database
+
+As postgres user
+
+psql irrexplorer -f ripe_managed.sql
+psql irrexplorer -f irr.sql
+psql irrexplorer -f bgp.sql
+
+
