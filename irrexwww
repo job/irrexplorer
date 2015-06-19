@@ -119,7 +119,6 @@ def prefix_report(prefix, exact=False):
     print 'Prefixes:'
     for pd in prefixes.items():
         print pd
-    print
 
 
 #    if exact:
@@ -174,12 +173,6 @@ def prefix_report(prefix, exact=False):
 #        for p in irr_specifics[db]:
 #            prefixes.setdefault(p, {})[db] = irr_specifics[db][p]['origins']
 
-#    for p in prefixes:
-#        if other_query("RIPE-AUTH", "is_covered", p):
-#            prefixes[p]['ripe_managed'] = True
-#        else:
-#            prefixes[p]['ripe_managed'] = False
-
     for pfx, pfx_data in prefixes.items():
         managed_routes = pgdb.query_managed_prefix(pfx) # this can be done better
         print 'Managed routes for prefix %s --> %s' % (pfx, managed_routes)
@@ -187,8 +180,6 @@ def prefix_report(prefix, exact=False):
         managed = True if managed_routes else False
         pfx_data['ripe_managed'] = managed
 
-#    print prefixes
-#    print
 
     # default, primary, succes, info, warning, danger
     for pfx, pfx_data in prefixes.items():
@@ -209,26 +200,21 @@ def prefix_report(prefix, exact=False):
                     anywhere_not_ripe.add(entry)
         anywhere_not_ripe = list(anywhere_not_ripe)
 
-        print '  IRR orgins', anywhere
-        print '  IRR orgins % RIPE', anywhere_not_ripe
+        print '  IRR orgins:', anywhere
+        print '  IRR orgins % ripe:', anywhere_not_ripe
 
         if not BGP in pfx_source:
             bgp_origin = None
         else:
             if len(pfx_source[BGP]) > 2:
-                print 'Multiple BGP sources:', pfx_source[BGP]
+                print 'Multiple BGP sources:', pfx_source[BGP], 'only using first origin'
             bgp_origin = list(pfx_source[BGP])[0]
 
-#        if prefixes[p]['ripe_managed']:
         if pfx_data['ripe_managed']:
 
-            #if prefixes[p]['ripe']:
-            #if 'ripe' in prefixes[p]['sources']:
-            #if 'ripe' in prefixes[p]['sources']:
             if 'ripe' in pfx_source:
 
                 #if prefixes[p]['bgp_origin'] in prefixes[p]['ripe']:
-                #if BGP in pfx_source and pfx_source[BGP][0] in pfx_source in pfx_source['ripe']:
                 if bgp_origin and bgp_origin in pfx_source['ripe']:
 
                     #if len(anywhere) == 1 and pf  prefixes[p]['bgp_origin'] not in anywhere_not_ripe:
@@ -292,19 +278,16 @@ def prefix_report(prefix, exact=False):
             pfx_data['advice'] = "Not seen in BGP, but (legacy?) route-objects exist, consider clean-up"
             pfx_data['label'] = "warning"
 
-    print 'advice:'
+    print 'Advice:'
     for p,d in prefixes.items():
-        print p,d
+        print '%s: %s' % (p,d['advice'])
 
     ## currently we don't need the  post-process at all
     # prefixes, msg = prefix_post_process(prefixes)
     # print msg # have to get this into the web page as well...
 
-
     t_delta = time.time() - t_start
-    print
-    print 'Time for prefix report for %s: %s' % (prefix, round(t_delta,2))
-    print
+    print 'Time for prefix report for %s: %s\n' % (prefix, round(t_delta,2))
 
     return prefixes
 
