@@ -116,6 +116,10 @@ def prefix_report(prefix, exact=False):
         ps = prefixes.setdefault(pfx, {}).setdefault(SOURCE, {})
         ps.setdefault(source, []).append(asn)
 
+    for pfx_data in prefixes.values():
+        if BGP in pfx_data[SOURCE]:
+            pfx_data[BGP] = pfx_data[SOURCE].pop(BGP)
+
     print 'Prefixes:'
     for pd in prefixes.items():
         print pd
@@ -203,12 +207,12 @@ def prefix_report(prefix, exact=False):
         print '  IRR orgins:', anywhere
         print '  IRR orgins % ripe:', anywhere_not_ripe
 
-        if not BGP in pfx_source:
+        if not BGP in pfx_data:
             bgp_origin = None
         else:
-            if len(pfx_source[BGP]) > 2:
-                print 'Multiple BGP sources:', pfx_source[BGP], 'only using first origin'
-            bgp_origin = list(pfx_source[BGP])[0]
+            if len(pfx_data[BGP]) > 2:
+                print 'Multiple BGP sources:', pfx_data[BGP], 'only using first origin'
+            bgp_origin = list(pfx_data[BGP])[0]
 
         if pfx_data['ripe_managed']:
 
