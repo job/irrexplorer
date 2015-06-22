@@ -13,7 +13,7 @@ from irrexplorer import sqldb
 
 DEFAULT_SOURCE      = 'http://lg01.infra.ring.nlnog.net/table.txt'
 DEFAULT_DATABASE    = 'irrexplorer'
-DEFAULT_INTERVAL    = 300
+DEFAULT_INTERVAL    = 900 # 15 minutes, the nlnog table is update at that frequency
 
 INSERT_STM = "SELECT create_route (%s, %s, 'bgp');"
 DELETE_STM = "DELETE FROM routes USING sources WHERE routes.route = %s AND routes.asn = %s AND routes.source_id = sources.id AND sources.name = 'bgp';"
