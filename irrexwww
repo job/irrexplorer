@@ -40,9 +40,6 @@ from wtforms.validators import Required
 
 
 
-dsn = "dbname=irrexplorer"
-pgdb = sqldb.IRRSQLDatabase(dsn)
-
 
 
 class InputForm(Form):
@@ -50,7 +47,7 @@ class InputForm(Form):
     submit_button = SubmitField('Submit')
 
 
-def create_app(configfile=None):
+def create_app(pgdb, configfile=None):
     app = Flask(__name__)
     app.config.from_pyfile('appconfig.cfg')
     Bootstrap(app)
@@ -141,5 +138,16 @@ def create_app(configfile=None):
 
     return app
 
+
+def main():
+
+    dsn = "dbname=irrexplorer"
+    pgdb = sqldb.IRRSQLDatabase(dsn)
+
+    create_app(pgdb).run(host="0.0.0.0", debug=True, use_reloader=False)
+
+
+
 if __name__ == '__main__':
-    create_app().run(host="0.0.0.0", debug=True, use_reloader=False)
+#    create_app().run(host="0.0.0.0", debug=True, use_reloader=False)
+    main()
