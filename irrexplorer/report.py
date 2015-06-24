@@ -212,13 +212,7 @@ def prefix_report(pgdb, prefix, exact=False):
 #    """
 #    print "prefix_report: Lookup prefixes: %s" % prefixes
 #    print "prefix_report: Lookup irr_specifics: %s" % irr_specifics
-#
-#    for db in irr_specifics:
-#        # set all db sources to False initially, later fill them
-#        for p in prefixes:
-#            prefixes[p][db] = False
-#        for p in irr_specifics[db]:
-#            prefixes.setdefault(p, {})[db] = irr_specifics[db][p]['origins']
+
 
     for pfx, pfx_data in prefixes.items():
         managed_routes = pgdb.query_managed_prefix(pfx) # this can be done better
@@ -233,12 +227,10 @@ def prefix_report(pgdb, prefix, exact=False):
     for p,d in prefixes.items():
         print '%s: %s' % (p,d['advice'])
 
-    # OK, this is not how i want to do things, but I have the javascript stuff
+    # OK, this is not how i want to do things, but I cannot figure out the javascript stuff
     for pfx_data in prefixes.values():
         pfx_data.update(pfx_data.pop(SOURCE))
 
-    ## currently we don't need the  post-process at all
-    # prefixes, msg = prefix_post_process(prefixes)
     # print msg # have to get this into the web page as well...
 
     t_delta = time.time() - t_start
