@@ -94,7 +94,7 @@ def add_prefix_advice(prefixes):
                         pfx_data['advice'] = "Looks good, but multiple entries exists in RIPE DB"
                         pfx_data['label'] = "success"
 
-                elif BGP in pfx_source:
+                elif bgp_origin and pfx_source:
                     pfx_data['advice'] = "Prefix is in DFZ, but registered with wrong origin in RIPE!"
                     pfx_data['label'] = "danger"
 
