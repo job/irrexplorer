@@ -1,5 +1,12 @@
 #!/bin/sh
 
+
+# Create database
+
+echo "Please input sudo password to create irrexplorer database (or do it manually)"
+sudo su - postgres -c "createdb irrexplorer"
+
+
 # Fetch irr databases
 
 ./fetch irr.yml
@@ -20,7 +27,7 @@ cat ../data/ripe-managed-space.txt |./create_ripe_managed  > ripe_managed.sql
 
 ### Loading database
 
-As postgres user
+# Load data
 
 psql irrexplorer -f ripe_managed.sql
 psql irrexplorer -f irr.sql
