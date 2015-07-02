@@ -6,8 +6,9 @@
 
 
 CREATE TABLE sources (
-    id          serial              NOT NULL PRIMARY KEY,
-    name        text                UNIQUE NOT NULL
+    id                  serial      NOT NULL PRIMARY KEY,
+    name                text        UNIQUE NOT NULL,
+    last_seen_serial    integer
 );
 
 CREATE TABLE managed_routes (
