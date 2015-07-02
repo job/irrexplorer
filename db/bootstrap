@@ -5,6 +5,7 @@
 
 echo "Please input sudo password to create irrexplorer database (or do it manually)"
 sudo su - postgres -c "createdb irrexplorer"
+psql irrexplorer -f ../data/schema.sql
 
 
 # Fetch irr databases
@@ -14,6 +15,10 @@ sudo su - postgres -c "createdb irrexplorer"
 # Create file with SQL insert statements:
 
 zcat *.db*.gz | ./create_inserts > irr.sql
+
+# Create serial
+
+./create_serials > serials.sql
 
 # BGP route table dump
 
@@ -31,6 +36,6 @@ cat ../data/ripe-managed-space.txt |./create_ripe_managed  > ripe_managed.sql
 
 psql irrexplorer -f ripe_managed.sql
 psql irrexplorer -f irr.sql
+psql irrexplorer -f serials.sql
 psql irrexplorer -f bgp.sql
-
 
