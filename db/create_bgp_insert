@@ -4,7 +4,6 @@ import sys
 
 INSERT = "SELECT create_route ('%s', %s, 'bgp');"
 
-PG_MAX_INTEGER = 2147483647
 
 def main():
 
