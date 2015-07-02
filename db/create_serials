@@ -1,0 +1,17 @@
+#!/usr/bin/env python
+
+import os
+
+
+UPDATE_SERIAL  = "UPDATE sources SET last_seen_serial = %s WHERE sources.name = '%s';"
+
+
+for file_ in os.listdir(os.getcwd()):
+
+    if file_.endswith('.CURRENTSERIAL'):
+
+        serial = open(file_).read().strip()
+        source = file_.split('.')[0].lower()
+
+        print UPDATE_SERIAL % (serial, source)
+
