@@ -13,7 +13,7 @@ from irrexplorer import sqldb
 
 DEFAULT_SOURCE      = 'http://lg01.infra.ring.nlnog.net/table.txt'
 DEFAULT_DATABASE    = 'irrexplorer'
-DEFAULT_INTERVAL    = 900 # 15 minutes, the nlnog table is update at that frequency
+DEFAULT_SLEEP_INTERVAL = 900 # 15 minutes, the nlnog table is updated at that frequency
 
 INSERT_STM = "SELECT create_route (%s, %s, 'bgp');"
 DELETE_STM = "DELETE FROM routes USING sources WHERE routes.route = %s AND routes.asn = %s AND routes.source_id = sources.id AND sources.name = 'bgp';"
@@ -25,7 +25,7 @@ def create_parser():
     parser = argparse.ArgumentParser(description='Continously update BGP table in IRRExplorer database')
     parser.add_argument('-s', '--source', dest='source', default=DEFAULT_SOURCE, help='Source URL for BGP routing table (default: nlnog ring table)')
     parser.add_argument('-d', '--database', dest='database', default=DEFAULT_DATABASE, help='IRRExplorer database name (default: %s)' % DEFAULT_DATABASE)
-    parser.add_argument('-i', '---interval', dest='interval', default=DEFAULT_INTERVAL, help='Interval between updates (default: %i seconds)' % DEFAULT_INTERVAL)
+    parser.add_argument('-i', '---interval', dest='interval', default=DEFAULT_SLEEP_INTERVAL, help='Interval between updates (default: %i seconds)' % DEFAULT_SLEEP_INTERVAL)
     return parser
 
 
