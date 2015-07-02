@@ -1,15 +1,12 @@
-How to setup to postgres for irrexplorer and load data into it.
+How to setup to initally setup postgres and load data into it.
 
-First create a database for IRRExplorer:
+From the db directory, run
 
-$ sudo su - postgres
-$ createdb irrexplorer
+./boostrap
 
-Then load the schema
+And that should be it :-)
 
-psql irrexplorer -f ../data/schema.sql
-
-Run bootstrap to download IRR databases and load up database.
+Fill irr.yml with the sources you want first though.
 
 Read bootstrap if you are interested in the details :-)
 
