@@ -3,25 +3,9 @@
 import sys
 
 
-AS_SET = 'as-set'
-ROUTE  = 'route'
-
 CREATE_ROUTE = "SELECT create_route ('%s', %i, '%s');"
 CREATE_AS_SET = "SELECT create_as_set ('%s', '%s', '%s');"
 
-
-def readAttr(line):
-    sp = line.split(':',1)[1]
-    if '#' in sp:
-        sp = sp.split('#',1)[0]
-    return sp.strip()
-
-
-def convertASDot(origin):
-    if '.' in origin:
-        high, low = map(int, origin.split('.'))
-        origin = (high << 16) + low
-    return origin
 
 
 def sqlEmitter():
@@ -42,69 +26,34 @@ def sqlEmitter():
             break
 
 
-def irrParser(datasource):
-
-    obj_type = None
-    object_  = None
-    origin   = None
-    source   = None
-    members  = []
-
-    for line in datasource:
-
-        if line == '\n': # new block
-            if obj_type == AS_SET:
-                yield AS_SET, (object_, members, source)
-            elif obj_type == ROUTE:
-                yield ROUTE, (object_, origin, source)
-
-            obj_type = object_ = origin = source = None
-            members = []
-
-        if line.startswith('route:') or line.startswith('route6:'):
-            object_ = readAttr(line)
-            obj_type = ROUTE
-
-        elif line.startswith('as-set:'):
-            object_ = readAttr(line)
-            obj_type = AS_SET
-
-        elif line.startswith('origin:'):
-            origin = readAttr(line)[2:]
-            origin = convertASDot(origin)
-            origin = int(origin)
-
-        elif line.startswith('source:'):
-            source = readAttr(line).lower()
-
-        elif line.startswith('members:'):
-            members += [ m.strip() for m in readAttr(line).split(',') ]
-
-
 def main():
 
-    se = sqlEmitter()
-    se.next() # need to start generator first
-    sqlEmit = se.send
+    import irrparser
 
-    parser = irrParser(sys.stdin)
+#    se = sqlEmitter()
+#    se.next() # need to start generator first
+#    sqlEmit = se.send
+
+    parser = irrparser.irrParser(sys.stdin)
 
     for obj, values in parser:
 
-        if obj == AS_SET:
+        if obj == irrparser.AS_SET:
             members = '{' + ','.join(values[1]) + '}' # convert to postgresql array syntax
             stm = CREATE_AS_SET % (values[0], members, values[2])
-        elif obj == ROUTE:
+        elif obj == irrparser.ROUTE:
             stm = CREATE_ROUTE % values
 
-        sqlEmit(stm);
+#        sqlEmit(stm);
+        print stm
 
-    try:
-        sqlEmit(None) # so get the last commit with us
-    except StopIteration:
-        pass # expected
+#    try:
+#        sqlEmit(None) # so get the last commit with us
+#    except StopIteration:
+#        pass # expected
 
 
 if __name__ == '__main__':
+    sys.path.insert(0, '../irrexplorer') # hack on :-)
     main()
 
