@@ -14,7 +14,7 @@ psql irrexplorer -f ../data/schema.sql
 
 # Create file with SQL insert statements:
 
-zcat *.db*.gz | ./create_inserts > irr.sql
+zcat *.db*.gz | ./create_irr_inserts > irr.sql
 
 # Create serial
 
