@@ -1,41 +1,46 @@
 #!/bin/sh
 
+# Bootstrap script for IRRExplorer PostgreSQL database
 
 # Create database
-
 echo "Please input sudo password to create irrexplorer database (or do it manually)"
 sudo su - postgres -c "createdb irrexplorer"
 psql irrexplorer -f ../data/schema.sql
 
 
 # Fetch irr databases
-
 ./fetch irr.yml
 
-# Create file with SQL insert statements:
+# Create sources
+for x in *.db*.gz ; do echo $x|cut -f1 -d'.' ;done|sort|uniq| ./create_source > sources.sql
+echo "bgp" | ./create_source >> sources.sql
 
-zcat *.db*.gz | ./create_irr_inserts > irr.sql
+# Insert sources and create map
+psql irrexplorer -f sources.sql
+psql irrexplorer -c "select name,id from sources;" -tAF, > sources.map
 
-# Create serial
-
-./create_serials > serials.sql
+# Create routes and as-set data files, filter double repeated routes
+# zcatting and processing this twice is sorta silly
+zcat *.db*.gz | ./create_irr_routes | uniq -u > irr_routes.data
+zcat *.db*.gz | ./create_irr_as_sets > irr_as_sets.data
 
 # BGP route table dump
+curl http://lg01.infra.ring.nlnog.net/table.txt | ./create_bgp > bgp.data
 
-wget http://lg01.infra.ring.nlnog.net/table.txt
-./create_bgp_insert < table.txt > bgp.sql
+# Create serial
+./create_serials > serials.sql
 
 # And the ripe managed space
+./create_ripe_managed < ../data/ripe-managed-space.txt  > ripe_managed.sql
 
-cat ../data/ripe-managed-space.txt |./create_ripe_managed  > ripe_managed.sql
 
-
-### Loading database
-
-# Load data
+# Load data in postgres
 
 psql irrexplorer -f ripe_managed.sql
-psql irrexplorer -f irr.sql
 psql irrexplorer -f serials.sql
-psql irrexplorer -f bgp.sql
+
+psql irrexplorer -c "\copy routes from irr_routes.data delimiter '|'"
+psql irrexplorer -c "\copy as_sets from irr_as_sets.data delimiter '|'"
+psql irrexplorer -c "\copy routes from bgp.data delimiter '|'"
+
 

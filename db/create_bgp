@@ -1,24 +1,17 @@
 #!/usr/bin/env python
 
 import sys
+import sources
 
-INSERT = "SELECT create_route ('%s', %s, 'bgp');"
+bgp_id = sources.getSourceMap()['bgp']
 
 
 def main():
 
-    i = 1
-    print 'BEGIN;'
     for line in sys.stdin:
 
         route, origin = line.strip().split(' ',1)
-        print INSERT % (route, origin)
-        i += 1
-        if i % 5000 == 0:
-            print 'COMMIT;'
-            print 'BEGIN;'
-
-    print 'COMMIT;'
+        print '%s|%s|%s' % (route, origin, bgp_id)
 
 
 if __name__ == '__main__':
