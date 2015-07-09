@@ -2,7 +2,7 @@
 # Copyright (c) 2015, NORDUnet A/S
 
 import sys
-
+import ipaddr
 from irrexplorer import sqldb
 
 
@@ -21,12 +21,26 @@ def main():
             as_routes = db.query_as(arg)
             for route, source in as_routes:
                 print route, source
+            return
         except ValueError:
+            pass
+
+        try:
+            ipaddr.IPNetwork(arg)
             routes = db.query_prefix(arg)
             for route, asn, source in routes:
                 print route, asn, source
+            return
+        except ValueError:
+            pass
 
+        if arg.lower().startswith('as-'):
+            res = db.query_as_macro(arg)
+            for m,s in res:
+                print s,m
+            return
 
+        print 'Cannot match ', arg, 'to anything'
 
 if __name__ == '__main__':
     main()
