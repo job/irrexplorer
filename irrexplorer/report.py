@@ -268,3 +268,50 @@ def as_report(pgdb, as_number):
     return result
 
 
+
+def as_macro_report(pgdb, as_macro):
+
+    print 'AS Macro Report:', as_macro
+
+    t_start = time.time()
+
+    macros = pgdb.query_as_macro(as_macro)
+
+    result = []
+    for members, source in macros:
+        e = { 'source'   : source, 'members'  : members }
+        result.append(e)
+
+    t_delta = time.time() - t_start
+    print
+    print 'Time for as macro report for %s: %s' % (as_macro, round(t_delta,2))
+    print
+
+    return result
+
+
+def as_macro_expand_report(pgdb, as_macro):
+
+    print 'AS Macro Expand Report:', as_macro
+
+    t_start = time.time()
+
+    macros = pgdb.query_as_macro_expand(as_macro)
+
+    result = []
+    for macro, source, depth, path, members in macros:
+        e = { 'as_macro' : macro,
+              'source'   : source,
+              'depth'    : depth,
+              'path'     : path,
+              'members'  : members
+        }
+        result.append(e)
+
+    t_delta = time.time() - t_start
+    print
+    print 'Time for as macro report for %s: %s' % (as_macro, round(t_delta,2))
+    print
+
+    return result
+

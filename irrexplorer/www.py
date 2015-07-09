@@ -95,6 +95,19 @@ def create_app(pgdb, configfile=None):
         data = report.as_report(pgdb, asn)
         return json.dumps(data)
 
+
+    @app.route('/as_macro_json/<path:as_macro>')
+    def as_macro(as_macro):
+        data = report.as_macro_report(pgdb, as_macro)
+        return json.dumps(data)
+
+
+    @app.route('/as_macro_expand_json/<path:as_macro>')
+    def as_macro_expand(as_macro):
+        data = report.as_macro_expand_report(pgdb, as_macro)
+        return json.dumps(data)
+
+
     @app.route('/prefix/<path:prefix>')
     @app.route('/prefix/', defaults={'prefix': None})
     @app.route('/prefix', defaults={'prefix': None})
