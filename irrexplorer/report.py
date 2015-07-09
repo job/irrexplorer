@@ -62,8 +62,8 @@ def add_prefix_advice(prefixes):
                     anywhere_not_ripe.add(entry)
         anywhere_not_ripe = list(anywhere_not_ripe)
 
-        print '  IRR orgins:', anywhere
-        print '  IRR orgins % ripe:', anywhere_not_ripe
+        #print '  IRR orgins:', anywhere
+        #print '  IRR orgins % ripe:', anywhere_not_ripe
 
         if not BGP in pfx_data:
             bgp_origin = None
