@@ -1,0 +1,55 @@
+#!/usr/bin/env python
+
+import sys
+import yaml
+import subprocess
+
+
+DEFAULT_IRR_SOURCE = 'db/irr.yml'
+
+
+def spawnWorker(args):
+    #print args
+    print ' '.join(args) + ' &'
+    return #subprocess.Popen(args, stdout=subprocess.PIPE, bufsize=1)
+
+if __name__ == '__main__':
+
+    if len(sys.argv) == 1:
+        cfg_file = DEFAULT_IRR_SOURCE
+    elif len(sys.argv) == 2:
+        cfg_file = sys.argv[1]
+    else:
+        print 'Too many arguments'
+        raise SystemExit(1)
+
+    irr_cfg = open(cfg_file)
+
+    print '#!/bin/sh'
+    pd = {}
+
+    args =  [ './bgp_worker' ]
+    pd['bgp'] = spawnWorker(args)
+
+    cfg = yaml.load(irr_cfg)
+
+    if not 'databases' in cfg:
+        print 'No database in %s' % cfg_file
+        raise SystemExit(1)
+
+    for db in cfg['databases']:
+        for db_name, db_info in db.items():
+            host = port = source = None
+            for dbe in db_info:
+                host = dbe.get('nrtmhost', host)
+                port = dbe.get('nrtmport', port)
+                source = dbe.get('dbname', source)
+
+            if host and source:
+                args = [ './nrtm_worker', '-o', host, '-s', source.lower() ]
+                if port:
+                    args += [ '-p', str(port) ]
+                pd[source.lower()] = spawnWorker(args)
+
+    print 'wait'
+

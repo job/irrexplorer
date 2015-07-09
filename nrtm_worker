@@ -56,24 +56,32 @@ def main():
     dsn = 'dbname=%s' % args.database
     db = sqldb.IRRSQLDatabase(dsn)
 
+    try:
+        streamUpdate(args.host, args.port, args.source, db, args.interval)
+    except nrtm.NRTMError as e:
+        print str(e)
+        raise SystemExit(1)
+
+
+def streamUpdate(host, port, source, db, interval):
 
     while True:
 
         # get serial from database
         cur = db._get_cursor()
-        cur.execute(SELECT_SERIAL, (args.source,))
+        cur.execute(SELECT_SERIAL, (source,))
         srow = cur.fetchall()
         cur.close()
 
         if not srow:
-            print >> sys.stderr, 'No serial for source %s found, cannot continue' % args.source
+            print >> sys.stderr, 'No serial for source %s found, cannot continue' % source
             raise SystemExit(1)
 
         serial = srow[0][0]
         serial = int(serial) + 1 # don't do the one we last saw
 
-        print 'Streaming from %s:%s/%s from serial %s' % (args.host, args.port, args.source, serial)
-        c = nrtm.NRTMStreamer(args.host, args.source, serial, args.port)
+        print 'Streaming from %s:%s/%s from serial %s' % (host, port, source, serial)
+        c = nrtm.NRTMStreamer(host, source, serial, port)
 
         stms = []
 
@@ -141,8 +149,8 @@ def main():
 
             print 'Commit done and cursor closed'
 
-        print 'Sleeping for %i seconds' % args.interval
-        time.sleep(args.interval)
+        print 'Sleeping for %i seconds' % interval
+        time.sleep(interval)
         print
 
 
