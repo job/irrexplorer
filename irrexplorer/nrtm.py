@@ -1,4 +1,5 @@
 # Copyright (C) 2015 Job Snijders <job@instituut.net>
+# Copyright (C) 2015 NORDUnet A/S
 #
 # This file is part of IRR Explorer
 #
@@ -24,72 +25,71 @@
 # ARISING IN ANY WAY OUT OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from irrexplorer import parser
-import cStringIO
-import gzip
 import socket
 import time
-import urllib2
+
+from irrexplorer import irrparser
 
 
-class client(object):
+DEFAULT_PORT = 43
+
+
+class NRTMError(Exception):
+    pass
+
+
+
+class NRTMStreamer(object):
     """nrtm client class"""
-    def __init__(self, serial=None, serialoverride=None, dump=None,
-                 nrtmhost=None, nrtmport=43, dbname=None):
-        self.dbname = dbname
-        if serialoverride is not None:
-            self.serial = serialoverride
-        else:
-            self.setserialfrom(serial)
-        if nrtmhost:
-            self.host = nrtmhost
-            self.port = nrtmport
+    def __init__(self, host, source, start_serial, port=DEFAULT_PORT):
 
-        if dump.startswith('ftp'):
-            self.dump = self.fetch_dump(dump)
-        else:
-            self.dump = file(dump)
-            if dump.endswith('.gz'):
-                self.dump = gzip.GzipFile(fileobj=self.dump)
+        self.host = host
+        self.source = source
+        self.serial = start_serial
+        self.port = port
 
-    def fetch_dump(self, dumpurl):
-        req = urllib2.Request(dumpurl)
-        response = urllib2.urlopen(req)
-        output = cStringIO.StringIO()
-        output.write(response.read())
-        output.seek(0)
-        return gzip.GzipFile(fileobj=output)
 
-    def setserialfrom(self, f):
-        if f.startswith('ftp'):
-            req = urllib2.Request(f)
-            response = urllib2.urlopen(req)
-            self.serial = int(response.read())
-        else:
-            self.serial = int(open(f).read().strip())
+    def nrtm_connect(self):
 
-    def get(self):
-        if self.dump:
-            for obj in parser.parse_dump(self.dump):
-                yield 'ADD', 0, obj
-        self.dump = None  # not necessary
-        print "INFO: done loading dump for %s" % self.dbname
-        self.serial = self.serial + 1
-        if self.host:
-            while True:
-                (family, socktype, proto, canonname, sockaddr) = socket.getaddrinfo(self.host, self.port, 0, socket.SOCK_STREAM)[0]
-                s = socket.socket(family, socktype, proto)
-                s.connect(sockaddr)
-                f = s.makefile()
-                f.write('!!\n!nIRRExplorer\n')
-                f.flush()
-                f.write('-k -g {}:3:{}-LAST\n'.format(self.dbname, self.serial))
-                f.flush()
-                for cmd, serial, obj in parser.parse_nrtm_stream(f):
-                    if serial > self.serial:
-                        print "%s: %s %s @ %s" % (self.dbname, cmd, obj, serial)
-                        self.serial = serial
-                        yield cmd, serial, obj
-                print "sleeping 300 seconds before reconnecting to %s (%s)" % \
-                    (self.host, self.dbname)
-                time.sleep(300)
+        (family, socktype, proto, canonname, sockaddr) = socket.getaddrinfo(self.host, self.port, 0, socket.SOCK_STREAM)[0]
+        s = socket.socket(family, socktype, proto)
+        s.connect(sockaddr)
+        f = s.makefile()
+        f.write('!!\n!nIRRExplorer\n')
+        f.flush()
+        f.write('-k -g {}:3:{}-LAST\n'.format(self.source, self.serial))
+        f.flush()
+        return f
+
+
+    def stream(self):
+
+        data_source = self.nrtm_connect()
+        #data_source = open('nrtm.dump')
+
+        for line in data_source:
+            #print '>>', line,
+            if line.startswith('%START'):
+                print line
+            if line.startswith('% ERROR'):
+                raise NRTMError(line.strip()[9:])
+            if line.startswith('%END'):
+                raise StopIteration
+
+            if line.startswith(('%', '#', 'C')):
+                continue
+
+            if line.startswith(('ADD', 'DEL')):
+                tag, serial = line.strip().split(' ')
+                obj = irrparser.irrParser(data_source).next()
+                yield tag, int(serial), obj
+
+
+# Streaming and data source needs better seperation for testing
+
+# if __name__ == '__main__':
+#     f = open('nrtm.dump')
+#     for tag, serial, (obj_type, obj_data) in nrtmParser(f):
+#         obj, data, source = obj_data
+#         print tag, serial, obj_type, obj, source
+
