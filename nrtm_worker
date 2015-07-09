@@ -21,10 +21,10 @@ CREATE_ROUTE   = "SELECT create_route (%s, %s, %s);"
 CREATE_AS_SET  = "SELECT create_as_set (%s, %s, %s);"
 
 DELETE_ROUTE   = "DELETE FROM routes  USING sources WHERE routes.route = %s AND routes.asn = %s AND routes.source_id = sources.id AND sources.name = %s;"
-DELETE_AS_SET  = "DELETE FROM as_sets USING sources WHERE as_sets.as_macro = %s AND as_sets.members = %s AND as_sets.source_id = sources.id AND sources.name = %s;"
+DELETE_AS_SET  = "DELETE FROM as_sets USING sources WHERE as_sets.as_macro = %s AND as_sets.source_id = sources.id AND sources.name = %s;"
 
 SELECT_SERIAL  = "SELECT last_seen_serial FROM sources WHERE name = %s"
-UPDATE_SERIAL  = "UPDATE sources SET last_seen_serial = %s WHERE sources.name = %s'"
+UPDATE_SERIAL  = "UPDATE sources SET last_seen_serial = %s WHERE sources.name = %s"
 
 
 def create_parser():
@@ -34,8 +34,6 @@ def create_parser():
     parser.add_argument('-o', '--host',      dest='host',                               help='Host for NRTM source')
     parser.add_argument('-p', '--port',      dest='port', default=DEFAULT_PORT,         help='Port for NRTM source (default: %s)' % DEFAULT_PORT)
     parser.add_argument('-s', '--source',    dest='source',                             help='IRR Source for NRTM source')
-#    parser.add_argument('-r', '--serial',    dest='serial',                             help='Serial to start NRTM streaming from')
-
     parser.add_argument('-d', '--database',  dest='database', default=DEFAULT_DATABASE, help='IRRExplorer database name (default: %s)' % DEFAULT_DATABASE)
     parser.add_argument('-i', '---interval', dest='interval', default=DEFAULT_SLEEP_INTERVAL, help='Interval between updates (default: %i seconds)' % DEFAULT_SLEEP_INTERVAL)
     return parser
@@ -92,6 +90,8 @@ def main():
 
                 elif obj_type == irrparser.AS_SET:
                     changes['add_as_set'] = changes.get('add_as_set', 0) + 1
+                    # irrd doesn't seem to generate DEL before updates to as-sets, so we delete it first (even if it does not exists)
+                    stms.append( ( DELETE_AS_SET, (obj, source) ) )
                     stms.append( ( CREATE_AS_SET, (obj, data, source) ) )
                 else:
                     print 'weird add', tag, serial, obj_type
@@ -102,7 +102,8 @@ def main():
                     stms.append( ( DELETE_ROUTE, (obj, data, source) ) )
                 elif obj_type == irrparser.AS_SET:
                     changes['del_as_set'] = changes.get('del_as_set', 0) + 1
-                    stms.append( ( DELETE_AS_SET, (obj, data, source) ) )
+                    # this one almost never happens, so it is tricky to test it
+                    stms.append( ( DELETE_AS_SET, (obj, source) ) )
                 else:
                     print 'weird del', tag, serial, obj_type
 
@@ -116,12 +117,12 @@ def main():
 
         if True:
             for stm, arg in stms:
-                if 'as_set' in stm:
+                if 'create_as_set' in stm:
                     print stm, arg[0], len(arg[1]), arg[2]
                 else:
                     print stm, arg
 
-        if True:
+        if stms and True:
             # send delete/insert statements
             cur = db._get_cursor()
 
