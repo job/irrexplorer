@@ -60,20 +60,30 @@ def create_app(pgdb, configfile=None):
 
         if request.method == 'POST':
             data = form.field.data
+            print 'Form data:', data
             try:
                 int(data)
                 return redirect(url_for('asn_search', asn=data))
             except ValueError:
                 pass
 
-#            if utils.is_autnum(data):
-#                return redirect(url_for('asn_search', asn=data))
+            if data.lower().startswith('as'):
+                try:
+                    int(data[2:])
+                    return redirect(url_for('asn_search', asn=data[2:]))
+                except ValueError:
+                    pass
 
             if utils.is_ipnetwork(data):
-                flash('Just one field is required, fill it in!')
                 return redirect(url_for('prefix_search', prefix=data))
 
+            elif data:
+                # for some reason this does not work
+                flash('Invalid search data')
+                return render_template('index.html', form=form)
+
             else:
+                flash('Just one field is required, fill it in!')
                 return render_template('index.html', form=form)
 
     @app.route('/asn/<path:asn>')
@@ -97,7 +107,6 @@ def create_app(pgdb, configfile=None):
     def exact_prefix_search(prefix):
         return render_template('exact_prefix.html')
 
-    # TODO: There is some duplicate code in the next, that should refactored
 
     @app.route('/prefix_json/<path:prefix>')
     def prefix_json(prefix):
@@ -131,10 +140,6 @@ def create_app(pgdb, configfile=None):
             print msg
             abort(500, msg)
 
-
-#    @app.route('/asset/<asset>')
-#    def asset(asset):
-#        return str(utils.lookup_assets(asset))
 
     return app
 
