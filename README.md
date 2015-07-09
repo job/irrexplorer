@@ -33,7 +33,7 @@ access granted.
 ```
 ( cd db ; ./bootstrap )
 ```
-This will take download IRR dumps and setup the databases. It will take some time.
+This will download IRR database snapshots and setup the database. It will take some time.
 
 Continously updating BGP and IRR sources:
 ```
