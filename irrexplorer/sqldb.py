@@ -91,30 +91,68 @@ class IRRSQLDatabase:
         return self._execute_fetchall(query, (as_,))
 
 
+    def query_as_macro(self, as_macro):
+
+        # recusive sql query, hang on to your shorts
+        query = """SELECT members, source FROM as_sets_view WHERE as_macro = %s;"""
+        return self._execute_fetchall(query, (as_macro,))
+
+
+    def query_as_macro_expand(self, as_macro):
+
+        # recusive sql query, hang on to your shorts
+        query = """WITH RECURSIVE member_list(as_macro, path, members, source, depth, cycle) AS (
+                    SELECT as_macro, ARRAY[as_macro], members, source, 1 AS depth, false FROM as_sets_view WHERE as_macro = %s
+                    UNION
+                    SELECT a.as_macro, path || a.as_macro,  a.members, a.source, depth+1 AS depth, a.as_macro = ANY(path) FROM as_sets_view a
+                    JOIN member_list b ON ( a.as_macro = ANY(b.members) AND NOT cycle)
+                   )
+                SELECT as_macro, source, depth, path, members FROM member_list;
+                """
+        return self._execute_fetchall(query, (as_macro,))
+
+
 
 if __name__ == '__main__':
 
     dsn = "dbname=irrexplorer"
     db = IRRSQLDatabase(dsn)
 
-    r = db.query_prefix('109.105.113.0/24')
-    print 'matching', r
+    print 'Prefix'
+    r1 = db.query_prefix('109.105.113.0/24')
+    print r1
 
-    r2 = db.query_prefix('109.105.113.0/24', exact=True)
-    print 'exact', r2
-
-    r3 = db.query_managed_prefix('109.105.113.0/24')
-    print 'managed', r3
     print
+    print 'Prefix exact'
+    r2 = db.query_prefix('109.105.112.0/21', exact=True)
+    print r2
 
-    print 'as routes'
+    print
+    print 'Managed prefix'
+    r3 = db.query_managed_prefix('109.105.113.0/24')
+    print r3
+
+    print
+    print 'AS Prefixes'
     r4 = db.query_as(2603)
     for r,s in r4:
         print r,s
 
-    print 'as in macros'
-    r5 = db.query_as_contain('AS2603')
+    print
+    print 'AS contain'
+    r5 = db.query_as_contain('AS-SUNET')
     for m,s in r5:
         print m,s
 
+    print
+    print 'AS macro members'
+    r6 = db.query_as_macro('AS-IS')
+    for m,s in r6:
+        print s,m
+
+    print
+    print 'AS macro expand'
+    r7 = db.query_as_contain('AS-IS')
+    for m,s in r7:
+        print s,m
 
