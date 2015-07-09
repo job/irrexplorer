@@ -1,0 +1,144 @@
+#!/usr/bin/env python
+
+"""
+Script to update IRR entries in IRRExplorer database via NRTM streaming
+"""
+
+import sys
+import time
+import argparse
+
+from irrexplorer import sqldb, nrtm, irrparser
+
+
+#DEFAULT_SOURCE      = 'http://lg01.infra.ring.nlnog.net/table.txt'
+DEFAULT_PORT        = nrtm.DEFAULT_PORT
+DEFAULT_DATABASE    = 'irrexplorer'
+DEFAULT_SLEEP_INTERVAL = 300 # 5 minutes
+
+
+CREATE_ROUTE   = "SELECT create_route (%s, %s, %s);"
+CREATE_AS_SET  = "SELECT create_as_set (%s, %s, %s);"
+
+DELETE_ROUTE   = "DELETE FROM routes  USING sources WHERE routes.route = %s AND routes.asn = %s AND routes.source_id = sources.id AND sources.name = %s;"
+DELETE_AS_SET  = "DELETE FROM as_sets USING sources WHERE as_sets.as_macro = %s AND as_sets.members = %s AND as_sets.source_id = sources.id AND sources.name = %s;"
+
+SELECT_SERIAL  = "SELECT last_seen_serial FROM sources WHERE name = %s"
+UPDATE_SERIAL  = "UPDATE sources SET last_seen_serial = %s WHERE sources.name = %s'"
+
+
+def create_parser():
+
+    parser = argparse.ArgumentParser(description='Continously update IRR data in IRRExplorer database via NRTM streaming')
+
+    parser.add_argument('-o', '--host',      dest='host',                               help='Host for NRTM source')
+    parser.add_argument('-p', '--port',      dest='port', default=DEFAULT_PORT,         help='Port for NRTM source (default: %s)' % DEFAULT_PORT)
+    parser.add_argument('-s', '--source',    dest='source',                             help='IRR Source for NRTM source')
+#    parser.add_argument('-r', '--serial',    dest='serial',                             help='Serial to start NRTM streaming from')
+
+    parser.add_argument('-d', '--database',  dest='database', default=DEFAULT_DATABASE, help='IRRExplorer database name (default: %s)' % DEFAULT_DATABASE)
+    parser.add_argument('-i', '---interval', dest='interval', default=DEFAULT_SLEEP_INTERVAL, help='Interval between updates (default: %i seconds)' % DEFAULT_SLEEP_INTERVAL)
+    return parser
+
+
+def main():
+
+    parser = create_parser()
+    args = parser.parse_args()
+
+    # sanity check
+    if args.host is None:
+        print >> sys.stderr, 'Host parameter not specified'
+        raise SystemExit(1)
+
+    if args.source is None:
+        print >> sys.stderr, 'Source parameter not specified'
+        raise SystemExit(1)
+
+    dsn = 'dbname=%s' % args.database
+    db = sqldb.IRRSQLDatabase(dsn)
+
+
+    while True:
+
+        # get serial from database
+        cur = db._get_cursor()
+        cur.execute(SELECT_SERIAL, (args.source,))
+        srow = cur.fetchall()
+        cur.close()
+
+        if not srow:
+            print >> sys.stderr, 'No serial for source %s found, cannot continue' % args.source
+            raise SystemExit(1)
+
+        serial = srow[0][0]
+        serial = int(serial) + 1 # don't do the one we last saw
+
+        print 'Streaming from %s:%s/%s from serial %s' % (args.host, args.port, args.source, serial)
+        c = nrtm.NRTMStreamer(args.host, args.source, serial, args.port)
+
+        stms = []
+
+        changes = {}
+
+        for tag, serial, (obj_type, obj_data) in c.stream():
+            obj, data, source = obj_data
+            #print tag, serial, obj_type, obj, source
+
+            if tag == 'ADD':
+                if obj_type == irrparser.ROUTE:
+                    changes['add_route'] = changes.get('add_route', 0) + 1
+                    stms.append( ( CREATE_ROUTE, (obj, data, source) ) )
+
+                elif obj_type == irrparser.AS_SET:
+                    changes['add_as_set'] = changes.get('add_as_set', 0) + 1
+                    stms.append( ( CREATE_AS_SET, (obj, data, source) ) )
+                else:
+                    print 'weird add', tag, serial, obj_type
+
+            elif tag == 'DEL':
+                if obj_type == irrparser.ROUTE:
+                    changes['del_route'] = changes.get('del_route', 0) + 1
+                    stms.append( ( DELETE_ROUTE, (obj, data, source) ) )
+                elif obj_type == irrparser.AS_SET:
+                    changes['del_as_set'] = changes.get('del_as_set', 0) + 1
+                    stms.append( ( DELETE_AS_SET, (obj, data, source) ) )
+                else:
+                    print 'weird del', tag, serial, obj_type
+
+            else:
+                print 'Weird tag:', tag, serial, obj_type
+
+        print 'Changes:', '  '.join( [ '%s: %s' % (k, v) for k,v in changes.items() ] )
+        if stms:
+            # only update serial, if we actually got something
+            stms.append( ( UPDATE_SERIAL, (serial, source) ) )
+
+        if True:
+            for stm, arg in stms:
+                if 'as_set' in stm:
+                    print stm, arg[0], len(arg[1]), arg[2]
+                else:
+                    print stm, arg
+
+        if True:
+            # send delete/insert statements
+            cur = db._get_cursor()
+
+            for stm, arg in stms:
+                #print stm, arg
+                cur.execute(stm, arg)
+
+            db.conn.commit()
+            cur.close() # so it doesn't linger while sleeping
+
+            print 'Commit done and cursor closed'
+
+        print 'Sleeping for %i seconds' % args.interval
+        time.sleep(args.interval)
+        print
+
+
+if __name__ == '__main__':
+    main()
+
