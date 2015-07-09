@@ -151,7 +151,7 @@ def prefix_report(pgdb, prefix, exact=False):
     print
     print 'Prefix report: %s, exact=%s' % (prefix, exact)
 
-    routes = pgdb.query_prefix(prefix, exact=False)
+    routes = pgdb.query_prefix(prefix, exact=exact)
     prefixes = {}
     for pfx, asn, source in routes:
         ps = prefixes.setdefault(pfx, {}).setdefault(SOURCE, {})
