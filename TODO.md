@@ -3,13 +3,15 @@ IRR Explorer
 
 # TODO
 
-* NRTM lib/function
-    * fetch serial + ftp dump via ftp
-    * deal with gzipped data
-* [half] search_covered function in py-radix
 * flask web/api int
-* [done] RPSL object parser
 * exabgp
     * launch
     * feed it config
     * catch STDOUT from the 'run' process
+
+* BGP/NRTM worker
+    * Integrated into a single exacutable (work.sh is messy)
+
+* List which macro AS number is included in
+* AS Macro expansion page (sql+report+json is there)
+
