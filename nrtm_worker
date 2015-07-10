@@ -97,6 +97,7 @@ def streamUpdate(host, port, source, db, interval):
                     # sometimes (and only sometimes) an ADD will be send for something already exists (I am looking at you altdb)
                     # hence we delete the route first... could probably do this a bit more clever with a function in the db
                     # this also produces lots of duplicate statements, so we try not do if the last stm is identical
+                    # When Postgres 9.5, switch this to "ON CONFLICT" (UPSERT)
                     sa = ( DELETE_ROUTE, (obj, data, source) )
                     if not stms or stms[-1] != sa:
                         stms.append(sa)
@@ -129,7 +130,7 @@ def streamUpdate(host, port, source, db, interval):
             # only update serial, if we actually got something
             stms.append( ( UPDATE_SERIAL, (serial, source) ) )
 
-        if True:
+        if False:
             for stm, arg in stms:
                 if 'create_as_set' in stm:
                     print stm, arg[0], len(arg[1]), arg[2]
