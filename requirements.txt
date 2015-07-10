@@ -1,7 +1,6 @@
 exabgp==3.4.7
 pyyaml
 ipaddr
-git+git://github.com/htj/py-radix.git@f35ce68d97e57ecd2790091973b7bceb7fab5f18
 flask
 flask-bootstrap
 flask-table
