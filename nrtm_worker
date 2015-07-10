@@ -59,7 +59,7 @@ def main():
     try:
         streamUpdate(args.host, args.port, args.source, db, args.interval)
     except nrtm.NRTMError as e:
-        print str(e)
+        print 'Error while streaming from %s/%s: %s' % (args.host, args.source, str(e))
         raise SystemExit(1)
 
 
