@@ -1,0 +1,104 @@
+#!/usr/bin/env python
+
+"""
+Script to update BGP and IRR entries in the IRRExplorer database.
+"""
+
+import os
+import time
+import argparse
+
+import yaml
+
+from irrexplorer import sqldb, bgpupdate
+
+
+DEFAULT_DATABASE    = 'irrexplorer'
+DEFAULT_BGP_SOURCE  = 'http://lg01.infra.ring.nlnog.net/table.txt'
+DEFAULT_IRR_SPEC    = 'db/irr.yml'
+
+DEFAULT_UPDATE_INTERVAL = 900 # 15 minutes, the nlnog table is updated at that frequency
+
+
+INSERT_STM = "SELECT create_route (%s, %s, 'bgp');"
+DELETE_STM = "DELETE FROM routes USING sources WHERE routes.route = %s AND routes.asn = %s AND routes.source_id = sources.id AND sources.name = 'bgp';"
+
+
+
+def create_parser():
+
+    parser = argparse.ArgumentParser(description='Continously update BGP table in IRRExplorer database')
+    parser.add_argument('-b', '--bgp-source', dest='bgp_source', default=DEFAULT_BGP_SOURCE,      help='Source URL for BGP routing table (default: nlnog ring table)')
+    parser.add_argument('-r', '--irr-spec',   dest='irr_spec',   default=DEFAULT_IRR_SPEC,        help='IRR specifications file (default: %s)' % DEFAULT_IRR_SPEC)
+    parser.add_argument('-d', '--database',   dest='database',   default=DEFAULT_DATABASE,        help='IRRExplorer database name (default: %s)' % DEFAULT_DATABASE)
+    parser.add_argument('-i', '--interval',   dest='interval',   default=DEFAULT_UPDATE_INTERVAL, help='Interval between updates (default: %i seconds)' % DEFAULT_UPDATE_INTERVAL)
+    return parser
+
+
+
+def parse_irr_spec(irr_spec):
+
+    specs =  []
+
+    if not os.path.exists(irr_spec):
+        print 'Error: IRR spec file does not exist'
+        return specs # don't fail on this (bgp update should be allowed to run)
+
+    irr_cfg = open(irr_spec)
+    cfg = yaml.load(irr_cfg)
+
+    for db in cfg['databases']:
+        for db_name, db_info in db.items():
+            host = port = source = None
+            for dbe in db_info:
+                host = dbe.get('nrtmhost', host)
+                port = dbe.get('nrtmport', port)
+                source = dbe.get('dbname', source)
+
+            if host and source:
+                specs.append( (host, port, source) )
+            else:
+                print 'Could not parse %s for NRTM info' % db_name
+
+    return specs
+
+
+
+def main():
+
+    parser = create_parser()
+    args = parser.parse_args()
+
+    update_interval = int(args.interval)
+
+    irr_sources = parse_irr_spec(args.irr_spec)
+
+    dsn = 'dbname=%s' % args.database
+    db = sqldb.IRRSQLDatabase(dsn)
+
+    while True:
+
+        t_start = time.time()
+
+        # bgp
+        bgpupdate.updateBGP(args.bgp_source, db)
+
+        # irr update
+        for host, port, source in irr_sources:
+            print host, port, source
+
+        # sleep
+
+        t_sleep = update_interval - (time.time() - t_start)
+
+        if t_sleep < 0:
+            print 'Update took longer time than sleep interval, skipping sleep'
+        else:
+            print 'Sleeping for %i seconds' % t_sleep
+            time.sleep(args.interval)
+            print
+
+
+if __name__ == '__main__':
+    main()
+
