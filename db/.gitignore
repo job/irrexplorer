@@ -1,9 +1,0 @@
-*.db*.gz
-*.CURRENTSERIAL
-sources.map
-sources.sql
-serials.sql
-ripe_managed.sql
-irr_routes.data
-irr_as_sets.data
-bgp.data
