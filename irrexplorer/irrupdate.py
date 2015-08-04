@@ -24,7 +24,7 @@ class IRRUpdateError(Exception):
 
 
 
-def update_irr(host, port, source, db, interval):
+def update_irr(host, port, source, db):
 
     # get serial from database
     cur = db._get_cursor()
@@ -35,8 +35,8 @@ def update_irr(host, port, source, db, interval):
     if not srow:
         raise IRRUpdateError('No serial for source %s found, cannot continue' % source)
 
-    serial = srow[0][0]
-    serial = int(serial) + 1 # don't do the one we last saw
+    db_serial = srow[0][0]
+    serial = int(db_serial) + 1 # don't do the one we last saw
 
     print 'Streaming from %s:%s/%s from serial %s' % (host, port, source, serial)
     c = nrtm.NRTMStreamer(host, source, serial, port)
@@ -107,4 +107,5 @@ def update_irr(host, port, source, db, interval):
         cur.close() # so it doesn't linger while sleeping
 
         print 'IRR update committed and cursor closed'
-
+    else:
+        print 'No updates for IRR source %s' % source
