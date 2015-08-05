@@ -26,8 +26,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 
-import sys
-
 
 AS_SET = 'as-set'
 ROUTE  = 'route'
