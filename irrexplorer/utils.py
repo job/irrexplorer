@@ -33,24 +33,6 @@ def is_ipnetwork(data):
     except ValueError:
         return False
 
-def lookup_assets(asset, seen=None):
-    if seen is None:
-        seen = []
-
-    x = query("asset_search", asset)
-
-    for db in x:
-        if not x[db]:
-            continue
-        for elem in x[db]:
-            if elem in seen:
-                continue
-            if is_autnum(elem):
-                seen.append(elem)
-            else:
-                seen.append(elem)
-                seen = lookup_assets(elem, seen)
-    return seen
 
 def is_autnum(autnum):
     try:
@@ -73,5 +55,4 @@ def find_more_specifics(target, prefixes):
 def find_more_sp_helper(args):
     return find_more_specifics(*args)
 
-if __name__ == "__main__":
-    pass
+
