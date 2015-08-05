@@ -168,52 +168,6 @@ def prefix_report(pgdb, prefix, exact=False):
     # TODO if we find any prefixes larger than the inputted one, we should find prefixes covered by that prefixes
     # Go through the prefixes, find the shortest one, if it is different from the inputted one, do another search
 
-#    if exact:
-#        bgp_specifics = other_query("BGP", "search_exact", prefix)
-#        irr_specifics = irr_query("search_exact", prefix)
-#    else:
-#        tree = radix.Radix()
-#        bgp_aggregate = other_query("BGP", "search_aggregate", prefix)
-#        if bgp_aggregate:
-#            bgp_aggregate = bgp_aggregate[0]
-#            tree.add(bgp_aggregate)
-#        irr_aggregate = irr_query("search_aggregate", prefix)
-#        for r in irr_aggregate:
-#            if irr_aggregate[r]:
-#                tree.add(irr_aggregate[r][0])
-#        aggregate = tree.search_worst(prefix)
-#        if not aggregate:
-#            raise NoPrefixError("Could not find any matching prefix in IRR or BGP tables for %s" % prefix)
-#
-#        aggregate = aggregate.prefix
-#
-#        bgp_specifics = other_query("BGP", "search_specifics", aggregate)
-#        irr_specifics = irr_query("search_specifics", aggregate)
-
-#    prefixes = {}
-#    for p in bgp_specifics:
-#        if p not in prefixes:
-#            prefixes[p] = {'bgp_origin': bgp_specifics[p]['origins']}
-#        else:
-#            prefixes[p]['bgp_origin'] = bgp_specifics[p]['origins']
-#    for db in irr_specifics:
-#        if irr_specifics[db]:
-#            for p in irr_specifics[db]:
-#                if p not in prefixes:
-#                    prefixes[p] = {}
-#                    prefixes[p]['bgp_origin'] = False
-#
-#    """
-#    irr_specifics looks like:
-#        {'apnic': {}, 'gt': {}, 'bboi': {}, 'radb': {}, 'jpirr': {},
-#        'bell': {}, 'altdb': {}, 'rgnet': {}, 'savvis': {}, 'level3': {},
-#        'ripe': {'85.184.0.0/16': {'origins': [8935]}},
-#        'arin': {}, 'afrinic': {}, 'tc': {}}
-#    """
-#    print "prefix_report: Lookup prefixes: %s" % prefixes
-#    print "prefix_report: Lookup irr_specifics: %s" % irr_specifics
-
-
     for pfx, pfx_data in prefixes.items():
         managed_routes = pgdb.query_managed_prefix(pfx) # this can be done better
         #print 'Managed routes for prefix %s --> %s' % (pfx, managed_routes)
