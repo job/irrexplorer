@@ -56,7 +56,8 @@ class NRTMStreamer(object):
         f = s.makefile()
         f.write('!!\n!nIRRExplorer\n')
         f.flush()
-        f.write('-k -g {}:3:{}-LAST\n'.format(self.source, self.serial))
+        #f.write('-k -g {}:3:{}-LAST\n'.format(self.source, self.serial))
+        f.write('-g {}:3:{}-LAST\n'.format(self.source, self.serial))
         f.flush()
         return f
 
@@ -67,21 +68,40 @@ class NRTMStreamer(object):
         #data_source = open('nrtm.dump')
 
         for line in data_source:
-            #print '>>', line,
-            if line.startswith('%START'):
-                print line
-            if line.startswith('% ERROR'):
-                raise NRTMError(line.strip()[9:])
-            if line.startswith('%END'):
-                raise StopIteration
 
-            if line.startswith(('%', '#', 'C')):
+            if not line.strip():
+                continue # blank line
+
+            if line.startswith('%'):
+                # print '>>', line,
+                c_line = line[1:].strip()
+                if c_line == '':
+                    continue # blank comment
+
+                cl = c_line.lower()
+
+                if cl.startswith('start'):
+                    print c_line
+                elif cl.startswith(('error','warning')):
+                    raise NRTMError(c_line)
+                elif cl.startswith('end'):
+                    raise StopIteration
+                else:
+                    print 'Did not understand the following comment line:'
+                    print line,
+                continue
+
+            if line.startswith(('#', 'C')):
                 continue
 
             if line.startswith(('ADD', 'DEL')):
                 tag, serial = line.strip().split(' ')
                 obj = irrparser.irrParser(data_source).next()
                 yield tag, int(serial), obj
+
+            else:
+                print 'Did not understand the following line:'
+                print line,
 
 
 # Streaming and data source needs better seperation for testing
