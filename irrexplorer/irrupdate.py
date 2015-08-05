@@ -26,6 +26,8 @@ class IRRUpdateError(Exception):
 
 def update_irr(host, port, source, db):
 
+    source = source.lower() # we always lowercase this
+
     # get serial from database
     cur = db._get_cursor()
     cur.execute(SELECT_SERIAL, (source,))
