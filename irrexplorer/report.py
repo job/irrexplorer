@@ -161,9 +161,9 @@ def prefix_report(pgdb, prefix, exact=False):
         if BGP in pfx_data[SOURCE]:
             pfx_data[BGP] = pfx_data[SOURCE].pop(BGP)
 
-    print 'Prefixes:'
-    for pd in prefixes.items():
-        print pd
+    print 'Prefixes:', prefixes.keys()
+    #for pd in prefixes.items():
+    #    print pd
 
     # TODO if we find any prefixes larger than the inputted one, we should find prefixes covered by that prefixes
     # Go through the prefixes, find the shortest one, if it is different from the inputted one, do another search
@@ -216,8 +216,8 @@ def prefix_report(pgdb, prefix, exact=False):
 
     for pfx, pfx_data in prefixes.items():
         managed_routes = pgdb.query_managed_prefix(pfx) # this can be done better
-        print 'Managed routes for prefix %s --> %s' % (pfx, managed_routes)
-        # we only do ripe managed routes at the moment, so if/else if fine
+        #print 'Managed routes for prefix %s --> %s' % (pfx, managed_routes)
+        ## we only do ripe managed routes at the moment, so if/else if fine
         managed = True if managed_routes else False
         pfx_data['ripe_managed'] = managed
 
