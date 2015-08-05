@@ -10,7 +10,7 @@ import argparse
 
 import yaml
 
-from irrexplorer import sqldb, bgpupdate
+from irrexplorer import sqldb, bgpupdate, irrupdate
 
 
 DEFAULT_DATABASE    = 'irrexplorer'
@@ -81,11 +81,18 @@ def main():
         t_start = time.time()
 
         # bgp
-        bgpupdate.updateBGP(args.bgp_source, db)
+        try:
+            bgpupdate.updateBGP(args.bgp_source, db)
+        except Exception as e:
+            print 'Error duing bgp update: %s' % str(e)
 
         # irr update
         for host, port, source in irr_sources:
             print host, port, source
+            try:
+                irrupdate.update_irr(host, port, source, db)
+            except Exception as e:
+                print 'Error during IRR update: ', str(e)
 
         # sleep
 
