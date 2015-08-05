@@ -26,7 +26,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import socket
-import time
 
 from irrexplorer import irrparser
 
