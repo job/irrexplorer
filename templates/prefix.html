@@ -59,7 +59,7 @@ td { white-space: nowrap; }
                     <div class="row" id="loading" style="display:none">
                         <div class="col-md-2 col-md-offset-5"><img src="/static/img/loading.gif"/></div>
                     </div>
-                <table id="example" class="display" cellspacing="0" width="100%"></table>
+                <table id="prefixes" class="display" cellspacing="0" width="100%"></table>
                 <div id="error"></div>
 
             </div>
@@ -85,6 +85,7 @@ td { white-space: nowrap; }
 {{super()}}
 <script type="text/javascript" src="//cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>
 <script type="text/javascript" src="//cdn.datatables.net/plug-ins/1.10.7/sorting/ip-address.js"></script>
+<script type="text/javascript" src="/static/js/table.js"></script>
 <script type="text/javascript">
 // source: https://github.com/h5bp/html5-boilerplate/blob/master/src/js/plugins.js
 // Avoid `console` errors in browsers that lack a console.
@@ -138,9 +139,9 @@ $(document).ready(function () {
 });
 
 function state_loaded() {
-    $("#btnsearch").prop("disabled",false); 
+    $("#btnsearch").prop("disabled",false);
     $("#loading").hide();
-    $("#btnsearch").html('Search');  
+    $("#btnsearch").html('Search');
 }
 
 function state_loading() {
@@ -159,7 +160,7 @@ function prefixsearch() {
                 success: function (data) {
                     state_loaded();
                     prefixes = JSON.parse(data);
-                    populatetable('#example', prefixes);
+                    populatetable('#prefixes', prefixes, ["prefixe", "bgp"] );
                 },
                 error: function(error) {
                     state_loaded();
@@ -171,106 +172,6 @@ function prefixsearch() {
                 cache: false
             });
         };
-}
-
-function rendererImgFunction(data, alldata, fieldname, prefix) {
-    console.log(alldata['label']);
-    if (typeof data != 'undefined') {
-        switch (data.toString()) {
-            case "true":
-                return "<img alt='T' title='True' src='/static/img/true.png'>";
-            case "false":
-                return "<img alt='F' title='False' src='/static/img/false.png'>";
-            default:
-                if (fieldname == "advice") {
-                    console.log(alldata['label']);
-                    return "<span class='label label-" + alldata['label'] + "'>" + data + "</span>";
-                } else if (fieldname == "bgp") {
-                    return "<a href=\"http://lg.ring.nlnog.net/query/" + prefix + "\">" + data + "</a>";
-                }
-                else {
-                    return data;
-                }
-        }
-    } else {
-        return "";
-    }
-}
-
-function getfields(prefix_data) {
-
-    prefixes = Object.keys(prefix_data);
-    fieldsfound = Object.keys(prefix_data[prefixes[0]]).sort();
-
-    fields = ["prefix", "bgp", "advice"];
-    fieldsend = ["ripe_managed"];
-    fieldshide = ["label"];
-    for (var field in fieldsfound) {
-        fieldname = fieldsfound[field];
-        if (fieldsend.indexOf(fieldname) == -1) {
-            if (fields.indexOf(fieldname) == -1) {
-                if (fieldshide.indexOf(fieldname) == -1) {
-                    fields.push(fieldname);
-                }
-            }
-        }
-    }
-    fields.push.apply(fields, fieldsend);
-
-    return fields
-
-}
-
-function populatetable(tblname, prefix_data) {
-    console.log(prefix_data);
-
-    fields = getfields(prefix_data);
-
-    $("#example").hide();
-
-    console.log(fields);
-    rows = [];
-    prefixes = Object.keys(prefix_data);
-    for (var pfxint in prefixes) {
-        prefix = prefixes[pfxint];
-        prefixprops = prefix_data[prefix];
-        row = [
-        ];
-        for (var f in fields) {
-            field = fields[f];
-            if (field == "prefix") {
-                row.push('<a href="/exact_prefix/' + prefix + '">' + prefix + '</a>');
-            } else {
-                row.push(rendererImgFunction(prefixprops[field], prefixprops, field, prefix))
-            }
-        }
-        //console.log(row);
-        rows.push(row);
-    };
-
-    colsdisp = [];
-    for (var f in fields) {
-        field = fields[f];
-        coldisp = {"title": field}
-        colsdisp.push(coldisp);
-    }
-    if ( ! $.fn.DataTable.isDataTable( '#example' ) ) {
-        $("#example").dataTable( {
-                "data": rows,
-                "columns": colsdisp,
-                "searching": false,
-                "lengthChange": false,
-                "bPaginate": false,
-                "columnDefs": [ { 'type': 'ip-address', 'targets': 0 } ]
-            } );
-    } else {
-        // just update, already set the table up once
-        $("#example").dataTable().fnClearTable();
-        $("#example").dataTable().fnAddData(rows);
-
-    }
-
-    $("#example").show();
 }
 
 </script>
