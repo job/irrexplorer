@@ -88,7 +88,7 @@ def create_app(pgdb, configfile=None):
 
     @app.route('/asn/<path:asn>')
     def asn_search(asn):
-        return render_template('asn.html')
+        return render_template('asnumber.html')
 
     @app.route('/asn_json/<path:asn>')
     def asn(asn):
