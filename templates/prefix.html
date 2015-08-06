@@ -127,7 +127,11 @@ $(document).ready(function () {
     };
     if (prefixurl != "") {
         $('form').find('input[name="prefix"]').val(prefixurl);
-        prefixsearch();
+        var exact = false;
+        if (window.location.search.indexOf("exact") != -1) {
+            exact = true;
+        }
+        prefixsearch(exact);
     };
 
     $("form").submit(function (e) {
@@ -150,28 +154,34 @@ function state_loading() {
     $("#loading").show();
 }
 
-function prefixsearch() {
+function prefixsearch(exact) {
     var prefix = $('form').find('input[name="prefix"]').val();
-        if (prefix.length > 0)
-        {
-            state_loading();
-            $.ajax({
-                url: '/prefix_json/' + prefix,
-                success: function (data) {
-                    state_loaded();
-                    prefixes = JSON.parse(data);
-                    populatetable('#prefixes', prefixes, ["prefixe", "bgp"] );
-                },
-                error: function(error) {
-                    state_loaded();
-                    errMsg = $(error.responseText).filter("p").text();
-                    console.log(errMsg);
-                    $("#error").text(errMsg);
-                    $("#error").show()
-                },
-                cache: false
-            });
-        };
+    if (prefix.length > 0) {
+        state_loading();
+        var base_url;
+        if (exact) {
+            base_url = '/exact_prefix_json/';
+        } else {
+            base_url = '/prefix_json/';
+        }
+        $.ajax({
+            //url: '/prefix_json/' + prefix,
+            url: base_url + prefix,
+            success: function (data) {
+                state_loaded();
+                prefixes = JSON.parse(data);
+                populatetable('#prefixes', prefixes, ["prefix", "bgp"] );
+            },
+            error: function(error) {
+                state_loaded();
+                errMsg = $(error.responseText).filter("p").text();
+                console.log(errMsg);
+                $("#error").text(errMsg);
+                $("#error").show()
+            },
+            cache: false
+        });
+    };
 }
 
 </script>

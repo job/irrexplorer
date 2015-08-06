@@ -114,12 +114,6 @@ def create_app(pgdb, configfile=None):
     def prefix_search(prefix):
         return render_template('prefix.html')
 
-    @app.route('/exact_prefix/<path:prefix>')
-    @app.route('/exact_prefix/', defaults={'prefix': None})
-    @app.route('/exact_prefix', defaults={'prefix': None})
-    def exact_prefix_search(prefix):
-        return render_template('exact_prefix.html')
-
 
     @app.route('/prefix_json/<path:prefix>')
     def prefix_json(prefix):

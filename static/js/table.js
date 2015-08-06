@@ -75,9 +75,13 @@ function populatetable(table_name, table_data, start_fields) {
         row = [];
         for (var f in fields) {
             field = fields[f];
-            if (field == start_fields[0]) {
+            if (field == "prefix") { // hack on
+                row.push('<a href="/' + start_fields[0] + '/' + key + '?exact=true">' + key + '</a>');
+            }
+            else if (field == start_fields[0]) {
                 row.push('<a href="/' + start_fields[0] + '/' + key + '">' + key + '</a>');
-            } else {
+            }
+            else {
                 row.push(renderCell(table_entry[field], field, table_entry["label"]))
             }
         }
