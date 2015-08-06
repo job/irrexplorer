@@ -74,6 +74,9 @@ def create_app(pgdb, configfile=None):
                 except ValueError:
                     pass
 
+            if data.lower().startswith('as-'):
+                return redirect(url_for('macro', macro=data))
+
             if utils.is_ipnetwork(data):
                 return redirect(url_for('prefix_search', prefix=data))
 
@@ -86,6 +89,24 @@ def create_app(pgdb, configfile=None):
                 flash('Just one field is required, fill it in!')
                 return render_template('index.html', form=form)
 
+    # -- prefix --
+
+    @app.route('/prefix/<path:prefix>')
+    @app.route('/prefix/', defaults={'prefix': None})
+    @app.route('/prefix', defaults={'prefix': None})
+    def prefix_search(prefix):
+        return render_template('prefix.html')
+
+    @app.route('/prefix_json/<path:prefix>')
+    def prefix_json(prefix):
+        return do_prefix_report(prefix, exact=False)
+
+    @app.route('/exact_prefix_json/<path:prefix>')
+    def exact_prefix_json(prefix):
+        return do_prefix_report(prefix, exact=True)
+
+    # -- as number --
+
     @app.route('/asn/<path:asn>')
     def asn_search(asn):
         return render_template('asnumber.html')
@@ -95,34 +116,23 @@ def create_app(pgdb, configfile=None):
         data = report.as_report(pgdb, int(asn))
         return json.dumps(data)
 
+    # -- macro --
+
+    @app.route('/macro/<path:macro>')
+    @app.route('/macro/', defaults={'macro': None})
+    @app.route('/macro', defaults={'macro': None})
+    def macro_search(macro):
+        return render_template('macro.html')
 
     @app.route('/as_macro_json/<path:as_macro>')
     def as_macro(as_macro):
         data = report.as_macro_report(pgdb, as_macro)
         return json.dumps(data)
 
-
     @app.route('/as_macro_expand_json/<path:as_macro>')
     def as_macro_expand(as_macro):
         data = report.as_macro_expand_report(pgdb, as_macro)
         return json.dumps(data)
-
-
-    @app.route('/prefix/<path:prefix>')
-    @app.route('/prefix/', defaults={'prefix': None})
-    @app.route('/prefix', defaults={'prefix': None})
-    def prefix_search(prefix):
-        return render_template('prefix.html')
-
-
-    @app.route('/prefix_json/<path:prefix>')
-    def prefix_json(prefix):
-        return do_prefix_report(prefix, exact=False)
-
-
-    @app.route('/exact_prefix_json/<path:prefix>')
-    def exact_prefix_json(prefix):
-        return do_prefix_report(prefix, exact=True)
 
 
     def do_prefix_report(prefix, exact):
