@@ -196,22 +196,23 @@ def prefix_report(pgdb, prefix, exact=False):
 
 def as_report(pgdb, as_number):
 
+    if not type(as_number) is int:
+        raise ValueError('Invalid argument provided for as number')
+
     print 'as_report', as_number
 
     t_start = time.time()
 
     prefixes = pgdb.query_as(as_number)
 
-#    result = { 'prefixes':{}, 'macros':[] }
-    result = {}
-    for route, source in prefixes:
-        #result['prefixes'].setdefault(route, []).append(source)
-        #result.setdefault(route, []).append(source)
-        result.setdefault(route, {})[source] = True
+    result = { 'prefixes':{}, 'macros':{} }
 
-#       macros = pgdb.query_as_contain('AS' + as_number)
-#    for macro, source in macros:
-#        result['macros'].append(macro)
+    for route, source in prefixes:
+        result['prefixes'].setdefault(route, {})[source] = True
+
+    macros = pgdb.query_as_contain('AS' + str(as_number))
+    for macro, source in macros:
+        result['macros'].setdefault(macro, {})[source] = True
 
     t_delta = time.time() - t_start
     print

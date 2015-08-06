@@ -158,7 +158,8 @@ function asn_search() {
                 url: '/asn_json/' + asn,
                 success: function (data) {
                     state_loaded();
-                    prefixes = JSON.parse(data);
+                    result = JSON.parse(data);
+                    prefixes = result['prefixes'];
                     populatetable('#example', prefixes);
                 },
                 error: function(error) {
@@ -194,7 +195,7 @@ function getfields(prefix_data) {
     prefixes = Object.keys(prefix_data);
     fieldsfound = Object.keys(prefix_data[prefixes[0]]).sort();
 
-    fields = ["prefix", "bgp"];
+    fields = ["prefix", "bgp"]; // these should be first if they exist...
     fieldsend = [ ];
     for (var field in fieldsfound) {
         fieldname = fieldsfound[field];

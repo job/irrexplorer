@@ -92,7 +92,7 @@ def create_app(pgdb, configfile=None):
 
     @app.route('/asn_json/<path:asn>')
     def asn(asn):
-        data = report.as_report(pgdb, asn)
+        data = report.as_report(pgdb, int(asn))
         return json.dumps(data)
 
 
