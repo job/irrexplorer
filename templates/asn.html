@@ -53,22 +53,36 @@ td { white-space: nowrap; }
 
         <div class="row">&nbsp;</div>
 
+        <h4>Prefixes:</h4>
+
         <div class="row">
             <div>
 
                     <div class="row" id="loading" style="display:none">
                         <div class="col-md-2 col-md-offset-5"><img src="/static/img/loading.gif"/></div>
                     </div>
-                <table id="example" class="display" cellspacing="0" width="100%"></table>
+                <table id="prefixes" class="display" cellspacing="0" width="100%"></table>
                 <div id="error"></div>
 
             </div>
         </div>
-        <div class="row">
-        </div>
-    </div>
 
-    <div class="col-md-3">
+        <div class="form-group">&nbsp;</div>
+
+        <h4>Contained in the following macros: </h4>
+
+        <div class="row">
+            <div>
+
+                    <div class="row" id="loading" style="display:none">
+                        <div class="col-md-2 col-md-offset-5"><img src="/static/img/loading.gif"/></div>
+                    </div>
+                <table id="macros" class="display" cellspacing="0" width="100%"></table>
+                <div id="error"></div>
+
+            </div>
+        </div>
+
     </div>
 
 </div>
@@ -160,7 +174,9 @@ function asn_search() {
                     state_loaded();
                     result = JSON.parse(data);
                     prefixes = result['prefixes'];
-                    populatetable('#example', prefixes);
+                    macros = result['macros'];
+                    populatetable('#prefixes', prefixes, ["prefix", "bgp"] );
+                    populatetable('#macros', macros, ["macro"] );
                 },
                 error: function(error) {
                     state_loaded();
@@ -174,8 +190,9 @@ function asn_search() {
         };
 }
 
-function rendererImgFunction(data, alldata, fieldname, prefix) {
-    console.log(alldata['label']);
+
+function renderCell(data) {
+
     if (typeof data != 'undefined') {
         switch (data.toString()) {
             case "true":
@@ -183,58 +200,66 @@ function rendererImgFunction(data, alldata, fieldname, prefix) {
             case "false":
                 return "<img alt='F' title='False' src='/static/img/false.png'>";
             default:
-                    return data;
+                return data;
         }
     } else {
         return "";
     }
 }
-e
-function getfields(prefix_data) {
 
-    prefixes = Object.keys(prefix_data);
-    fieldsfound = Object.keys(prefix_data[prefixes[0]]).sort();
+function getfields(table_data, start_fields) {
 
-    fields = ["prefix", "bgp"]; // these should be first if they exist...
-    fieldsend = [ ];
-    for (var field in fieldsfound) {
-        fieldname = fieldsfound[field];
-        if (fieldsend.indexOf(fieldname) == -1) {
-            if (fields.indexOf(fieldname) == -1) {
-                fields.push(fieldname);
+    var table_keys = Object.keys(table_data);
+
+    var fields = start_fields.slice(0); // clone
+
+    for (var idx in table_keys) {
+        var key = table_keys[idx];
+        var table_entry = table_data[key];
+
+        var entry_fields = Object.keys(table_entry);
+
+        for (var efi in entry_fields) {
+            field_name = entry_fields[efi];
+            if (fields.indexOf(field_name) == -1) {
+                fields.push(field_name);
             }
         }
     }
-    fields.push.apply(fields, fieldsend);
 
-    return fields
-
+    return fields;
 }
 
-function populatetable(tblname, prefix_data) {
-    console.log(prefix_data);
+function populatetable(table_name, table_data, start_fields) {
 
-    fields = getfields(prefix_data);
+    console.log("populate table: " + table_name);
+    console.log(table_data);
+    console.log(start_fields);
+    console.log("--");
 
-    $("#example").hide();
-
+    fields = getfields(table_data, start_fields);
     console.log(fields);
+
+    $(table_name).hide();
+
     rows = [];
-    prefixes = Object.keys(prefix_data);
-    for (var pfxint in prefixes) {
-        prefix = prefixes[pfxint];
-        prefixprops = prefix_data[prefix];
-        row = [
-        ];
+    table_keys = Object.keys(table_data);
+
+    console.log(table_keys);
+
+    for (var idx in table_keys) {
+        key = table_keys[idx];
+
+        table_entry = table_data[key];
+        row = [];
         for (var f in fields) {
             field = fields[f];
-            if (field == "prefix") {
-                row.push('<a href="/prefix/' + prefix + '">' + prefix + '</a>');
+            if (field == start_fields[0]) {
+                row.push('<a href="/' + start_fields[0] + '/' + key + '">' + key + '</a>');
             } else {
-                row.push(rendererImgFunction(prefixprops[field], prefixprops, field, prefix))
+                row.push(renderCell(table_entry[field]))
             }
         }
-        //console.log(row);
         rows.push(row);
     };
 
@@ -244,8 +269,8 @@ function populatetable(tblname, prefix_data) {
         coldisp = {"title": field}
         colsdisp.push(coldisp);
     }
-    if ( ! $.fn.DataTable.isDataTable( '#example' ) ) {
-        $("#example").dataTable( {
+    if ( ! $.fn.DataTable.isDataTable(table_name) ) {
+        $(table_name).dataTable( {
                 "data": rows,
                 "columns": colsdisp,
                 "searching": false,
@@ -255,12 +280,12 @@ function populatetable(tblname, prefix_data) {
             } );
     } else {
         // just update, already set the table up once
-        $("#example").dataTable().fnClearTable();
-        $("#example").dataTable().fnAddData(rows);
+        $(table_name).dataTable().fnClearTable();
+        $(table_name).dataTable().fnAddData(rows);
 
     }
 
-    $("#example").show();
+    $(table_name).show();
 }
 
 </script>
