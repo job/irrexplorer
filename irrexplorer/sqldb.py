@@ -93,7 +93,6 @@ class IRRSQLDatabase:
 
     def query_as_macro(self, as_macro):
 
-        # recusive sql query, hang on to your shorts
         query = """SELECT members, source FROM as_sets_view WHERE as_macro = %s;"""
         return self._execute_fetchall(query, (as_macro,))
 
@@ -101,13 +100,14 @@ class IRRSQLDatabase:
     def query_as_macro_expand(self, as_macro):
 
         # recusive sql query, hang on to your shorts
+        # some as macro seem to either take a long time, or somehow loop forever, so added limit
         query = """WITH RECURSIVE member_list(as_macro, path, members, source, depth, cycle) AS (
                     SELECT as_macro, ARRAY[as_macro], members, source, 1 AS depth, false FROM as_sets_view WHERE as_macro = %s
                     UNION
                     SELECT a.as_macro, path || a.as_macro,  a.members, a.source, depth+1 AS depth, a.as_macro = ANY(path) FROM as_sets_view a
                     JOIN member_list b ON ( a.as_macro = ANY(b.members) AND NOT cycle)
                    )
-                SELECT as_macro, source, depth, path, members FROM member_list;
+                SELECT as_macro, source, depth, path, members FROM member_list LIMIT 1000;
                 """
         return self._execute_fetchall(query, (as_macro,))
 
