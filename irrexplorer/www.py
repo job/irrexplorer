@@ -67,15 +67,15 @@ def create_app(pgdb, configfile=None):
             except ValueError:
                 pass
 
+            if data.lower().startswith('as-'):
+                return redirect(url_for('macro_search', macro=data))
+
             if data.lower().startswith('as'):
                 try:
                     int(data[2:])
                     return redirect(url_for('asn_search', asn=data[2:]))
                 except ValueError:
                     pass
-
-            if data.lower().startswith('as-'):
-                return redirect(url_for('macro', macro=data))
 
             if utils.is_ipnetwork(data):
                 return redirect(url_for('prefix_search', prefix=data))

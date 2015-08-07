@@ -61,6 +61,21 @@ td { white-space: nowrap; }
                     <div class="row" id="loading" style="display:none">
                         <div class="col-md-2 col-md-offset-5"><img src="/static/img/loading.gif"/></div>
                     </div>
+                <table id="expanded" class="display" cellspacing="0" width="100%"></table>
+                <div id="error"></div>
+
+            </div>
+            <div>Note: Expansion is limited to 1000 macros due to performance reasons.</div>
+        </div>
+
+        <h4>Contained in the following macros: </h4>
+
+        <div class="row">
+            <div>
+
+                    <div class="row" id="loading" style="display:none">
+                        <div class="col-md-2 col-md-offset-5"><img src="/static/img/loading.gif"/></div>
+                    </div>
                 <table id="macros" class="display" cellspacing="0" width="100%"></table>
                 <div id="error"></div>
 
@@ -157,8 +172,8 @@ function macro_search() {
             success: function (data) {
                 state_loaded();
                 result = JSON.parse(data);
-                populatetable('#macros', result['expanded'], ["as_macro", "depth", "path", "source", "members"] );
-                // need to macro inclusion as well
+                populatetable('#expanded', result['expanded'], ["as_macro", "depth", "path", "source", "members"] );
+                populatetable('#macros', result['macros'], ["macro"] );
             },
             error: function(error) {
                 state_loaded();
