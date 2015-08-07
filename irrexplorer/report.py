@@ -253,7 +253,7 @@ def as_macro_expand_report(pgdb, as_macro):
 
     macros = pgdb.query_as_macro_expand(as_macro)
 
-    result = []
+    result = { 'macros': {}, 'expanded': [] }
     for macro, source, depth, path, members in macros:
         e = { 'as_macro' : macro,
               'source'   : source,
@@ -261,7 +261,12 @@ def as_macro_expand_report(pgdb, as_macro):
               'path'     : path,
               'members'  : members
         }
-        result.append(e)
+        result['expanded'].append(e)
+
+
+    macros = pgdb.query_as_contain(as_macro)
+    for macro, source in macros:
+        result['macros'].setdefault(macro, {})[source] = True
 
     t_delta = time.time() - t_start
     print

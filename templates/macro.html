@@ -157,7 +157,8 @@ function macro_search() {
             success: function (data) {
                 state_loaded();
                 result = JSON.parse(data);
-                populatetable('#macros', result, ["as_macro", "depth", "path", "source", "members"] );
+                populatetable('#macros', result['expanded'], ["as_macro", "depth", "path", "source", "members"] );
+                // need to macro inclusion as well
             },
             error: function(error) {
                 state_loaded();
