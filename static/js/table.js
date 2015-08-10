@@ -116,6 +116,9 @@ function populatetable(table_name, table_data, start_fields) {
         if (start_fields[0] == "prefix") {
             table["columnDefs"] = [ { 'type': 'ip-address', 'targets': 0 } ];
         }
+        if (start_fields[1] == "depth") { // order by depth if it exists (as macro expansion)
+            table["order"] = [[ 1, "asc" ]]
+        }
         $(table_name).dataTable(table);
     } else {
         // just update, already set the table up once
