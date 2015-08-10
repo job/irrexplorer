@@ -14,6 +14,8 @@ function renderCell(data, fieldname, label) {
                     return "<span class='label label-" + label + "'>" + data + "</span>";
                 } else if (fieldname == "bgp") {
                     return "<a href=\"http://lg.ring.nlnog.net/query/" + data + "\">" + data + "</a>";
+                } else if (fieldname == "members") {
+                    return data.join(", ");
                 }
                 else {
                     return data;
