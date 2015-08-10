@@ -45,7 +45,7 @@ td { white-space: nowrap; }
                 <div class="row">&nbsp;
                 </div>
                 <form id="form" class="form-inline">
-                    <h2>AS macro</h2><input type="text" name="macro" class="form-control" />
+                    <h2>AS number</h2><input type="text" name="as_number" class="form-control" />
                     <button id="btnsearch" type="submit" class="btn btn-primary" name="search" value="Search">Search</button>
                 </form>
             </div>
@@ -53,7 +53,7 @@ td { white-space: nowrap; }
 
         <div class="row">&nbsp;</div>
 
-        <h4>Macro expansion:</h4>
+        <h4>Prefixes:</h4>
 
         <div class="row">
             <div>
@@ -61,14 +61,13 @@ td { white-space: nowrap; }
                     <div class="row" id="loading" style="display:none">
                         <div class="col-md-2 col-md-offset-5"><img src="/static/img/loading.gif"/></div>
                     </div>
-                <table id="expanded" class="display" cellspacing="0" width="100%"></table>
+                <table id="prefixes" class="display" cellspacing="0" width="100%"></table>
                 <div id="error"></div>
 
             </div>
-            <div>Note: Expansion is limited to 1000 macros due to performance reasons.</div>
         </div>
 
-        <div class="row">&nbsp;</div>
+        <div class="form-group">&nbsp;</div>
 
         <h4>Contained in the following macros: </h4>
 
@@ -99,6 +98,7 @@ td { white-space: nowrap; }
 {% block scripts %}
 {{super()}}
 <script type="text/javascript" src="//cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="//cdn.datatables.net/plug-ins/1.10.7/sorting/ip-address.js"></script>
 <script type="text/javascript" src="/static/js/table.js"></script>
 <script type="text/javascript">
 // source: https://github.com/h5bp/html5-boilerplate/blob/master/src/js/plugins.js
@@ -127,26 +127,27 @@ td { white-space: nowrap; }
 
 $(document).ready(function () {
 
-    // look at what is after /macro/ in the URL
+    // look at what is after /as_number/ in the URL
     // if something is present then search straight away
-    macro_url = "";
+    as_number_url = "";
     var pathArray = window.location.pathname.split( '/' );
-    if (pathArray[pathArray.length - 1 ] != "macro") {
-        if (pathArray[pathArray.length - 2] == "macro") {
-            macro_url = pathArray[pathArray.length - 1];
+    if (pathArray[pathArray.length - 1 ] != "as_number") {
+        if (pathArray[pathArray.length - 2] == "as_number") {
+            as_number_url = pathArray[pathArray.length - 1];
         }
-        if (pathArray[pathArray.length - 3] == "macro") {
-            macro_url = pathArray[pathArray.length - 2] + "/" + pathArray[pathArray.length - 1];
+        if (pathArray[pathArray.length - 3] == "as_number") {
+            as_number_url = pathArray[pathArray.length - 2] + "/" + pathArray[pathArray.length - 1];
         }
     };
-    if (macro_url != "") {
-        $('form').find('input[name="macro"]').val(macro_url);
-        macro_search();
+    if (as_number_url != "") {
+        $('form').find('input[name="as_number"]').val(as_number_url);
+        as_number_search();
     };
 
     $("form").submit(function (e) {
         e.preventDefault(); //prevent default form submit
-        window.location.href = '/macro/' + $('form').find('input[name="macro"]').val();
+        window.location.href = '/as_number/' + $('form').find('input[name="as_number"]').val();
+        //as_number_search();
     });
 
 });
@@ -163,30 +164,31 @@ function state_loading() {
     $("#loading").show();
 }
 
-function macro_search() {
-    var macro = $('form').find('input[name="macro"]').val();
-    console.log("macro: " + macro);
-    if (macro.length > 0)
-    {
-        state_loading();
-        $.ajax({
-            url: '/as_macro_expand_json/' + macro,
-            success: function (data) {
-                state_loaded();
-                result = JSON.parse(data);
-                populatetable('#expanded', result['expanded'], ["as_macro", "depth", "path", "source", "members"] );
-                populatetable('#macros', result['macros'], ["macro"] );
-            },
-            error: function(error) {
-                state_loaded();
-                errMsg = $(error.responseText).filter("p").text();
-                console.log(errMsg);
-                $("#error").text(errMsg);
-                $("#error").show()
-            },
-            cache: false
-        });
-    };
+function as_number_search() {
+    var as_number = $('form').find('input[name="as_number"]').val();
+        if (as_number.length > 0)
+        {
+            state_loading();
+            $.ajax({
+                url: '/as_number_json/' + as_number,
+                success: function (data) {
+                    state_loaded();
+                    result = JSON.parse(data);
+                    prefixes = result['prefixes'];
+                    macros = result['macros'];
+                    populatetable('#prefixes', prefixes, ["prefix", "bgp"] );
+                    populatetable('#macros', macros, ["as_macro"] );
+                },
+                error: function(error) {
+                    state_loaded();
+                    errMsg = $(error.responseText).filter("p").text();
+                    console.log(errMsg);
+                    $("#error").text(errMsg);
+                    $("#error").show()
+                },
+                cache: false
+            });
+        };
 }
 
 </script>

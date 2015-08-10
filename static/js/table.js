@@ -70,8 +70,18 @@ function populatetable(table_name, table_data, start_fields) {
 
     for (var idx in table_keys) {
         key = table_keys[idx];
+        console.log(key);
 
         table_entry = table_data[key];
+        console.log(table_entry);
+
+        if($.isArray(table_data)) {
+            // useless index, change to first
+            console.log(table_entry);
+            key = table_entry[start_fields[0]];
+            console.log(key);
+        }
+
         row = [];
         for (var f in fields) {
             field = fields[f];

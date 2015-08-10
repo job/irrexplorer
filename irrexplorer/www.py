@@ -63,17 +63,17 @@ def create_app(pgdb, configfile=None):
             print 'Form data:', data
             try:
                 int(data)
-                return redirect(url_for('asn_search', asn=data))
+                return redirect(url_for('as_number_search', as_number=data))
             except ValueError:
                 pass
 
             if data.lower().startswith('as-'):
-                return redirect(url_for('macro_search', macro=data))
+                return redirect(url_for('as_macro_search', as_macro=data))
 
             if data.lower().startswith('as'):
                 try:
                     int(data[2:])
-                    return redirect(url_for('asn_search', asn=data[2:]))
+                    return redirect(url_for('as_number_search', as_number=data[2:]))
                 except ValueError:
                     pass
 
@@ -107,31 +107,27 @@ def create_app(pgdb, configfile=None):
 
     # -- as number --
 
-    @app.route('/asn/<path:asn>')
-    def asn_search(asn):
-        return render_template('asnumber.html')
+    @app.route('/as_number/<path:as_number>')
+    def as_number_search(as_number):
+        return render_template('as_number.html')
 
-    @app.route('/asn_json/<path:asn>')
-    def asn(asn):
-        data = report.as_report(pgdb, int(asn))
+    @app.route('/as_number_json/<path:as_number>')
+    def as_number_json(as_number):
+        data = report.as_report(pgdb, int(as_number))
         return json.dumps(data)
 
     # -- macro --
 
-    @app.route('/macro/<path:macro>')
-    @app.route('/macro/', defaults={'macro': None})
-    @app.route('/macro', defaults={'macro': None})
-    def macro_search(macro):
-        return render_template('macro.html')
+    @app.route('/as_macro/<path:as_macro>')
+    @app.route('/as_macro/', defaults={'as_macro': None})
+    @app.route('/as_macro', defaults={'as_macro': None})
+    def as_macro_search(as_macro):
+        return render_template('as_macro.html')
 
     @app.route('/as_macro_json/<path:as_macro>')
-    def as_macro(as_macro):
+    def as_macro_json(as_macro):
+        #data = report.as_macro_expand_report(pgdb, as_macro)
         data = report.as_macro_report(pgdb, as_macro)
-        return json.dumps(data)
-
-    @app.route('/as_macro_expand_json/<path:as_macro>')
-    def as_macro_expand(as_macro):
-        data = report.as_macro_expand_report(pgdb, as_macro)
         return json.dumps(data)
 
 
