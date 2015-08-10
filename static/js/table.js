@@ -104,15 +104,19 @@ function populatetable(table_name, table_data, start_fields) {
         coldisp = {"title": field}
         colsdisp.push(coldisp);
     }
+    // TODO: don't do the columnDefs if first row is not a prefix...
     if ( ! $.fn.DataTable.isDataTable(table_name) ) {
-        $(table_name).dataTable( {
-                "data": rows,
-                "columns": colsdisp,
-                "searching": false,
-                "lengthChange": false,
-                "bPaginate": false,
-                "columnDefs": [ { 'type': 'ip-address', 'targets': 0 } ]
-            } );
+        var table= {
+            "data": rows,
+            "columns": colsdisp,
+            "searching": false,
+            "lengthChange": false,
+            "bPaginate": false
+        };
+        if (start_fields[0] == "prefix") {
+            table["columnDefs"] = [ { 'type': 'ip-address', 'targets': 0 } ];
+        }
+        $(table_name).dataTable(table);
     } else {
         // just update, already set the table up once
         $(table_name).dataTable().fnClearTable();
