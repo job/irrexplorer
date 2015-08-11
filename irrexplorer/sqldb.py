@@ -99,8 +99,12 @@ class IRRSQLDatabase:
 
     def query_as_macro_expand(self, as_macro):
 
-        # recusive sql query, hang on to your shorts
-        # some as macro seem to either take a long time, or somehow loop forever, so added limit
+        # Recusive sql query, hang on to your shorts
+        # Some as macro seem to either take a long time, or somehow loop forever, so added limit
+        # The reason for this is not due to cycles as such, but because the query expands every as-macro path
+        # This means that the same as macro will be listed multiple times. this means that queries can take a 
+        # very long. In particular, if there are multiple paths to a big macro, the whole thing will blow up.
+
         query = """WITH RECURSIVE member_list(as_macro, path, members, source, depth, cycle) AS (
                     SELECT as_macro, ARRAY[as_macro], members, source, 1 AS depth, false FROM as_sets_view WHERE as_macro = %s
                     UNION
