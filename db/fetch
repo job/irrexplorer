@@ -12,7 +12,10 @@ import yaml
 def fetch(url):
     file_name = url.split('/')[-1]
     print 'Fetching %s --> %s' % (url, file_name)
-    urllib.urlretrieve(url, filename=file_name)
+    try:
+        urllib.urlretrieve(url, filename=file_name)
+    except urllib.ContentTooShortError:
+        print "INFO: Assuming local file for %s" % file_name
 
 
 def main():
@@ -33,7 +36,11 @@ def main():
                 for dbe in db_info:
                     for dbk, dbv in dbe.items():
                         if dbk in ('serial', 'dump'):
-                            fetch(dbv)
+                            if isinstance(dbv, list):
+                                for i in dbv:
+                                    fetch(i)
+                            else:
+                                fetch(dbv)
 
 
 
