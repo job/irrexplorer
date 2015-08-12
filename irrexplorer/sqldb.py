@@ -43,7 +43,7 @@ class IRRSQLDatabase:
     def _get_cursor(self):
 
         if self.conn is None:
-            self.conn = psycopg2.connect("dbname=irrexplorer user=htj")
+            self.conn = psycopg2.connect("dbname=irrexplorer user=irrexplorer")
         return self.conn.cursor()
 
 
@@ -102,7 +102,7 @@ class IRRSQLDatabase:
         # Recusive sql query, hang on to your shorts
         # Some as macro seem to either take a long time, or somehow loop forever, so added limit
         # The reason for this is not due to cycles as such, but because the query expands every as-macro path
-        # This means that the same as macro will be listed multiple times. this means that queries can take a 
+        # This means that the same as macro will be listed multiple times. this means that queries can take a
         # very long. In particular, if there are multiple paths to a big macro, the whole thing will blow up.
 
         query = """WITH RECURSIVE member_list(as_macro, path, members, source, depth, cycle) AS (
