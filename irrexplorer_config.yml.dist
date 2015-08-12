@@ -1,25 +1,97 @@
 databases:
+    - afrinic:
+        - serial: 'ftp://ftp.afrinic.net/dbase/AFRINIC.CURRENTSERIAL'
+        - dump: 'ftp://ftp.afrinic.net/dbase/afrinic.db.gz'
+        - nrtmhost: 'rr.ntt.net'
+        - nrtmport: 43
+        - dbname: 'AFRINIC'
     - altdb:
         - serial: 'ftp://ftp.radb.net/radb/dbase/ALTDB.CURRENTSERIAL'
         - dump: 'ftp://ftp.radb.net/radb/dbase/altdb.db.gz'
-        - nrtmhost: 'whois.altdb.net'
+        - nrtmhost: 'rr.ntt.net'
         - nrtmport: 43
         - dbname: 'ALTDB'
     - apnic:
-        - serial: 'ftp://ftp.radb.net/radb/dbase/APNIC.CURRENTSERIAL'
-        - dump: 'ftp://ftp.radb.net/radb/dbase/apnic.db.gz'
+        - serial: 'APNIC.CURRENTSERIAL'
+        - dump:
+            - 'https://ftp.apnic.net/apnic/whois/apnic.db.as-set.gz'
+            - 'https://ftp.apnic.net/apnic/whois/apnic.db.route.gz'
+            - 'https://ftp.apnic.net/apnic/whois/apnic.db.route6.gz'
         - nrtmhost: 'rr.ntt.net'
         - nrtmport: 43
         - dbname: 'APNIC'
+    - arin:
+        - serial: 'ftp://ftp.radb.net/radb/dbase/ARIN.CURRENTSERIAL'
+        - dump: 'ftp://ftp.radb.net/radb/dbase/arin.db.gz'
+        - nrtmhost: 'rr.ntt.net'
+        - nrtmport: 43
+        - dbname: 'ARIN'
+    - bboi:
+        - serial: 'ftp://ftp.radb.net/radb/dbase/BBOI.CURRENTSERIAL'
+        - dump: 'ftp://ftp.radb.net/radb/dbase/bboi.db.gz'
+        - nrtmhost: 'rr.ntt.net'
+        - nrtmport: 43
+        - dbname: 'BBOI'
+    - bell:
+        - serial: 'ftp://ftp.radb.net/radb/dbase/BELL.CURRENTSERIAL'
+        - dump: 'ftp://ftp.radb.net/radb/dbase/bell.db.gz'
+        - nrtmhost: 'rr.ntt.net'
+        - nrtmport: 43
+        - dbname: 'BELL'
+    - gt:
+        - serial: 'ftp://ftp.radb.net/radb/dbase/GT.CURRENTSERIAL'
+        - dump: 'ftp://ftp.radb.net/radb/dbase/gt.db.gz'
+        - nrtmhost: 'rr.ntt.net'
+        - nrtmport: 43
+        - dbname: 'GT'
+    - jpirr:
+        - serial: 'ftp://ftp.radb.net/radb/dbase/JPIRR.CURRENTSERIAL'
+        - dump: 'ftp://ftp.radb.net/radb/dbase/jpirr.db.gz'
+        - nrtmhost: 'rr.ntt.net'
+        - nrtmport: 43
+        - dbname: 'JPIRR'
     - level3:
         - serial: 'ftp://ftp.radb.net/radb/dbase/LEVEL3.CURRENTSERIAL'
         - dump: 'ftp://ftp.radb.net/radb/dbase/level3.db.gz'
-        - nrtmhost: rr.ntt.net
+        - nrtmhost: 'rr.ntt.net'
         - nrtmport: 43
         - dbname: 'LEVEL3'
+    - nttcom:
+        - serial: 'ftp://ftp.radb.net/radb/dbase/NTTCOM.CURRENTSERIAL'
+        - dump: 'ftp://ftp.radb.net/radb/dbase/nttcom.db.gz'
+        - nrtmhost: 'rr.ntt.net'
+        - nrtmport: 43
+        - dbname: 'NTTCOM'
     - radb:
         - serial: 'ftp://ftp.radb.net/radb/dbase/RADB.CURRENTSERIAL'
         - dump: 'ftp://ftp.radb.net/radb/dbase/radb.db.gz'
-        - nrtmhost: 'whois.radb.net'
+        - nrtmhost: 'rr.ntt.net'
         - nrtmport: 43
         - dbname: 'RADB'
+    - rgnet:
+        - serial: 'ftp://ftp.radb.net/radb/dbase/RGNET.CURRENTSERIAL'
+        - dump: 'ftp://ftp.radb.net/radb/dbase/rgnet.db.gz'
+        - nrtmhost: 'rr.ntt.net'
+        - nrtmport: 43
+        - dbname: 'RGNET'
+    - ripe:
+        - serial: 'ftp://ftp.ripe.net/ripe/dbase/RIPE.CURRENTSERIAL'
+        - dump:
+            - ftp://ftp.ripe.net/ripe/dbase/split/ripe.db.route.gz
+            - ftp://ftp.ripe.net/ripe/dbase/split/ripe.db.route6.gz
+            - ftp://ftp.ripe.net/ripe/dbase/split/ripe.db.as-set.gz
+        - nrtmhost: 'rr.ntt.net'
+        - nrtmport: 43
+        - dbname: 'RIPE'
+    - savvis:
+        - serial: 'ftp://ftp.radb.net/radb/dbase/SAVVIS.CURRENTSERIAL'
+        - dump: 'ftp://ftp.radb.net/radb/dbase/savvis.db.gz'
+        - nrtmhost: 'rr.ntt.net'
+        - nrtmport: 43
+        - dbname: 'SAVVIS'
+    - tc:
+        - serial: 'ftp://ftp.radb.net/radb/dbase/TC.CURRENTSERIAL'
+        - dump: 'ftp://ftp.radb.net/radb/dbase/tc.db.gz'
+        - nrtmhost: 'rr.ntt.net'
+        - nrtmport: 43
+        - dbname: 'TC'

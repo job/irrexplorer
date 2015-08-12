@@ -9,7 +9,7 @@ psql irrexplorer -f ../data/schema.sql
 
 
 # Fetch irr databases
-./fetch irr.yml
+./fetch ../irrexplorer_config.yml
 
 # Create sources
 for x in *.db*.gz ; do echo $x|cut -f1 -d'.' ;done|sort|uniq| ./create_source > sources.sql
