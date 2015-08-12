@@ -27,7 +27,12 @@ def main():
                     print >> sys.stderr, str(e), 'source: ', values[2]
                     continue
 
-            fields = ( values[0], str(values[1]), sources.get(values[2]) )
+            source = sources.get(values[2])
+            if source is None:
+                print >> sys.stderr, 'No source for object: ', values[0], values[1]
+                continue
+
+            fields = ( values[0], str(values[1]), source )
             print '|'.join(fields)
 
 
