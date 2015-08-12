@@ -1,7 +1,9 @@
 // generic table fill code for IRRExplorer
 
+// TODO: switch fieldname and data as I find the order rather confusing (htj)
 function renderCell(data, fieldname, label) {
 
+    console.log("renderCell: " + data + " " + fieldname + " " + label);
     if (typeof data != 'undefined') {
         switch (data.toString()) {
             case "true":
@@ -13,7 +15,7 @@ function renderCell(data, fieldname, label) {
                     console.log(label);
                     return "<span class='label label-" + label + "'>" + data + "</span>";
                 } else if (fieldname == "bgp") {
-                    return "<a href=\"http://lg.ring.nlnog.net/query/" + data + "\">" + data + "</a>";
+                    return "<a href=\"http://lg.ring.nlnog.net/query/" + label + "\">" + data + "</a>";
                 } else if (fieldname == "members") {
                     return data.join(", ");
                 }
@@ -94,7 +96,14 @@ function populatetable(table_name, table_data, start_fields) {
                 row.push('<a href="/' + start_fields[0] + '/' + key + '">' + key + '</a>');
             }
             else {
-                row.push(renderCell(table_entry[field], field, table_entry["label"]))
+                var label;
+                if (field == "bgp") {
+                    label = key;
+                }
+                else if (field == "advice") {
+                    label = table_entry["label"];
+                }
+                row.push(renderCell(table_entry[field], field, label));
             }
         }
         rows.push(row);
