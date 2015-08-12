@@ -5,3 +5,4 @@ flask
 flask-bootstrap
 flask-table
 flask-wtf
+psycopg2
