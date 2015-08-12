@@ -18,7 +18,13 @@ def main():
 
         if obj == irrparser.AS_SET:
             members = '{' + ','.join(values[1]) + '}'
-            fields = (values[0], members, sources.get(values[2] ) )
+
+            source = sources.get(values[2])
+            if source is None:
+                print >> sys.stderr, 'No source for object: ', values[0], members
+                continue
+
+            fields = (values[0], members, source )
             print '|'.join(fields)
 
 
