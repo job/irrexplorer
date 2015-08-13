@@ -2,8 +2,7 @@
 # Copyright (c) 2015, NORDUnet A/S
 
 import sys
-import ipaddr
-from irrexplorer import sqldb
+from irrexplorer import utils, sqldb, report
 
 
 def main():
@@ -17,30 +16,32 @@ def main():
 
     for arg in sys.argv[1:]:
         try:
-            arg = int(arg)
-            as_routes = db.query_as(arg)
-            for route, source in as_routes:
-                print route, source
-            return
-        except ValueError:
-            pass
+            so = utils.classifySearchString(arg)
 
-        try:
-            ipaddr.IPNetwork(arg)
-            routes = db.query_prefix(arg)
-            for route, asn, source in routes:
-                print route, asn, source
-            return
-        except ValueError:
-            pass
+            if type(so) is utils.Prefix:
+                result = report.prefix_report(db, so.value)
+                # prefix report already prints some stuff (consider changing that)
 
-        if arg.lower().startswith('as-'):
-            res = db.query_as_macro(arg)
-            for m,s in res:
-                print s,m
-            return
+            if type(so) is utils.ASNumber:
+                result = report.as_report(db, so.value)
+                for prefix, sources in result['prefixes'].items():
+                    print prefix, sources.keys()
+                print
+                for macro, sources in result['macros'].items():
+                    print macro, sources.keys()
 
-        print 'Cannot match ', arg, 'to anything'
+            if type(so) is utils.ASMacro:
+                #res = db.query_as_macro(so.value)
+                result = report.as_macro_report(db, so.value)
+                for e in result['expanded']:
+                    print e
+                print
+                for macro, sources in result['macros'].items():
+                    print macro, ' '.join(sources.keys())
+
+        except ValueError as e:
+            print str(e)
+
 
 if __name__ == '__main__':
     main()
