@@ -43,15 +43,9 @@
                 <h3>Enter an IP address, prefix, AS Number, or AS-SET</h3>
                 {{ wtf.quick_form(form, form_type='inline', button_map={'submit_button': 'primary'}) }}
 
-                {% with messages = get_flashed_messages() %}
-                  {% if messages %}
-                    <ul class=flashes>
-                    {% for message in messages %}
-                      <li>{{ message }}</li>
-                    {% endfor %}
-                    </ul>
-                  {% endif %}
-                {% endwith %}
+                {% for message in get_flashed_messages() %}
+                    <div class="flash">{{ message }}</div>
+                {% endfor %}
 
                 </center>
             </div>
