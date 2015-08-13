@@ -59,34 +59,23 @@ def create_app(pgdb, configfile=None):
             return render_template('index.html', form=form)
 
         if request.method == 'POST':
+            # note: the form won't submit with empty data, so we don't have to handle that
             data = form.field.data
             print 'Form data:', data
+
             try:
-                int(data)
-                return redirect(url_for('as_number_search', as_number=data))
+                sv = utils.classifySearchString(data)
+
+                if type(sv) is utils.Prefix:
+                    return redirect(url_for('prefix_search', prefix=sv.value))
+                if type(sv) is utils.ASNumber:
+                    return redirect(url_for('as_number_search', as_number=sv.value))
+                if type(sv) is utils.ASMacro:
+                    return redirect(url_for('as_macro_search', as_macro=sv.value))
+
             except ValueError:
-                pass
-
-            if data.lower().startswith('as-'):
-                return redirect(url_for('as_macro_search', as_macro=data))
-
-            if data.lower().startswith('as'):
-                try:
-                    int(data[2:])
-                    return redirect(url_for('as_number_search', as_number=data[2:]))
-                except ValueError:
-                    pass
-
-            if utils.is_ipnetwork(data):
-                return redirect(url_for('prefix_search', prefix=data))
-
-            elif data:
                 # for some reason this does not work
                 flash('Invalid search data')
-                return render_template('index.html', form=form)
-
-            else:
-                flash('Just one field is required, fill it in!')
                 return render_template('index.html', form=form)
 
     # -- prefix --

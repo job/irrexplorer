@@ -1,4 +1,5 @@
 # Copyright (c) 2015, Job Snijders
+# Copyright (c) 2015, NORDUnet A/S
 #
 # This file is part of IRR Explorer
 #
@@ -24,35 +25,45 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+"""
+Utility stuff.
+
+Right now it just classifies search strings as the right object.
+"""
+
 import ipaddr
 
-def is_ipnetwork(data):
+
+class SearchObject(object):
+
+    def __init__(self, value):
+        self.value = value
+
+
+class Prefix(SearchObject): pass # also used for ip addresses
+class ASNumber(SearchObject): pass
+class ASMacro(SearchObject): pass
+
+
+
+def classifySearchString(data):
+
+    try:
+        return ASNumber(int(data))
+    except ValueError:
+        pass
+
+    if data.lower().startswith('as'):
+        try:
+            return ASNumber(int(data[2:]))
+        except ValueError:
+            return ASMacro(data)
+
     try:
         ipaddr.IPNetwork(data)
-        return True
+        return Prefix(data)
     except ValueError:
-        return False
+        pass
 
-
-def is_autnum(autnum):
-    try:
-        if autnum.startswith('AS'):
-            int(autnum[2:])
-            return True
-        else:
-            return False
-    except ValueError:
-        return False
-
-def find_more_specifics(target, prefixes):
-    result = []
-    for prefix in prefixes:
-        if prefix:
-            if ipaddr.IPNetwork(prefix) in ipaddr.IPNetwork(target):
-                result.append(prefix)
-    return result
-
-def find_more_sp_helper(args):
-    return find_more_specifics(*args)
-
+    raise ValueError('Cannot classify %s' % data)
 
