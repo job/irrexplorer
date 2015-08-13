@@ -58,6 +58,10 @@ def update_irr(host, port, source, db):
                 # hence we delete the route first... could probably do this a bit more clever with a function in the db
                 # this also produces lots of duplicate statements, so we try not do if the last stm is identical
                 # When Postgres 9.5, switch this to "ON CONFLICT" (UPSERT)
+                if source is None:
+                    print 'Error: No source for object:', obj, 'data:', data, 'skipping entry.'
+                    continue
+
                 sa = ( DELETE_ROUTE, (obj, data, source) )
                 if not stms or stms[-1] != sa:
                     stms.append(sa)
