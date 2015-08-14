@@ -12,7 +12,7 @@ databases:
         - nrtmport: 43
         - dbname: 'ALTDB'
     - apnic:
-        - serial: 'APNIC.CURRENTSERIAL'
+        - serial: 'ftp://ftp.apnic.net/apnic/whois/APNIC.CURRENTSERIAL'
         - dump:
             - 'https://ftp.apnic.net/apnic/whois/apnic.db.as-set.gz'
             - 'https://ftp.apnic.net/apnic/whois/apnic.db.route.gz'
