@@ -35,6 +35,8 @@ function getfields(table_data, start_fields) {
 
     var fields = start_fields.slice(0); // clone
 
+    var last_fields = [];
+
     for (var idx in table_keys) {
         var key = table_keys[idx];
         var table_entry = table_data[key];
@@ -46,11 +48,18 @@ function getfields(table_data, start_fields) {
             if (field_name == "label") {
                 continue; // this is reserved for coloring of advice
             }
+            if (field_name == "advice") {
+                if (last_fields.indexOf(field_name) == -1) {
+                    last_fields.push(field_name);
+                }
+                continue;
+            }
             if (fields.indexOf(field_name) == -1) {
                 fields.push(field_name);
             }
         }
     }
+    fields = fields.concat(last_fields);
 
     return fields;
 }
@@ -63,7 +72,7 @@ function populatetable(table_name, table_data, start_fields) {
     console.log("--");
 
     fields = getfields(table_data, start_fields);
-    console.log(fields);
+    console.log("fields: " + fields);
 
     $(table_name).hide();
 
