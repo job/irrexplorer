@@ -74,7 +74,6 @@ def create_app(pgdb, configfile=None):
                     return redirect(url_for('as_macro_search', as_macro=sv.value))
 
             except ValueError:
-                # for some reason this does not work
                 flash('Invalid search data')
                 return render_template('index.html', form=form)
 
