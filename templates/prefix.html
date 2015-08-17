@@ -144,18 +144,6 @@ $(document).ready(function () {
 
 });
 
-function state_loaded() {
-    $("#btnsearch").prop("disabled",false);
-    $("#loading").hide();
-    $("#btnsearch").html('Search');
-}
-
-function state_loading() {
-    $("#btnsearch").prop("disabled",true);
-    $("#btnsearch").html('Searching...');
-    $("#loading").show();
-}
-
 function prefixsearch(exact) {
     var prefix = $('form').find('input[name="prefix"]').val();
     if (prefix.length > 0) {

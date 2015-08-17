@@ -153,18 +153,6 @@ $(document).ready(function () {
 
 });
 
-function state_loaded() {
-    $("#btnsearch").prop("disabled",false); 
-    $("#loading").hide();
-    $("#btnsearch").html('Search');  
-}
-
-function state_loading() {
-    $("#btnsearch").prop("disabled",true);
-    $("#btnsearch").html('Searching...');
-    $("#loading").show();
-}
-
 function as_macro_search() {
     var as_macro = $('form').find('input[name="as_macro"]').val();
     console.log("as_macro: " + as_macro);

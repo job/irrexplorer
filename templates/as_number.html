@@ -154,18 +154,6 @@ $(document).ready(function () {
 
 });
 
-function state_loaded() {
-    $("#btnsearch").prop("disabled",false); 
-    $("#loading").hide();
-    $("#btnsearch").html('Search');  
-}
-
-function state_loading() {
-    $("#btnsearch").prop("disabled",true);
-    $("#btnsearch").html('Searching...');
-    $("#loading").show();
-}
-
 function as_number_search() {
     var as_number = $('form').find('input[name="as_number"]').val();
         if (as_number.length > 0)

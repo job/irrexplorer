@@ -1,5 +1,17 @@
 // generic table fill code for IRRExplorer
 
+function state_loaded() {
+    $("#btnsearch").prop("disabled",false);
+    $("#loading").hide();
+    $("#btnsearch").html('Search');
+}
+
+function state_loading() {
+    $("#btnsearch").prop("disabled",true);
+    $("#btnsearch").html('Searching...');
+    $("#loading").show();
+}
+
 // TODO: switch fieldname and data as I find the order rather confusing (htj)
 function renderCell(data, fieldname, label) {
 
