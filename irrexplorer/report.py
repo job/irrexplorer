@@ -255,6 +255,8 @@ def macro_expand(pgdb, as_macro):
 
     result = []
     for macro, source, depth, path, members in macros:
+        path = " -> ".join(path)
+
         e = { 'as_macro' : macro,
               'source'   : source,
               'depth'    : depth,
