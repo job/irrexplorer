@@ -29,7 +29,7 @@ function renderCell(data, fieldname, label) {
                 } else if (fieldname == "bgp") {
                     return "<a href=\"http://lg.ring.nlnog.net/query/" + label + "\">" + data + "</a>";
                 } else if (fieldname == "path") {
-                    return data.join(" -> ");
+                    return data.join(" &#10132 ");
                 } else if (fieldname == "members") {
                     return data.join(", ");
                 }
