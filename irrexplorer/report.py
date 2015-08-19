@@ -118,7 +118,7 @@ def add_prefix_advice(prefixes):
             if bgp_origin in anywhere:
 
                 if len(anywhere) == 1:
-                    pfx_data['advice'] = "Looks good: in BGP consistent origin AS in route-objects"
+                    pfx_data['advice'] = "Looks good: BGP origin consistent with AS in route-objects"
                     pfx_data['label'] = "success"
                 else:
                     pfx_data['advice'] = "Multiple route-object exist with different origins"
