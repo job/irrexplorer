@@ -61,7 +61,7 @@ def create_app(pgdb, configfile=None):
 
         if request.method == 'POST':
             # note: the form won't submit with empty data, so we don't have to handle that
-            data = str(form.field.data).upper()
+            data = form.field.data
             print 'Form data:', data
 
             try:
