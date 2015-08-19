@@ -106,7 +106,6 @@ def create_app(pgdb, configfile=None):
             # note (optional)
 
             if type(sv) is Prefix:
-                json_url =  None
                 title = 'Prefix: ' + sv.value
                 tables.append({
                     'id'           : 'prefixes',
