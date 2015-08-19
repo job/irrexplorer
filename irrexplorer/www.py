@@ -27,6 +27,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from irrexplorer import utils, report
+from irrexplorer.utils import Prefix, ASNumber, ASMacro
 
 import ipaddr
 import json
@@ -65,81 +66,136 @@ def create_app(pgdb, configfile=None):
 
             try:
                 sv = utils.classifySearchString(data)
-
-                if type(sv) is utils.Prefix:
-                    return redirect(url_for('prefix_search', prefix=sv.value))
-                if type(sv) is utils.ASNumber:
-                    return redirect(url_for('as_number_search', as_number=sv.value))
-                if type(sv) is utils.ASMacro:
-                    return redirect(url_for('as_macro_search', as_macro=sv.value))
+                return redirect(url_for('search', data=sv.value))
 
             except ValueError:
                 flash('Invalid search data')
                 return render_template('index.html', form=form)
 
-    # -- prefix --
+    # -- search --
+    @app.route('/search/<path:data>')
+    @app.route('/search/', defaults={'data': None})
+    @app.route('/search', defaults={'data': None})
+    def search(data):
 
-    @app.route('/prefix/<path:prefix>')
-    @app.route('/prefix/', defaults={'prefix': None})
-    @app.route('/prefix', defaults={'prefix': None})
-    def prefix_search(prefix):
-        return render_template('prefix.html')
+        form = InputForm()
 
-    @app.route('/prefix_json/<path:prefix>')
-    def prefix_json(prefix):
-        return do_prefix_report(prefix, exact=False)
+        query_data = request.args.get('data')
+        if query_data:
+            # this means that we got search request
+            print 'query data', query_data
+            return redirect(url_for('search', data=query_data))
 
-    @app.route('/exact_prefix_json/<path:prefix>')
-    def exact_prefix_json(prefix):
-        return do_prefix_report(prefix, exact=True)
-
-    # -- as number --
-
-    @app.route('/as_number/<path:as_number>')
-    def as_number_search(as_number):
-        return render_template('as_number.html')
-
-    @app.route('/as_number_json/<path:as_number>')
-    def as_number_json(as_number):
-        data = report.as_report(pgdb, int(as_number))
-        return json.dumps(data)
-
-    # -- macro --
-
-    @app.route('/as_macro/<path:as_macro>')
-    @app.route('/as_macro/', defaults={'as_macro': None})
-    @app.route('/as_macro', defaults={'as_macro': None})
-    def as_macro_search(as_macro):
-        return render_template('as_macro.html')
-
-    @app.route('/as_macro_json/<path:as_macro>')
-    def as_macro_json(as_macro):
-        #data = report.as_macro_expand_report(pgdb, as_macro)
-        data = report.as_macro_report(pgdb, as_macro)
-        return json.dumps(data)
-
-
-    def do_prefix_report(prefix, exact):
+        if not data:
+            flash('No search data provided')
+            return render_template('index.html', form=form)
 
         try:
-            ipaddr.IPNetwork(prefix)
+            sv = utils.classifySearchString(data)
+
+            tables = []
+
+            # page: title (object type : data)
+
+            # json url for each table, not per report...
+            # stuff that is needed per table:
+            # id (tables.key)
+            # name
+            # source url
+            # column ordering (first, and last, we cannot do complete until we get results)
+            # note (optional)
+
+            if type(sv) is Prefix:
+                json_url =  None
+                title = 'Prefix: ' + sv.value
+                tables.append({
+                    'id'           : 'prefixes',
+                    'title'        : 'Matching prefixes',
+                    'url'          : '/json/prefix/' + sv.value,
+                    'start_fields' : ["prefix", "bgp" ]
+                })
+
+            if type(sv) is ASNumber:
+                title = 'AS Number: ' + data
+                tables.append({
+                    'id'           : 'prefixes',
+                    'title'        : 'Prefixes',
+                    'url'          : '/json/as_prefixes/' + str(sv.value),
+                    'start_fields' : ["prefix", "bgp" ]
+                })
+
+            if type(sv) is ASMacro:
+                title = 'AS Macro: ' + data
+                tables.append({
+                    'id'           : 'expanded',
+                    'title'        : 'Macro Expansion',
+                    'url'          : '/json/macro_expand/' + sv.value,
+                    'start_fields' : ["as_macro", "depth", "path", "source", "members"]
+                })
+
+            if type(sv) in (ASNumber, ASMacro):
+                key = 'AS' + str(sv.value) if type(sv) is ASNumber else str(sv.value)
+                tables.append({
+                    'id'           : 'macros',
+                    'title'        : 'Included in the following macros:',
+                    'url'          : '/json/macro_contain/' + key,
+                    'start_fields' : ["as_macro", "source" ]
+                })
+
+            return render_template('search.html', form=form, title=title, tables=tables)
+
+
         except ValueError:
-            msg = 'Could not parse input %s as ip address or prefix' % prefix
-            print msg
-            abort(400, msg)
+            flash('Invalid search data')
+            form = InputForm()
+            return render_template('index.html', form=form)
 
-        try:
-            prefix_data = report.prefix_report(pgdb, prefix, exact=exact)
-            return json.dumps(prefix_data)
-        except report.NoPrefixError as e:
-            print e
-            abort(400, str(e))
-        except Exception as e:
-            print e
-            traceback.print_tb()
-            msg = 'Error processing prefix %s: %s' % (prefix, str(e))
-            print msg
-            abort(500, msg)
+
+    # -- json reports --
+
+    @app.route('/json/prefix/<path:prefix>')
+    def prefix(prefix):
+        data = report.prefix(pgdb, prefix, exact=False)
+        return json.dumps(data)
+
+    @app.route('/json/as_prefixes/<path:as_number>')
+    def as_prefixes(as_number):
+        data = report.as_prefixes(pgdb, int(as_number))
+        return json.dumps(data)
+
+    @app.route('/json/macro_expand/<path:as_macro>')
+    def macro_expand(as_macro):
+        data = report.macro_expand(pgdb, as_macro)
+        return json.dumps(data)
+
+    @app.route('/json/macro_contain/<path:as_object>')
+    def as_contain(as_object):
+        data = report.macro_contain(pgdb, as_object)
+        return json.dumps(data)
+
+
+## not used anymore, but the error messaging might be useful
+#    def do_prefix_report(prefix, exact):
+#
+#        try:
+#            ipaddr.IPNetwork(prefix)
+#        except ValueError:
+#            msg = 'Could not parse input %s as ip address or prefix' % prefix
+#            print msg
+#            abort(400, msg)
+#
+#        try:
+#            prefix_data = report.prefix_report(pgdb, prefix, exact=exact)
+#            return json.dumps(prefix_data)
+#        except report.NoPrefixError as e:
+#            print e
+#            abort(400, str(e))
+#        except Exception as e:
+#            print e
+#            traceback.print_tb()
+#            msg = 'Error processing prefix %s: %s' % (prefix, str(e))
+#            print msg
+#            abort(500, msg)
 
 
     return app

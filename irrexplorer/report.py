@@ -137,7 +137,7 @@ def add_prefix_advice(prefixes):
 
 
 
-def prefix_report(pgdb, prefix, exact=False):
+def prefix(pgdb, prefix, exact=False):
     """
         - find least specific
         - search in BGP for more specifics
@@ -148,7 +148,6 @@ def prefix_report(pgdb, prefix, exact=False):
 
     t_start = time.time()
 
-    print
     print 'Prefix report: %s, exact=%s' % (prefix, exact)
 
     routes = pgdb.query_prefix(prefix, exact=exact)
@@ -193,46 +192,40 @@ def prefix_report(pgdb, prefix, exact=False):
     return prefixes
 
 
-
-def as_report(pgdb, as_number):
+def as_prefixes(pgdb, as_number):
 
     if not type(as_number) is int:
         raise ValueError('Invalid argument provided for as number')
 
-    print 'as_report', as_number
+    print 'AS Prefix Report: ', as_number
 
     t_start = time.time()
 
     prefixes = pgdb.query_as(as_number)
 
-    result = { 'prefixes':{}, 'macros':{} }
+    result = {}
 
     for route, source in prefixes:
-        result['prefixes'].setdefault(route, {})[source] = True
-
-    macros = pgdb.query_as_contain('AS' + str(as_number))
-    for macro, source in macros:
-        result['macros'].setdefault(macro, {})[source] = True
+        print 'rs', route, source
+        result.setdefault(route, {})[source] = as_number
 
     t_delta = time.time() - t_start
-    print
-    print 'Time for as report for %s: %s' % (as_number, round(t_delta,2))
+    print 'Time for AS prefixes for %s: %s' % (as_number, round(t_delta,2))
     print
 
-    # print result
     return result
 
 
 
-def as_macro_report(pgdb, as_macro):
+def macro_expand(pgdb, as_macro):
 
-    print 'AS Macro Report:', as_macro
+    print 'Macro Expand Report:', as_macro
 
     t_start = time.time()
 
     macros = pgdb.query_as_macro_expand(as_macro)
 
-    result = { 'macros': {}, 'expanded': [] }
+    result = []
     for macro, source, depth, path, members in macros:
         e = { 'as_macro' : macro,
               'source'   : source,
@@ -240,16 +233,31 @@ def as_macro_report(pgdb, as_macro):
               'path'     : path,
               'members'  : members
         }
-        result['expanded'].append(e)
-
-
-    macros = pgdb.query_as_contain(as_macro)
-    for macro, source in macros:
-        result['macros'].setdefault(macro, {})[source] = True
+        result.append(e)
 
     t_delta = time.time() - t_start
+    print 'Time for macro expand report for %s: %s' % (as_macro, round(t_delta,2))
     print
-    print 'Time for as macro report for %s: %s' % (as_macro, round(t_delta,2))
+
+    return result
+
+
+
+def macro_contain(pgdb, as_object):
+
+    print 'Macro Contains Report:', as_object
+
+    t_start = time.time()
+
+    macros = pgdb.query_as_contain(as_object)
+
+    result = {}
+    for macro, source in macros:
+        result.setdefault(macro, {})[source] = True
+
+    t_delta = time.time() - t_start
+
+    print 'Time for as contains report for %s: %s' % (as_object, round(t_delta,2))
     print
 
     return result
