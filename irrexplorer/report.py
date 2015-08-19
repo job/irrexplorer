@@ -72,7 +72,7 @@ def add_prefix_advice(prefixes):
                 print 'Multiple BGP sources:', pfx_data[BGP], 'only using first origin'
             bgp_origin = list(pfx_data[BGP])[0]
 
-        if pfx_data['ripe_managed']:
+        if 'ripe_managed' in pfx_data:
 
             if 'ripe' in pfx_source:
 
