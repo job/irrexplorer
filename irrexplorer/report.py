@@ -151,14 +151,8 @@ def prefix(pgdb, prefix, exact=False):
     print 'Prefix report: %s, exact=%s' % (prefix, exact)
 
     routes = pgdb.query_prefix(prefix, exact=exact)
-    prefixes = {}
-    for pfx, asn, source in routes:
-        ps = prefixes.setdefault(pfx, {}).setdefault(SOURCE, {})
-        ps.setdefault(source, []).append(asn)
 
-    for pfx_data in prefixes.values():
-        if BGP in pfx_data[SOURCE]:
-            pfx_data[BGP] = pfx_data[SOURCE].pop(BGP)
+    prefixes = _build_prefix_dict(routes)
 
     print 'Prefixes:', prefixes.keys()
     #for pd in prefixes.items():
@@ -167,12 +161,13 @@ def prefix(pgdb, prefix, exact=False):
     # TODO if we find any prefixes larger than the inputted one, we should find prefixes covered by that prefixes
     # Go through the prefixes, find the shortest one, if it is different from the inputted one, do another search
 
+    # This a second query, which really isn't necessary. Should do union in query to get these
     for pfx, pfx_data in prefixes.items():
-        managed_routes = pgdb.query_managed_prefix(pfx) # this can be done better
+        managed_routes = pgdb.query_managed_prefix(pfx)
         #print 'Managed routes for prefix %s --> %s' % (pfx, managed_routes)
-        ## we only do ripe managed routes at the moment, so if/else if fine
-        managed = True if managed_routes else False
-        pfx_data['ripe_managed'] = managed
+        ## we only do ripe managed routes at the moment, so if/else is fine
+        if managed_routes:
+            pfx_data['ripe_managed'] = True
 
     add_prefix_advice(prefixes)
 
@@ -192,6 +187,29 @@ def prefix(pgdb, prefix, exact=False):
     return prefixes
 
 
+
+def _build_prefix_dict(db_result):
+
+    result = {}
+
+    for route, asn, source in db_result:
+        #print 'BDP', route, asn, source
+        ps = result.setdefault(route, {}).setdefault(SOURCE, {})
+        if asn is None:
+            # managed prefix
+            result[route][source] = True
+        else:
+            ps.setdefault(source, []).append(asn)
+
+    # move bgp out from sources and into top-level dict for the prefix
+    for data in result.values():
+        if BGP in data[SOURCE]:
+            data[BGP] = data[SOURCE].pop(BGP)
+
+    return result
+
+
+
 def as_prefixes(pgdb, as_number):
 
     if not type(as_number) is int:
@@ -201,13 +219,23 @@ def as_prefixes(pgdb, as_number):
 
     t_start = time.time()
 
+    #prefixes = pgdb.query_as_deep(as_number)
     prefixes = pgdb.query_as(as_number)
 
-    result = {}
+    result = _build_prefix_dict(prefixes)
 
-    for route, source in prefixes:
-        print 'rs', route, source
-        result.setdefault(route, {})[source] = as_number
+    add_prefix_advice(result)
+
+    print 'Advice:'
+    for p,d in result.items():
+        print '%s: %s' % (p,d['advice'])
+
+    # OK, this is not how i want to do things, but I cannot figure out the javascript stuff
+    for pfx_data in result.values():
+        pfx_data.update(pfx_data.pop(SOURCE))
+
+    print
+    print result
 
     t_delta = time.time() - t_start
     print 'Time for AS prefixes for %s: %s' % (as_number, round(t_delta,2))

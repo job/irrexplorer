@@ -81,8 +81,27 @@ class IRRSQLDatabase:
 
     def query_as(self, asn):
 
-        query = "SELECT route, source FROM routes_view WHERE asn = %s;"
-        return self._execute_fetchall(query, (asn,))
+        query = """SELECT route, asn, source FROM routes_view WHERE asn = %s
+                   UNION ALL
+                   SELECT DISTINCT routes_view.route, NULL::integer, managed_routes_view.source || '_managed' AS managed_routes
+                   FROM routes_view INNER JOIN managed_routes_view ON (routes_view.route && managed_routes_view.route)
+                   WHERE asn = %s;"""
+        return self._execute_fetchall(query, (asn,asn))
+
+
+    def query_as_deep(self, asn):
+
+        # This query find all prefixes that are registered/homing from and AS number AND
+        # any other prefixes that covers/are covered by any of those prefixes
+        # Furthermore, managed prefixes and source are returned for matching prefixes.
+        # These have NULL as their AS and source field will be source + '_managed'
+        query = """SELECT DISTINCT rv.route, rv.asn, rv.source FROM routes_view rv, routes_view r
+                   WHERE rv.route && r.route AND r.asn = %s
+                   UNION ALL
+                   SELECT DISTINCT routes_view.route, NULL::integer, managed_routes_view.source || '_managed' AS managed_routes
+                   FROM routes_view INNER JOIN managed_routes_view ON (routes_view.route && managed_routes_view.route)
+                   WHERE asn = %s;"""
+        return self._execute_fetchall(query, (asn,asn))
 
 
     def query_as_contain(self, as_):
