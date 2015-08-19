@@ -31,7 +31,11 @@ function renderCell(data, fieldname, label) {
                 } else if (fieldname == "path") {
                     return data.join(" &#10132 ");
                 } else if (fieldname == "members") {
-                    return data.join(", ");
+                    var r = [];
+                    for (var idx in data) {
+                        r.push('<a href="/search/' + data[idx] + '">' + data[idx] + '</a>');
+                    }
+                    return r.join(" ");
                 }
                 else {
                     return data;
