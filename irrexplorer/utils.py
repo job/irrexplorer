@@ -57,7 +57,7 @@ def classifySearchString(data):
         try:
             return ASNumber(int(data[2:]))
         except ValueError:
-            return ASMacro(data)
+            return ASMacro(data.upper()) # as macros are always uppcase
 
     try:
         ipaddr.IPNetwork(data)
