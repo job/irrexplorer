@@ -80,7 +80,7 @@ def create_app(pgdb, configfile=None):
 
         form = InputForm()
 
-        query_data = str(request.args.get('data')).upper()
+        query_data = request.args.get('data')
         if query_data:
             # this means that we got search request
             print 'query data', query_data
