@@ -141,7 +141,7 @@ def create_app(pgdb, configfile=None):
                     'id'           : 'macros',
                     'title'        : 'Included in the following macros:',
                     'url'          : '/json/macro_contain/' + key,
-                    'start_fields' : ["as_macro", "source" ]
+                    'start_fields' : ["as_macro" ]
                 })
 
             return render_template('search.html', title=title, tables=tables)
