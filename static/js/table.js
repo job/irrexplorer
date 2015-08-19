@@ -28,6 +28,8 @@ function renderCell(data, fieldname, label) {
                     return "<span class='label label-" + label + "'>" + data + "</span>";
                 } else if (fieldname == "bgp") {
                     return "<a href=\"http://lg.ring.nlnog.net/query/" + label + "\">" + data + "</a>";
+                } else if (fieldname == "path") {
+                    return data.join(" -> ");
                 } else if (fieldname == "members") {
                     return data.join(", ");
                 }
