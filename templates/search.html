@@ -50,6 +50,9 @@ td { white-space: nowrap; }
                     <input type="text" name="data" class="form-control" />
                     <button id="btnsearch" type="submit" class="btn btn-primary" name="search" value="Search">Search</button>
                 </form>
+                {% for message in get_flashed_messages() %}
+                    <div class="flash">{{ message }}</div>
+                {% endfor %}
             </div>
         </div>
 

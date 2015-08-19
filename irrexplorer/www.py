@@ -78,8 +78,6 @@ def create_app(pgdb, configfile=None):
     @app.route('/search', defaults={'data': None})
     def search(data):
 
-        form = InputForm()
-
         query_data = request.args.get('data')
         if query_data:
             # this means that we got search request
@@ -88,10 +86,15 @@ def create_app(pgdb, configfile=None):
 
         if not data:
             flash('No search data provided')
-            return render_template('index.html', form=form)
+            return render_template('search.html')
 
         try:
             sv = utils.classifySearchString(data)
+
+            # prevent people from killing the machine by searching through all prefixes in one query
+            if type(sv) is Prefix and '/' in sv.value and int(sv.value.split('/',2)[-1]) < 8:
+                flash('Only prefixes longer than /8 are searchable (find another machine to kill)')
+                return render_template('search.html')
 
             tables = []
 
@@ -141,13 +144,12 @@ def create_app(pgdb, configfile=None):
                     'start_fields' : ["as_macro", "source" ]
                 })
 
-            return render_template('search.html', form=form, title=title, tables=tables)
+            return render_template('search.html', title=title, tables=tables)
 
 
         except ValueError:
             flash('Invalid search data')
-            form = InputForm()
-            return render_template('index.html', form=form)
+            return render_template('search.html')
 
 
     # -- json reports --
