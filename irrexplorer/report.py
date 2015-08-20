@@ -78,17 +78,17 @@ def add_prefix_advice(prefixes):
 
                 if bgp_origin and bgp_origin in pfx_source['ripe']:
 
-                    if len(anywhere) == 1 and bgp_origin not in anywhere_not_ripe:
+                    if len(anywhere) == 1: # only ripe as origin
                         pfx_data['advice'] = "Perfect"
                         pfx_data['label'] = "success"
 
-                    elif bgp_origin == anywhere_not_ripe:
-                        pfx_data['advice'] = "Proper RIPE DB object, but foreign or proxy objects also exist"
+                    elif [bgp_origin] == anywhere:
+                        pfx_data['advice'] = "Proper RIPE DB object, but foreign objects also exist, consider remoing these."
                         pfx_data['label'] = "warning"
 
-                    elif bgp_origin in anywhere_not_ripe:
-                        pfx_data['advice'] = "Proper RIPE DB object, but foreign objects also exist, consider removing these"
-                        pfx_data['label'] = "warning"
+                    elif [bgp_origin] != anywhere_not_ripe:
+                        pfx_data['advice'] = "Proper RIPE DB object, but foreign objects also exist, consider removing these. BGP origin does not match all IRR entries."
+                        pfx_data['label'] = "danger"
 
                     else:
                         pfx_data['advice'] = "Looks good, but multiple entries exists in RIPE DB"
@@ -98,19 +98,28 @@ def add_prefix_advice(prefixes):
                     pfx_data['advice'] = "Prefix is in DFZ, but registered with wrong origin in RIPE!"
                     pfx_data['label'] = "danger"
 
-                else:
-                    # same as last else clause, not sure if this could actually be first
+                else: # no bgp origin
+                    # same as last else clause, not sure if this could be made a bit better
                     pfx_data['advice'] = "Not seen in BGP, but (legacy?) route-objects exist, consider clean-up"
-                    pfx_data['label'] = "warning"
+                    pfx_data['label'] = "info"
 
             else:   # no ripe registration
 
                 if bgp_origin:
-                    pfx_data['advice'] = "Prefix is in DFZ, but NOT registered in RIPE!"
-                    pfx_data['label'] = "danger"
+                    # do if on as match
+                    if anywhere: # could use anywhere_but_ripe - result would be the same
+                        if [bgp_origin] == anywhere:
+                            pfx_data['advice'] = "Prefix is in DFZ and has an IRR record, but NOT in RIPE! BGP origin matches IRR entries."
+                            pfx_data['label'] = "warning"
+                        else:
+                            pfx_data['advice'] = "Prefix is in DFZ and has an IRR record, but NOT in RIPE! BGP origin does not match all IRR entries."
+                            pfx_data['label'] = "danger"
+                    else:
+                        pfx_data['advice'] = "Prefix is in DFZ, but NOT registered in any IRR and should go into RIPE!"
+                        pfx_data['label'] = "danger"
 
                 else:
-                    pfx_data['advice'] = "Route objects in foreign registries exist, consider moving them to RIPE DB"
+                    pfx_data['advice'] = "Route objects in foreign registries exist, but no BGP origin. Consider moving IRR object to RIPE DB or deleting them."
                     pfx_data['label'] = "warning"
 
         elif bgp_origin: # not ripe managed, but have bgp_origin
@@ -130,7 +139,7 @@ def add_prefix_advice(prefixes):
 
         else: # not ripe managed, no bgp origin
             pfx_data['advice'] = "Not seen in BGP, but (legacy?) route-objects exist, consider clean-up"
-            pfx_data['label'] = "warning"
+            pfx_data['label'] = "info"
 
 
     return prefixes
