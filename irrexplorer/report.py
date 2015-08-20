@@ -67,6 +67,7 @@ def add_prefix_advice(prefixes):
         if not BGP in pfx_data:
             bgp_origin = None
         else:
+            # afaict this should never happen, at least not as long as we only have a single table
             if len(pfx_data[BGP]) > 2:
                 print 'Multiple BGP sources:', pfx_data[BGP], 'only using first origin'
             bgp_origin = list(pfx_data[BGP])[0]
