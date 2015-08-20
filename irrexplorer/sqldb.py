@@ -130,7 +130,7 @@ class IRRSQLDatabase:
                     SELECT a.as_macro, path || a.as_macro,  a.members, a.source, depth+1 AS depth, a.as_macro = ANY(path) AS cycle FROM as_sets_view a
                     JOIN member_list b ON ( a.as_macro = ANY(b.members) AND NOT cycle)
                    )
-                SELECT as_macro, source, depth, path, members FROM member_list LIMIT 1000;
+                SELECT as_macro, source, depth, path, members FROM member_list LIMIT 10000;
                 """
         return self._execute_fetchall(query, (as_macro,))
 
