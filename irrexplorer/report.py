@@ -30,10 +30,10 @@ import time
 
 
 SOURCE = 'source'
+RIPE = 'ripe'
 BGP = 'bgp'
 
-# we should generate these from the database sometime...
-IRR_DBS = ['afrinic', 'altdb', 'apnic', 'arin', 'bboi', 'bell', 'gt', 'jpirr', 'level3', 'nttcom', 'radb', 'rgnet', 'savvis', 'tc', 'ripe']
+# IRR_DBS = ['afrinic', 'altdb', 'apnic', 'arin', 'bboi', 'bell', 'gt', 'jpirr', 'level3', 'nttcom', 'radb', 'rgnet', 'savvis', 'tc', 'ripe']
 
 
 class NoPrefixError(Exception):
@@ -49,16 +49,15 @@ def add_prefix_advice(prefixes):
         pfx_source = pfx_data[SOURCE]
 
         anywhere = set()
-        for db in IRR_DBS:
-            if db in pfx_source:
-                for entry in pfx_source[db]:
-                    anywhere.add(entry)
+        for entries in pfx_source.values():
+            for entry in entries:
+                anywhere.add(entry)
         anywhere = list(anywhere)
 
         anywhere_not_ripe = set()
-        for db in IRR_DBS:
-            if db in pfx_source and db != 'ripe':
-                for entry in pfx_source[db]:
+        for db, entries in pfx_source.items():
+            if db != RIPE:
+                for entry in entries:
                     anywhere_not_ripe.add(entry)
         anywhere_not_ripe = list(anywhere_not_ripe)
 
