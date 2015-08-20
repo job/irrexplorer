@@ -45,4 +45,4 @@ psql irrexplorer -c "\copy routes from irr_routes.data delimiter '|'"
 psql irrexplorer -c "\copy as_sets from irr_as_sets.data delimiter '|'"
 psql irrexplorer -c "\copy routes from bgp.data delimiter '|'"
 
-rm *.db.gz *.CURRENTSERIAL
+rm *.gz *.CURRENTSERIAL

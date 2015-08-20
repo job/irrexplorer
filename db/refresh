@@ -25,4 +25,4 @@ psql irrexplorer -c "delete * from as_sets where source_id = (select source_id f
 psql irrexplorer -c "\copy routes from irr_routes.data delimiter '|'"
 psql irrexplorer -c "\copy as_sets from irr_as_sets.data delimiter '|'"
 
-rm *.db.gz *.CURRENTSERIAL
+rm *.gz *.CURRENTSERIAL
