@@ -114,7 +114,7 @@ def create_app(pgdb, configfile=None):
                     'id'           : 'prefixes',
                     'title'        : 'Matching prefixes',
                     'url'          : '/json/prefix/' + sv.value,
-                    'start_fields' : ["prefix", "bgp_origin" ]
+                    'start_fields' : ["prefix", "bgp" ]
                 })
 
             if type(sv) is ASNumber:
