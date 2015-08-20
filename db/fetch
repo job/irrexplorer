@@ -31,7 +31,6 @@ def main():
     if not 'databases' in cfg:
         print 'No database in %s' % yml_cfg
         sys.exit(2)
-        continue
 
     for db in cfg['databases']:
         if len(sys.argv) == 3:
