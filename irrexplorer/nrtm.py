@@ -97,7 +97,10 @@ class NRTMStreamer(object):
             if line.startswith(('ADD', 'DEL')):
                 tag, serial = line.strip().split(' ')
                 obj = irrparser.irrParser(data_source).next()
-                yield tag, int(serial), obj
+                if obj:
+                    yield tag, int(serial), obj
+                else:
+                    yield None, None, (None, (None, None, None))
 
             else:
                 print 'Did not understand the following line:'

@@ -86,6 +86,9 @@ def update_irr(host, port, source, db):
             else:
                 print 'weird del', tag, serial, obj_type
 
+        elif not tag:
+            pass
+
         else:
             print 'Weird tag:', tag, serial, obj_type
 
