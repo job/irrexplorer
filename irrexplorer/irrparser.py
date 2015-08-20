@@ -52,15 +52,10 @@ def irrParser(datasource):
     origin   = None
     source   = None
     members  = []
-    marker   = True
 
     for line in datasource:
 
-        if line == '\n': # new block
-
-            if marker:  # second \n marks the end of the object
-                marker = False
-                continue
+        if line == '\n':  # end of object
 
             if obj_type == AS_SET:
                 yield AS_SET, (object_, members, source)
