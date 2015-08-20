@@ -243,9 +243,6 @@ def as_prefixes(pgdb, as_number):
     for pfx_data in result.values():
         pfx_data.update(pfx_data.pop(SOURCE))
 
-    print
-    print result
-
     t_delta = time.time() - t_start
     print 'Time for AS prefixes for %s: %s' % (as_number, round(t_delta,2))
     print
