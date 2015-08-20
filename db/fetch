@@ -33,10 +33,10 @@ def main():
         sys.exit(2)
 
     for db in cfg['databases']:
-        if len(sys.argv) == 3:
-            if not db == sys.argv[2]:
-                continue
         for db_name, db_info in db.items():
+            if len(sys.argv) == 3:
+                if not db == sys.argv[2]:
+                    continue
             for dbe in db_info:
                 for dbk, dbv in dbe.items():
                     if dbk in ('serial', 'dump'):
