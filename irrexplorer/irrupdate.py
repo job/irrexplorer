@@ -48,7 +48,11 @@ def update_irr(host, port, source, db):
     changes = {}
 
     for tag, serial, (obj_type, obj_data) in c.stream():
-        obj, data, source = obj_data
+        obj, data, obj_source = obj_data
+        if obj and not obj_source == source:
+            print "weird source difference, skipping: %s vs %s at %s in: %s, %s" % (obj_source, source, serial, obj, data)
+            continue
+
         #print tag, serial, obj_type, obj, source
 
         if tag == 'ADD':
@@ -58,10 +62,6 @@ def update_irr(host, port, source, db):
                 # hence we delete the route first... could probably do this a bit more clever with a function in the db
                 # this also produces lots of duplicate statements, so we try not do if the last stm is identical
                 # When Postgres 9.5, switch this to "ON CONFLICT" (UPSERT)
-                if source is None:
-                    print 'Error: No source for object:', obj, 'data:', data, 'skipping entry.'
-                    continue
-
                 sa = ( DELETE_ROUTE, (obj, data, source) )
                 if not stms or stms[-1] != sa:
                     stms.append(sa)
