@@ -86,9 +86,13 @@ def add_prefix_advice(prefixes):
                         pfx_data['advice'] = "Proper RIPE DB object, but foreign objects also exist, consider remoing these."
                         pfx_data['label'] = "warning"
 
-                    elif [bgp_origin] != anywhere_not_ripe:
+                    elif anywhere_not_ripe:
                         pfx_data['advice'] = "Proper RIPE DB object, but foreign objects also exist, consider removing these. BGP origin does not match all IRR entries."
                         pfx_data['label'] = "danger"
+
+                    elif len(anywhere) > 1:
+                        pfx_data['advice'] = "Multiple entries exists in RIPE DB, with different origin. Consider removing conflicting entries."
+                        pfx_data['label'] = "warning"
 
                     else:
                         pfx_data['advice'] = "Looks good, but multiple entries exists in RIPE DB"
