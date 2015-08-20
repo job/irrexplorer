@@ -35,7 +35,7 @@ def main():
     for db in cfg['databases']:
         for db_name, db_info in db.items():
             if len(sys.argv) == 3:
-                if not db == sys.argv[2]:
+                if not db_name == sys.argv[2]:
                     continue
             for dbe in db_info:
                 for dbk, dbv in dbe.items():
