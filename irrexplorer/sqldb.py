@@ -98,9 +98,10 @@ class IRRSQLDatabase:
         query = """SELECT DISTINCT rv.route, rv.asn, rv.source FROM routes_view rv, routes_view r
                    WHERE rv.route && r.route AND r.asn = %s
                    UNION ALL
-                   SELECT DISTINCT routes_view.route, NULL::integer, managed_routes_view.source || '_managed' AS managed_routes
-                   FROM routes_view INNER JOIN managed_routes_view ON (routes_view.route && managed_routes_view.route)
-                   WHERE asn = %s;"""
+                   SELECT DISTINCT rv.route, NULL::integer, managed_routes_view.source || '_managed' AS managed_routes
+                   FROM routes_view rv, routes_view r INNER JOIN managed_routes_view ON (r.route && managed_routes_view.route)
+                   WHERE rv.route && r.route AND r.asn = %s;
+                   """
         return self._execute_fetchall(query, (asn,asn))
 
 
