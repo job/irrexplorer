@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+set -ev
+
+# Fetch irr databases
+./fetch ../irrexplorer_config.yml $1
+
+# Insert sources and create map
+psql irrexplorer -c "select name,id from sources where name = '$1';" -tAF, > sources.map
+
+# Create routes and as-set data files, filter double repeated routes
+# zcatting and processing this twice is sorta silly
+zcat *.db*.gz | ./create_irr_routes | uniq -u > irr_routes.data
+zcat *.db*.gz | ./create_irr_as_sets > irr_as_sets.data
+
+# Create serial
+./create_serials > serials.sql
+
+# Load data in postgres
+psql irrexplorer -f serials.sql
+
+psql irrexplorer -c "delete * from routes where source_id = (select source_id from sources where name = '$1');"
+psql irrexplorer -c "delete * from as_sets where source_id = (select source_id from sources where name = '$1');"
+
+psql irrexplorer -c "\copy routes from irr_routes.data delimiter '|'"
+psql irrexplorer -c "\copy as_sets from irr_as_sets.data delimiter '|'"
+
+rm *.db.gz *.CURRENTSERIAL
