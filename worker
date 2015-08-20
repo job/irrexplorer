@@ -17,7 +17,7 @@ DEFAULT_DATABASE    = 'irrexplorer'
 DEFAULT_BGP_SOURCE  = 'http://lg01.infra.ring.nlnog.net/table.txt'
 DEFAULT_IRR_SPEC    = 'irrexplorer_config.yml'
 
-DEFAULT_UPDATE_INTERVAL = 300.0 # 5 minutes, the nlnog table is updated at that frequency
+DEFAULT_UPDATE_INTERVAL = 300 # 5 minutes, the nlnog table is updated at that frequency
 
 
 INSERT_STM = "SELECT create_route (%s, %s, 'bgp');"
@@ -106,7 +106,7 @@ def main():
             print 'Update took longer time than sleep interval, skipping sleep'
         else:
             print 'Sleeping for %i seconds' % t_sleep
-            time.sleep(args.interval)
+            time.sleep(t_sleep)
             print
 
 
