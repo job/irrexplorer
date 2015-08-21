@@ -156,7 +156,7 @@ def create_app(pgdb, configfile=None):
 
     @app.route('/json/prefix/<path:prefix>')
     def prefix(prefix):
-        data = report.prefix(pgdb, prefix, exact=False)
+        data = report.prefix(pgdb, prefix)
         return json.dumps(data)
 
     @app.route('/json/as_prefixes/<path:as_number>')

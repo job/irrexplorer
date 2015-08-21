@@ -55,19 +55,12 @@ class IRRSQLDatabase:
         return rows
 
 
-    def query_prefix(self, prefix, exact=False):
-        # query irr databases (and maybe the bgp stuff as well)
-        if exact:
-            query = "SELECT route, asn, source FROM routes_view WHERE route = %s;"
-        else:
-            query = "SELECT route, asn, source FROM routes_view WHERE route && %s;"
+    def query_prefix(self, prefix):
 
-        return self._execute_fetchall(query, (prefix,))
+        query = """SELECT rv.route, rv.asn, rv.source, mrv.source||'_managed' AS managed
+                   FROM routes_view rv LEFT OUTER JOIN managed_routes_view mrv ON (rv.route && mrv.route)
+                   WHERE rv.route && %s;"""
 
-
-    def query_managed_prefix(self, prefix):
-
-        query = "SELECT route, source FROM managed_routes_view WHERE route && %s;"
         return self._execute_fetchall(query, (prefix,))
 
 
@@ -81,12 +74,10 @@ class IRRSQLDatabase:
 
     def query_as(self, asn):
 
-        query = """SELECT route, asn, source FROM routes_view WHERE asn = %s
-                   UNION ALL
-                   SELECT DISTINCT routes_view.route, NULL::integer, managed_routes_view.source || '_managed' AS managed_routes
-                   FROM routes_view INNER JOIN managed_routes_view ON (routes_view.route && managed_routes_view.route)
-                   WHERE asn = %s;"""
-        return self._execute_fetchall(query, (asn,asn))
+        query = """SELECT rv.route, rv.asn, rv.source, mrv.source||'_managed' as managed_routes
+                   FROM routes_view rv LEFT OUTER JOIN managed_routes_view mrv ON (rv.route && mrv.route)
+                   WHERE rv.asn = %s;"""
+        return self._execute_fetchall(query, (asn,))
 
 
     def query_as_deep(self, asn):
@@ -147,20 +138,10 @@ if __name__ == '__main__':
     print r1
 
     print
-    print 'Prefix exact'
-    r2 = db.query_prefix('109.105.112.0/21', exact=True)
-    print r2
-
-    print
-    print 'Managed prefix'
-    r3 = db.query_managed_prefix('109.105.113.0/24')
-    print r3
-
-    print
     print 'AS Prefixes'
     r4 = db.query_as(2603)
-    for r,s in r4:
-        print r,s
+    for r,a,s,m in r4:
+        print r,a,s,m
 
     print
     print 'AS contain'
