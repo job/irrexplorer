@@ -48,6 +48,10 @@ def update_irr(host, port, source, db):
     changes = {}
 
     for tag, serial, (obj_type, obj_data) in c.stream():
+
+        if not obj_data:
+            continue  # skip over unsupported objects
+
         obj, data, obj_source = obj_data
         if obj and not obj_source == source:
             print "weird source difference, skipping: %s vs %s at %s in: %s, %s" % (obj_source, source, serial, obj, data)
