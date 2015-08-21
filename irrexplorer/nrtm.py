@@ -96,10 +96,22 @@ class NRTMStreamer(object):
 
             if line.startswith(('ADD', 'DEL')):
                 tag, serial = line.strip().split(' ')
-                obj = irrparser.irrParser(data_source).next()
+                data_source.readline()  # skip over first newline after ADD/DEL
+
+                object_data = []
+
+                while True:
+                    obj_line = data_source.readline()
+                    if not obj_line == '\n':
+                        object_data.append(obj_line)
+                    else:
+                        break
+
+                obj = irrparser.irrParser(object_data)
                 if obj:
                     yield tag, int(serial), obj
                 else:
+                    print "unsuppored: %s" % objec_data[0]
                     yield None, int(serial), (None, (None, None, None))
 
             else:

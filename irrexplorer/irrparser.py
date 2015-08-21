@@ -55,15 +55,6 @@ def irrParser(datasource):
 
     for line in datasource:
 
-        if line == '\n':  # end of object
-
-            if obj_type == AS_SET:
-                yield AS_SET, (object_, members, source)
-            elif obj_type == ROUTE:
-                yield ROUTE, (object_, origin, source)
-            else:  # in case no route{,6} or as-set was found
-                yield None
-
         if line.startswith('route:') or line.startswith('route6:'):
             object_ = readAttr(line)
             obj_type = ROUTE
@@ -94,3 +85,9 @@ def irrParser(datasource):
         else:
             ctx = None
 
+    if obj_type == AS_SET:
+        return AS_SET, (object_, members, source)
+    elif obj_type == ROUTE:
+        return ROUTE, (object_, origin, source)
+    else:  # in case no route{,6} or as-set was found
+        return None, None
