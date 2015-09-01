@@ -58,8 +58,10 @@ class IRRSQLDatabase:
     def query_prefix(self, prefix):
 
         query = """SELECT rv.route, rv.asn, rv.source, mrv.source||'_managed' AS managed
-                   FROM routes_view rv LEFT OUTER JOIN managed_routes_view mrv ON (rv.route && mrv.route)
-                   WHERE rv.route && %s;"""
+                   FROM routes_view rv
+                   JOIN routes_view r ON cidr_to_range(rv.route) && cidr_to_range(r.route)
+                   LEFT OUTER JOIN managed_routes_view mrv ON rv.route && mrv.route
+                   WHERE r.route && %s;"""
 
         return self._execute_fetchall(query, (prefix,))
 
@@ -75,7 +77,8 @@ class IRRSQLDatabase:
     def query_as(self, asn):
 
         query = """SELECT rv.route, rv.asn, rv.source, mrv.source||'_managed' as managed_routes
-                   FROM routes_view rv LEFT OUTER JOIN managed_routes_view mrv ON (rv.route && mrv.route)
+                   FROM routes_view rv
+                   LEFT OUTER JOIN managed_routes_view mrv ON (rv.route && mrv.route)
                    WHERE rv.asn = %s;"""
         return self._execute_fetchall(query, (asn,))
 
@@ -84,16 +87,19 @@ class IRRSQLDatabase:
 
         # This query find all prefixes that are registered/homing from and AS number AND
         # any other prefixes that covers/are covered by any of those prefixes
-        # Furthermore, managed prefixes and source are returned for matching prefixes.
-        # These have NULL as their AS and source field will be source + '_managed'
-        query = """SELECT DISTINCT rv.route, rv.asn, rv.source FROM routes_view rv, routes_view r
-                   WHERE rv.route && r.route AND r.asn = %s
-                   UNION ALL
-                   SELECT DISTINCT rv.route, NULL::integer, managed_routes_view.source || '_managed' AS managed_routes
-                   FROM routes_view rv, routes_view r INNER JOIN managed_routes_view ON (r.route && managed_routes_view.route)
-                   WHERE rv.route && r.route AND r.asn = %s;
-                   """
-        return self._execute_fetchall(query, (asn,asn))
+        # Furthermore, managed prefixes and source are added for matching prefixes.
+        # These have an entry in the fouth column. Note that duplicates can be created here (but managed space should not overlap)
+        # The adresss range of 2002::/16 and 192.88.99.0/24 are 6t40 addresses with lots of entries, and hence filtered out
+
+        query = """
+                SELECT DISTINCT rv.route, rv.asn, rv.source, mrv.source||'_managed' as managed_routes
+                FROM
+                    (SELECT DISTINCT route FROM routes_view WHERE asn = %s) r
+                    JOIN routes_view rv ON cidr_to_range(r.route) && cidr_to_range(rv.route) AND NOT rv.route <<= '2002::/16'::cidr AND NOT rv.route <<= '192.88.99.0/24'::cidr
+                    LEFT OUTER JOIN managed_routes_view mrv ON (rv.route && mrv.route);
+                """
+
+        return self._execute_fetchall(query, (asn,))
 
 
     def query_as_contain(self, as_):

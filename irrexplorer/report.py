@@ -200,7 +200,8 @@ def _build_prefix_dict(db_result):
     for route, asn, source, managed in db_result:
         #print 'BDP', route, asn, source, managed
         ps = result.setdefault(route, {}).setdefault(SOURCE, {})
-        ps.setdefault(source, []).append(asn)
+        if not asn in ps.get(source, []): # we can get duplicates due to htj's sql limitations
+            ps.setdefault(source, []).append(asn)
         if managed:
             result[route][managed] = True
 
@@ -223,7 +224,12 @@ def as_prefixes(pgdb, as_number):
     t_start = time.time()
 
     prefixes = pgdb.query_as(as_number)
-    #prefixes = pgdb.query_as_deep(as_number)
+
+    # do deep as query if prefix set is sufficiently small to do it fast
+    # we could probably go to ~1000 here
+    if len(prefixes) < 200:
+        print 'Performing deep query for AS', as_number
+        prefixes = pgdb.query_as_deep(as_number)
 
     result = _build_prefix_dict(prefixes)
 

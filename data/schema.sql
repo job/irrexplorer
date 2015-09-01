@@ -36,7 +36,16 @@ CREATE TABLE routes (
     CONSTRAINT positive_asn CHECK (asn > 0)
 );
 
-CREATE INDEX route_gist ON routes USING gist (route inet_ops);
+-- CREATE INDEX route_gist ON routes USING gist (route inet_ops);
+
+-- Index for routes. This performs a lot better than the inet_ops gist index
+
+CREATE TYPE inetrange AS range (subtype = inet);
+
+CREATE FUNCTION cidr_to_range(cidr) returns inetrange language sql AS 'select inetrange(set_masklen($1::inet, 0), set_masklen(broadcast($1), 0))';
+
+CREATE INDEX ON routes USING gist ((cidr_to_range(route)));
+
 
 CREATE VIEW routes_view AS
     SELECT
