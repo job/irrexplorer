@@ -123,7 +123,8 @@ def create_app(pgdb, configfile=None):
                     'id'           : 'prefixes',
                     'title'        : 'Prefixes',
                     'url'          : '/json/as_prefixes/' + str(sv.value),
-                    'start_fields' : ["prefix", "bgp" ]
+                    'start_fields' : ["prefix", "bgp" ],
+                    'note'         : 'Offending prefixes are only found if initial prefix sets is smaller than 200'
                 })
 
             if type(sv) is ASMacro:
@@ -132,7 +133,8 @@ def create_app(pgdb, configfile=None):
                     'id'           : 'expanded',
                     'title'        : 'Macro Expansion',
                     'url'          : '/json/macro_expand/' + sv.value,
-                    'start_fields' : ["as_macro", "depth", "path", "source", "members"]
+                    'start_fields' : ["as_macro", "depth", "path", "source", "members"],
+                    'note'         : 'AS Macro expansion is limited to 10K rows'
                 })
 
             if type(sv) in (ASNumber, ASMacro):
