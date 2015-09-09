@@ -92,8 +92,8 @@ def create_app(pgdb, configfile=None):
             sv = utils.classifySearchString(data)
 
             # prevent people from killing the machine by searching through all prefixes in one query
-            if type(sv) is Prefix and '/' in sv.value and int(sv.value.split('/',2)[-1]) < 8:
-                flash('Only prefixes longer than /8 are searchable (find another machine to kill)')
+            if type(sv) is Prefix and '/' in sv.value and int(sv.value.split('/',2)[-1]) < 15:
+                flash('Only prefixes longer than /15 are searchable (kills the database)')
                 return render_template('search.html')
 
             tables = []
