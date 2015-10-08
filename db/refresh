@@ -19,8 +19,8 @@ zcat *.db*.gz | ./create_irr_as_sets > irr_as_sets.data
 # Load data in postgres
 psql irrexplorer -f serials.sql
 
-psql irrexplorer -c "delete from routes where source_id = (select source_id from sources where name = '$1');"
-psql irrexplorer -c "delete from as_sets where source_id = (select source_id from sources where name = '$1');"
+psql irrexplorer -c "DELETE FROM routes  USING sources WHERE routes.source_id AND sources.name = '$1';"
+psql irrexplorer -c "DELETE FROM as_sets USING sources WHERE as_sets.source_id AND sources.name = '$1');"
 
 psql irrexplorer -c "\copy routes from irr_routes.data delimiter '|'"
 psql irrexplorer -c "\copy as_sets from irr_as_sets.data delimiter '|'"
