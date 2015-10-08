@@ -104,7 +104,10 @@ def add_prefix_advice(prefixes):
 
                 else: # no bgp origin
                     # same as last else clause, not sure if this could be made a bit better
-                    pfx_data['advice'] = "Not seen in BGP, but (legacy?) route-objects exist, consider clean-up"
+                    if ':' in pfx:
+                        pfx_data['advice'] = "Look like network is not announcing registered v6 prefix yet"
+                    else:
+                        pfx_data['advice'] = "Not seen in BGP, but (legacy?) route-objects exist, consider clean-up"
                     pfx_data['label'] = "info"
 
             else:   # no ripe registration
@@ -142,7 +145,10 @@ def add_prefix_advice(prefixes):
                 pfx_data['label'] = "danger"
 
         else: # not ripe managed, no bgp origin
-            pfx_data['advice'] = "Not seen in BGP, but (legacy?) route-objects exist, consider clean-up"
+            if ':' in pfx:
+                pfx_data['advice'] = "Look like network is not announcing registered v6 prefix yet"
+            else:
+                pfx_data['advice'] = "Not seen in BGP, but (legacy?) route-objects exist, consider clean-up"
             pfx_data['label'] = "info"
 
 
