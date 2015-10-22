@@ -4,6 +4,8 @@
 Functionality to update IRR entries in IRRExplorer database via NRTM streaming
 """
 
+import ipaddr
+
 from irrexplorer import nrtm, irrparser
 
 
@@ -62,6 +64,13 @@ def update_irr(host, port, source, db):
         if tag == 'ADD':
             if obj_type == irrparser.ROUTE:
                 changes['add_route'] = changes.get('add_route', 0) + 1
+                # test if this is a proper prefix
+                try:
+                    ipaddr.Network(obj, strict=True)
+                except ValueError:
+                    print 'Prefix %s from source %s, is not a proper prefix, skipping object'
+                    continue
+
                 # sometimes (and only sometimes) an ADD will be send for something already exists (I am looking at you altdb)
                 # hence we delete the route first... could probably do this a bit more clever with a function in the db
                 # this also produces lots of duplicate statements, so we try not do if the last stm is identical
