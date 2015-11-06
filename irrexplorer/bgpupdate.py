@@ -5,11 +5,10 @@ Functionality to update BGP entries in IRRExplorer database.
 """
 
 import urllib2
-
+import ipaddr
 
 INSERT_STM = "SELECT create_route (%s, %s, 'bgp');"
 DELETE_STM = "DELETE FROM routes USING sources WHERE routes.route = %s AND routes.asn = %s AND routes.source_id = sources.id AND sources.name = 'bgp';"
-
 
 
 def updateBGP(source_url, db):
@@ -29,7 +28,16 @@ def updateBGP(source_url, db):
     print 'Got database entries, routes:', len(bgp_rows)
 
     for route, asn in bgp_rows:
-        db_routes.add( (route, int(asn)) )
+        try:
+            route_obj = ipaddr.IPNetwork(route)
+        except ValueError:
+            print 'invalid route in BGP feed: %s' % route
+            continue
+
+        if route_obj.version == 4 and route_obj.prefixlen < 27:
+            db_routes.add((route, int(asn)))
+        if route_obj.version == 6 and route_obj.prefixlen < 124:
+            db_routes.add((route, int(asn)))
 
     # calculate the diff, intersection is just for logging
     routes_is = source_routes & db_routes
