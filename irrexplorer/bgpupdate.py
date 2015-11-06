@@ -20,7 +20,7 @@ def updateBGP(source_url, db):
         route, asn = line.strip().split(' ')
         source_routes.add( (route, int(asn)) )
 
-    for route in source_routes:
+    for route, asn in source_routes:
         try:
             route_obj = ipaddr.IPNetwork(route)
         except ValueError:
