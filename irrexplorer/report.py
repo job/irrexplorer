@@ -233,7 +233,7 @@ def as_prefixes(pgdb, as_number):
 
     # do deep as query if prefix set is sufficiently small to do it fast
     # we could probably go to ~1000 here
-    if len(prefixes) < 200:
+    if len(prefixes) < 1000:
         print 'Performing deep query for AS', as_number
         prefixes = pgdb.query_as_deep(as_number)
 
