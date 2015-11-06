@@ -20,6 +20,19 @@ def updateBGP(source_url, db):
         route, asn = line.strip().split(' ')
         source_routes.add( (route, int(asn)) )
 
+    for route in source_routes:
+        try:
+            route_obj = ipaddr.IPNetwork(route)
+        except ValueError:
+            print 'invalid route in BGP feed: %s' % route
+            continue
+
+        # block router2router linknets
+        if route_obj.version == 4 and route_obj.prefixlen < 27:
+            db_routes.add((route, int(asn)))
+        if route_obj.version == 6 and route_obj.prefixlen < 124:
+            db_routes.add((route, int(asn)))
+
     print 'BGP table fetched and table build, routes:', (len(source_routes))
 
     # then the database routes
@@ -28,16 +41,7 @@ def updateBGP(source_url, db):
     print 'Got database entries, routes:', len(bgp_rows)
 
     for route, asn in bgp_rows:
-        try:
-            route_obj = ipaddr.IPNetwork(route)
-        except ValueError:
-            print 'invalid route in BGP feed: %s' % route
-            continue
-
-        if route_obj.version == 4 and route_obj.prefixlen < 27:
-            db_routes.add((route, int(asn)))
-        if route_obj.version == 6 and route_obj.prefixlen < 124:
-            db_routes.add((route, int(asn)))
+        db_routes.add((route, int(asn)))
 
     # calculate the diff, intersection is just for logging
     routes_is = source_routes & db_routes
