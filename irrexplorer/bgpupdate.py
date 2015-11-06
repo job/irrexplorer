@@ -20,6 +20,7 @@ def updateBGP(source_url, db):
         route, asn = line.strip().split(' ')
         source_routes.add( (route, int(asn)) )
 
+    fltrd_source_routes = set()
     for route, asn in source_routes:
         try:
             route_obj = ipaddr.IPNetwork(route)
@@ -29,9 +30,9 @@ def updateBGP(source_url, db):
 
         # block router2router linknets
         if route_obj.version == 4 and route_obj.prefixlen < 27:
-            db_routes.add((route, int(asn)))
+            fltrd_source_routes.add((route, int(asn)))
         if route_obj.version == 6 and route_obj.prefixlen < 124:
-            db_routes.add((route, int(asn)))
+            fltrd_source_routes.add((route, int(asn)))
 
     print 'BGP table fetched and table build, routes:', (len(source_routes))
 
@@ -44,13 +45,13 @@ def updateBGP(source_url, db):
         db_routes.add((route, int(asn)))
 
     # calculate the diff, intersection is just for logging
-    routes_is = source_routes & db_routes
+    routes_is = fltrd_source_routes & db_routes
     print 'Unchanged routes: %i' % len(routes_is)
 
-    deprecated_routes = db_routes - source_routes
+    deprecated_routes = db_routes - fltrd_source_routes
     print 'Deprecated routes:', len(deprecated_routes)
 
-    new_routes = source_routes - db_routes
+    new_routes = fltrd_source_routes - db_routes
     print 'New routes:', len(new_routes)
 
     # create + send update statements
