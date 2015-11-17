@@ -33,10 +33,10 @@ curl http://lg01.infra.ring.nlnog.net/table.txt | ./create_bgp > bgp.data
 ./create_serials > serials.sql
 
 # And the ripe managed space
-./create_ripe_managed ripe < ../data/ripe-managed-space.txt  > ripe_managed.sql
+./create_managed ripe < ../data/ripe-managed-space.txt  > ripe_managed.sql
 
 # RFC1918 / Bogons
-./create_ripe_managed rfc1918 < ../data/rfc1918.txt  > rfc1918.sql
+./create_managed rfc1918 < ../data/rfc1918.txt  > rfc1918.sql
 
 
 # Load data in postgres
