@@ -124,7 +124,7 @@ def create_app(pgdb, configfile=None):
                     'title'        : 'Prefixes',
                     'url'          : '/json/as_prefixes/' + str(sv.value),
                     'start_fields' : ["prefix", "bgp" ],
-                    'note'         : 'Offending prefixes are only found if initial prefix sets is smaller than 200'
+                    'note'         : 'Offending prefixes are only found if initial prefix sets is smaller than 1000'
                 })
 
             if type(sv) is ASMacro:

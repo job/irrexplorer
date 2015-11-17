@@ -5,11 +5,10 @@ Functionality to update BGP entries in IRRExplorer database.
 """
 
 import urllib2
-
+import ipaddr
 
 INSERT_STM = "SELECT create_route (%s, %s, 'bgp');"
 DELETE_STM = "DELETE FROM routes USING sources WHERE routes.route = %s AND routes.asn = %s AND routes.source_id = sources.id AND sources.name = 'bgp';"
-
 
 
 def updateBGP(source_url, db):
@@ -21,6 +20,20 @@ def updateBGP(source_url, db):
         route, asn = line.strip().split(' ')
         source_routes.add( (route, int(asn)) )
 
+    fltrd_source_routes = set()
+    for route, asn in source_routes:
+        try:
+            route_obj = ipaddr.IPNetwork(route)
+        except ValueError:
+            print 'invalid route in BGP feed: %s' % route
+            continue
+
+        # block router2router linknets / small blocks
+        if route_obj.version == 4 and route_obj.prefixlen < 29:
+            fltrd_source_routes.add((route, int(asn)))
+        if route_obj.version == 6 and route_obj.prefixlen < 124:
+            fltrd_source_routes.add((route, int(asn)))
+
     print 'BGP table fetched and table build, routes:', (len(source_routes))
 
     # then the database routes
@@ -29,16 +42,16 @@ def updateBGP(source_url, db):
     print 'Got database entries, routes:', len(bgp_rows)
 
     for route, asn in bgp_rows:
-        db_routes.add( (route, int(asn)) )
+        db_routes.add((route, int(asn)))
 
     # calculate the diff, intersection is just for logging
-    routes_is = source_routes & db_routes
+    routes_is = fltrd_source_routes & db_routes
     print 'Unchanged routes: %i' % len(routes_is)
 
-    deprecated_routes = db_routes - source_routes
+    deprecated_routes = db_routes - fltrd_source_routes
     print 'Deprecated routes:', len(deprecated_routes)
 
-    new_routes = source_routes - db_routes
+    new_routes = fltrd_source_routes - db_routes
     print 'New routes:', len(new_routes)
 
     # create + send update statements

@@ -66,7 +66,7 @@ def update_irr(host, port, source, db):
                 changes['add_route'] = changes.get('add_route', 0) + 1
                 # test if this is a proper prefix
                 try:
-                    ipaddr.Network(obj, strict=True)
+                    ipaddr.IPNetwork(obj, strict=True)
                 except ValueError:
                     print 'Prefix %s from source %s, is not a proper prefix, skipping object'
                     continue
