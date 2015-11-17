@@ -29,10 +29,12 @@ def updateBGP(source_url, db):
             continue
 
         # block router2router linknets / small blocks
-        if route_obj.version == 4 and route_obj.prefixlen < 29:
-            fltrd_source_routes.add((route, int(asn)))
-        if route_obj.version == 6 and route_obj.prefixlen < 124:
-            fltrd_source_routes.add((route, int(asn)))
+        if route_obj.version == 4 and route_obj.prefixlen >= 29:
+            continue
+        if route_obj.version == 6 and route_obj.prefixlen >= 124:
+            continue
+
+        fltrd_source_routes.add((route, int(asn)))
 
     print 'BGP table fetched and table build, routes:', (len(source_routes))
 
