@@ -4,10 +4,13 @@ import sys
 
 INSERT = "SELECT create_managed_route ('%s', '%s');"
 
+if len(sys.argv) != 2:
+    raise SystemExit('Please specified managed source')
+
 print 'BEGIN;'
 for line in sys.stdin:
 
-    print INSERT % (line.strip(), 'ripe')
+    print INSERT % (line.strip(), sys.argv[1])
 
 print 'COMMIT;'
 

@@ -72,6 +72,11 @@ def add_prefix_advice(prefixes):
                 print 'Multiple BGP sources:', pfx_data[BGP], 'only using first origin'
             bgp_origin = list(pfx_data[BGP])[0]
 
+        if 'rfc1918_managed' in pfx_data:
+            pfx_data['advice'] = "Prefix is RFC918 space (bogons). Drunk engineer."
+            pfx_data['label'] = "warning"
+            continue
+
         if 'ripe_managed' in pfx_data:
 
             if 'ripe' in pfx_source:
