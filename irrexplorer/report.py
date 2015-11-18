@@ -73,7 +73,17 @@ def add_prefix_advice(prefixes):
             bgp_origin = list(pfx_data[BGP])[0]
 
         if 'rfc1918_managed' in pfx_data:
-            pfx_data['advice'] = "Prefix is RFC918 space (bogons). Drunk engineer."
+            pfx_data['advice'] = "Prefix is RFC1918 space (private allocation). Drunk engineer."
+            pfx_data['label'] = "warning"
+            continue
+
+        if 'rfc3927_managed' in pfx_data:
+            pfx_data['advice'] = "Prefix is RFC3927 space (link-local dynamic). Drunk engineer."
+            pfx_data['label'] = "warning"
+            continue
+
+        if 'class-e_managed' in pfx_data:
+            pfx_data['advice'] = "Prefix is Class E space (reserved). Drunk engineer."
             pfx_data['label'] = "warning"
             continue
 
