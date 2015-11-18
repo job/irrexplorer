@@ -35,22 +35,13 @@ curl http://lg01.infra.ring.nlnog.net/table.txt | ./create_bgp > bgp.data
 # And the ripe managed space
 ./create_managed ripe < ../data/ripe-managed-space.txt  > ripe_managed.sql
 
-# RFC1918 private allocation
-./create_managed rfc1918 < ../data/rfc1918.txt  > rfc1918.sql
-
-# RFC3927 link local dynamic configuration
-./create_managed rfc3927 < ../data/rfc3927.txt  > rfc3927.sql
-
-# Class E reserved ip space
-./create_managed class-e < ../data/class-e.txt  > class-e.sql
-
+# RFC managed / reserved ip space
+./create_managed < ../data/rfc-managed.txt > rfc_managed.sql
 
 # Load data in postgres
 
 psql irrexplorer -f ripe_managed.sql
-psql irrexplorer -f rfc1918.sql
-psql irrexplorer -f rfc3927.sql
-psql irrexplorer -f class-e.sql
+psql irrexplorer -f rfc_managed.sql
 psql irrexplorer -f serials.sql
 
 psql irrexplorer -c "\copy routes from irr_routes.data delimiter '|'"
