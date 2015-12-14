@@ -48,6 +48,8 @@ class ASMacro(SearchObject): pass
 
 def classifySearchString(data):
 
+    data = data.strip()
+
     try:
         return ASNumber(int(data))
     except ValueError:
