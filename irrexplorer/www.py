@@ -33,14 +33,11 @@ import ipaddr
 import json
 import traceback
 
-from flask import Flask, render_template, request, flash, redirect, url_for, abort
+from flask import Flask, render_template, request, flash, redirect, url_for, abort, send_from_directory
 from flask_bootstrap import Bootstrap
 from flask_wtf import Form
 from wtforms import TextField, SubmitField
 from wtforms.validators import Required
-
-
-
 
 
 class InputForm(Form):
@@ -52,6 +49,10 @@ def create_app(pgdb, configfile=None):
     app = Flask('IRRExplorer')
     app.config.from_pyfile('appconfig.cfg')
     Bootstrap(app)
+
+    @app.route("/robots.txt")
+    def static_from_root():
+        return send_from_directory(app.static_folder, request.path[1:])
 
     @app.route('/', methods=['GET', 'POST'])
     def index():
