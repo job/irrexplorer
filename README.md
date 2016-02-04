@@ -37,9 +37,7 @@ This will download IRR database snapshots and setup the database. It will take s
 
 Continously updating BGP and IRR sources:
 ```
-create_worksh > work.sh
-chmod +x work.sh
-./work.sh
+./worker
 ```
 
 Finally start the web interface
