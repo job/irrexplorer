@@ -29,11 +29,9 @@
 from irrexplorer import utils, report
 from irrexplorer.utils import Prefix, ASNumber, ASMacro
 
-import ipaddr
 import json
-import traceback
 
-from flask import Flask, render_template, request, flash, redirect, url_for, abort, send_from_directory
+from flask import Flask, render_template, request, flash, redirect, url_for, send_from_directory
 from flask_bootstrap import Bootstrap
 from flask_wtf import Form
 from wtforms import TextField, SubmitField
@@ -176,31 +174,6 @@ def create_app(pgdb, configfile=None):
     def as_contain(as_object):
         data = report.macro_contain(pgdb, as_object)
         return json.dumps(data)
-
-
-## not used anymore, but the error messaging might be useful
-#    def do_prefix_report(prefix, exact):
-#
-#        try:
-#            ipaddr.IPNetwork(prefix)
-#        except ValueError:
-#            msg = 'Could not parse input %s as ip address or prefix' % prefix
-#            print msg
-#            abort(400, msg)
-#
-#        try:
-#            prefix_data = report.prefix_report(pgdb, prefix, exact=exact)
-#            return json.dumps(prefix_data)
-#        except report.NoPrefixError as e:
-#            print e
-#            abort(400, str(e))
-#        except Exception as e:
-#            print e
-#            traceback.print_tb()
-#            msg = 'Error processing prefix %s: %s' % (prefix, str(e))
-#            print msg
-#            abort(500, msg)
-
 
     return app
 
