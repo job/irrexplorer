@@ -112,13 +112,14 @@ def update_irr(host, port, source, db):
         # only update serial, if we actually got something
         stms.append( ( UPDATE_SERIAL, (serial, source) ) )
 
-    # debug
-    logging.debug("--")
-    logging.debug(" Will execute the following statements")
-    for stm, arg in stms:
-        logging.debug("%s / %s" % (stm, arg))
+        # debug
+        logging.debug("--")
+        logging.debug(" Will execute the following statements")
+        for stm, arg in stms:
+            logging.debug("%s / %s" % (stm, arg))
+        logging.debug("--")
 
-    if stms and True:
+    if stms:
         # send delete/insert statements
         cur = db._get_cursor()
 
