@@ -95,7 +95,6 @@ def main():
 
         # irr update
         for host, port, source in irr_sources:
-            logging.info('Updating IRR mirror from %s:%s/%s' % (host, port, source))
             try:
                 irrupdate.update_irr(host, port, source, db)
             except Exception as e:
