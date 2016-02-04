@@ -7,6 +7,7 @@ Script to update BGP and IRR entries in the IRRExplorer database.
 import os
 import time
 import argparse
+import logging
 
 import yaml
 
@@ -16,6 +17,7 @@ from irrexplorer import sqldb, bgpupdate, irrupdate
 DEFAULT_DATABASE    = 'irrexplorer'
 DEFAULT_BGP_SOURCE  = 'http://lg01.infra.ring.nlnog.net/table.txt'
 DEFAULT_IRR_SPEC    = 'irrexplorer_config.yml'
+DEFAULT_LOG_FILE    = 'irrworker.log'
 
 DEFAULT_UPDATE_INTERVAL = 300 # 5 minutes, the nlnog table is updated at that frequency
 
@@ -32,6 +34,7 @@ def create_parser():
     parser.add_argument('-r', '--irr-spec',   dest='irr_spec',   default=DEFAULT_IRR_SPEC,        help='IRR specifications file (default: %s)' % DEFAULT_IRR_SPEC)
     parser.add_argument('-d', '--database',   dest='database',   default=DEFAULT_DATABASE,        help='IRRExplorer database name (default: %s)' % DEFAULT_DATABASE)
     parser.add_argument('-i', '--interval',   dest='interval',   default=DEFAULT_UPDATE_INTERVAL, help='Interval between updates (default: %i seconds)' % DEFAULT_UPDATE_INTERVAL)
+    parser.add_argument('-l', '--logfile',    dest='logfile',    default=DEFAULT_LOG_FILE,        help='Log file (default: %s)' % DEFAULT_LOG_FILE)
     return parser
 
 
@@ -73,8 +76,12 @@ def main():
 
     irr_sources = parse_irr_spec(args.irr_spec)
 
+    logging.basicConfig(filename=args.logfile, format='%(asctime)s %(levelname)s: %(message)s', level=logging.DEBUG)
+
     dsn = 'dbname=%s' % args.database
     db = sqldb.IRRSQLDatabase(dsn)
+
+    logging.info('Worker started')
 
     while True:
 
@@ -84,30 +91,30 @@ def main():
         try:
             bgpupdate.updateBGP(args.bgp_source, db)
         except Exception as e:
-            print 'Error duing bgp update: %s' % str(e)
+            logging.error('Error duing bgp update: %s' % str(e))
 
         # irr update
         for host, port, source in irr_sources:
-            print host, port, source
+            logging.info('Updating IRR mirror from %s:%s/%s' % (host, port, source))
             try:
                 irrupdate.update_irr(host, port, source, db)
             except Exception as e:
-                print 'Error during IRR update: ', str(e)
+                logging.error('Error during IRR update: %s' % str(e))
                 if "don't exist!" in str(e):
-                    print "ERROR: the above error probably means that the gap\
- between your seed snapshot and the current SERIAL on the stream source is\
- too large."
+                    logging.error(
+                        "ERROR: the above error probably means that the gap between your seed" +
+                        "snapshot and the current SERIAL on the stream source is too large.")
 
         # sleep
 
         t_sleep = update_interval - (time.time() - t_start)
 
         if t_sleep < 0:
-            print 'Update took longer time than sleep interval, skipping sleep'
+            logging.info('Update took longer time than sleep interval, skipping sleep')
         else:
-            print 'Sleeping for %i seconds' % t_sleep
+            logging.info('Sleeping for %i seconds' % t_sleep)
             time.sleep(t_sleep)
-            print
+            logging.info('--')
 
 
 if __name__ == '__main__':

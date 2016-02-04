@@ -6,12 +6,15 @@ Functionality to update BGP entries in IRRExplorer database.
 
 import urllib2
 import ipaddr
+import logging
 
 INSERT_STM = "SELECT create_route (%s, %s, 'bgp');"
 DELETE_STM = "DELETE FROM routes USING sources WHERE routes.route = %s AND routes.asn = %s AND routes.source_id = sources.id AND sources.name = 'bgp';"
 
 
 def updateBGP(source_url, db):
+
+    logging.info('Updating BGP information')
 
     source_routes = set()
 
@@ -25,7 +28,7 @@ def updateBGP(source_url, db):
         try:
             route_obj = ipaddr.IPNetwork(route)
         except ValueError:
-            print 'invalid route in BGP feed: %s' % route
+            logging.error('Invalid route in BGP feed: %s' % route)
             continue
 
         # block router2router linknets / small blocks
@@ -36,25 +39,22 @@ def updateBGP(source_url, db):
 
         fltrd_source_routes.add((route, int(asn)))
 
-    print 'BGP table fetched and table build, routes:', (len(source_routes))
+    logging.info('BGP table fetched and table build, %i routes' % (len(source_routes)))
 
     # then the database routes
     db_routes = set()
     bgp_rows = db.query_source('bgp')
-    print 'Got database entries, routes:', len(bgp_rows)
+    logging.info('Got database entries, %i routes' % len(bgp_rows))
 
     for route, asn in bgp_rows:
         db_routes.add((route, int(asn)))
 
     # calculate the diff, intersection is just for logging
     routes_is = fltrd_source_routes & db_routes
-    print 'Unchanged routes: %i' % len(routes_is)
-
     deprecated_routes = db_routes - fltrd_source_routes
-    print 'Deprecated routes:', len(deprecated_routes)
-
     new_routes = fltrd_source_routes - db_routes
-    print 'New routes:', len(new_routes)
+
+    logging.info('Routes: %i unchanged / %i deprecated / %i new' % (len(routes_is), len(deprecated_routes), len(new_routes)))
 
     # create + send update statements
     cur = db._get_cursor()
@@ -68,6 +68,6 @@ def updateBGP(source_url, db):
     db.conn.commit()
     cur.close() # so it doesn't linger while sleeping
 
-    print 'BPG update commit done and cursor closed'
+    logging.info('BPG update commit done and cursor closed')
 
 

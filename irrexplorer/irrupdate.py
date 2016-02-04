@@ -4,6 +4,8 @@
 Functionality to update IRR entries in IRRExplorer database via NRTM streaming
 """
 
+import logging
+
 import ipaddr
 
 from irrexplorer import nrtm, irrparser
@@ -42,7 +44,7 @@ def update_irr(host, port, source, db):
     db_serial = srow[0][0]
     serial = int(db_serial) + 1 # don't do the one we last saw
 
-    print 'Streaming from %s:%s/%s from serial %s' % (host, port, source, serial)
+    logging.info('Streaming from %s:%s/%s from serial %s' % (host, port, source, serial))
     c = nrtm.NRTMStreamer(host, source, serial, port)
 
     stms = []
@@ -56,7 +58,7 @@ def update_irr(host, port, source, db):
 
         obj, data, obj_source = obj_data
         if obj and not obj_source == source:
-            print "weird source difference, skipping: %s vs %s at %s in: %s, %s" % (obj_source, source, serial, obj, data)
+            logging.info("Weird source difference, skipping: %s vs %s at %s in: %s, %s" % (obj_source, source, serial, obj, data))
             continue
 
         #print tag, serial, obj_type, obj, source
@@ -68,7 +70,7 @@ def update_irr(host, port, source, db):
                 try:
                     ipaddr.IPNetwork(obj, strict=True)
                 except ValueError:
-                    print 'Prefix %s from source %s, is not a proper prefix, skipping object'
+                    logging.error('Prefix %s from source %s, is not a proper prefix, skipping object')
                     continue
 
                 # sometimes (and only sometimes) an ADD will be send for something already exists (I am looking at you altdb)
@@ -86,7 +88,7 @@ def update_irr(host, port, source, db):
                 stms.append( ( DELETE_AS_SET, (obj, source) ) )
                 stms.append( ( CREATE_AS_SET, (obj, data, source) ) )
             else:
-                print 'weird add', tag, serial, obj_type
+                logging.warning('Weird add %s %s %s' % (tag, serial, obj_type))
 
         elif tag == 'DEL':
             if obj_type == irrparser.ROUTE:
@@ -97,25 +99,24 @@ def update_irr(host, port, source, db):
                 # this one almost never happens, so it is tricky to test it
                 stms.append( ( DELETE_AS_SET, (obj, source) ) )
             else:
-                print 'weird del', tag, serial, obj_type
+                logging.warning('Weird del %s %s %s' % (tag, serial, obj_type))
 
         elif not tag:
             pass
 
         else:
-            print 'Weird tag:', tag, serial, obj_type
+            logging.warning('Weird tag: %s %s %s ' % tag, serial, obj_type)
 
-    print 'Changes:', '  '.join( [ '%s: %s' % (k, v) for k,v in changes.items() ] )
+    logging.warning('Changes: %s' % '  '.join( [ '%s: %s' % (k, v) for k,v in changes.items() ] ) )
     if stms:
         # only update serial, if we actually got something
         stms.append( ( UPDATE_SERIAL, (serial, source) ) )
 
-    if False: # debug stuffs
-        for stm, arg in stms:
-            if 'create_as_set' in stm:
-                print stm, arg[0], len(arg[1]), arg[2]
-            else:
-                print stm, arg
+    # debug
+    logging.debug("--")
+    logging.debug(" Will execute the following statements")
+    for stm, arg in stms:
+        logging.debug("%s / %s" % (stm, arg))
 
     if stms and True:
         # send delete/insert statements
@@ -128,6 +129,6 @@ def update_irr(host, port, source, db):
         db.conn.commit()
         cur.close() # so it doesn't linger while sleeping
 
-        print 'IRR update committed and cursor closed'
+        logging.info('IRR update committed and cursor closed')
     else:
-        print 'No updates for IRR source %s' % source
+        logging.info('No updates for IRR source %s' % source)
