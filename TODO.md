@@ -3,7 +3,6 @@ IRR Explorer
 
 # TODO
 
-* flask web/api int
 * exabgp
     * launch
     * feed it config
@@ -12,6 +11,9 @@ IRR Explorer
 * BGP/NRTM worker
     * Integrated into a single exacutable (work.sh is messy)
 
-* List which macro AS number is included in
-* AS Macro expansion page (sql+report+json is there)
+* Database
+    * Upgrade to PostgreSQL 9.5.
+        * Has better query planner for gin indexes
+        * Supports ON CONFLICT (UPSERT) which will save us trouble on mirror updates
+
 
