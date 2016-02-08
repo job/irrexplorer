@@ -8,8 +8,8 @@ IRR Explorer
     * feed it config
     * catch STDOUT from the 'run' process
 
-* BGP/NRTM worker
-    * Integrated into a single exacutable (work.sh is messy)
+* Investigate issue with records going missing
+    * Logging added, so debugging can actually be done
 
 * Database
     * Upgrade to PostgreSQL 9.5.
