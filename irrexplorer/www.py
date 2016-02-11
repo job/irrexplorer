@@ -68,7 +68,7 @@ def create_app(pgdb, configfile=None):
                 return redirect(url_for('search', data=sv.value))
 
             except ValueError as e:
-                flash('Invalid search data' + str(e))
+                flash('Invalid search data: ' + str(e))
                 return render_template('index.html', form=form)
 
     # -- search --
@@ -149,7 +149,7 @@ def create_app(pgdb, configfile=None):
 
 
         except ValueError as e:
-            flash('Invalid search data' + str(e))
+            flash('Invalid search data: ' + str(e))
             return render_template('search.html')
 
 
