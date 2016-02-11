@@ -73,19 +73,15 @@ def update_irr(host, port, source, db):
                     logging.error('Prefix %s from source %s, is not a proper prefix, skipping object')
                     continue
 
-                # sometimes (and only sometimes) an ADD will be send for something already exists (I am looking at you altdb)
-                # hence we delete the route first... could probably do this a bit more clever with a function in the db
-                # this also produces lots of duplicate statements, so we try not do if the last stm is identical
-                # When Postgres 9.5, switch this to "ON CONFLICT" (UPSERT)
-                sa = ( DELETE_ROUTE, (obj, data, source) )
-                if not stms or stms[-1] != sa:
-                    stms.append(sa)
+                # Sometimes (and only sometimes) an ADD will be send for something already exists (I am looking at you altdb)
+                # Previously we handled this by deleting the route first. After switching to PostgreSQL we use the upsert feature
+                # in the create functions, so no need to handle it here.
                 stms.append( ( CREATE_ROUTE, (obj, data, source) ) )
 
             elif obj_type == irrparser.AS_SET:
                 changes['add_as_set'] = changes.get('add_as_set', 0) + 1
-                # irrd doesn't seem to generate DEL before updates to as-sets, so we delete it first (even if it does not exists)
-                stms.append( ( DELETE_AS_SET, (obj, source) ) )
+                # irrd doesn't seem to generate DEL before updates to as-sets
+                # the create function will overwrite the set if it already exists
                 stms.append( ( CREATE_AS_SET, (obj, data, source) ) )
             else:
                 logging.warning('Weird add %s %s %s' % (tag, serial, obj_type))

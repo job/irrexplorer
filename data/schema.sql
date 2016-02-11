@@ -111,7 +111,8 @@ BEGIN
         INSERT INTO sources (name) VALUES (in_source) RETURNING id INTO source_id;
     END IF;
 
-    INSERT INTO routes (route, asn, source_id) VALUES (in_route, in_asn, source_id);
+    INSERT INTO routes (route, asn, source_id) VALUES (in_route, in_asn, source_id)
+        ON CONFLICT DO NOTHING;
 
     result = 1;
     return result;
@@ -138,7 +139,8 @@ BEGIN
         INSERT INTO sources (name) VALUES (in_source) RETURNING id INTO source_id;
     END IF;
 
-    INSERT INTO as_sets (as_macro, members, source_id) VALUES (in_as_macro, in_members, source_id);
+    INSERT INTO as_sets (as_macro, members, source_id) VALUES (in_as_macro, in_members, source_id)
+        ON CONFLICT DO UPDATE SET members = in_members;
 
     result = 1;
     return result;
