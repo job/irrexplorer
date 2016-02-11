@@ -50,10 +50,15 @@ def classifySearchString(data):
 
     data = data.strip()
 
+    asn = None
     try:
-        return ASNumber(int(data))
+        asn = int(data)
     except ValueError:
         pass
+    if asn:
+        if asn < 1:
+            raise ValueError('Invalid as number (negative or zero)')
+        return ASNumber(asn)
 
     if data.upper().startswith('AS-'):
         return ASMacro(data.upper()) # as macros are always uppcase
