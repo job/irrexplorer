@@ -140,7 +140,7 @@ BEGIN
     END IF;
 
     INSERT INTO as_sets (as_macro, members, source_id) VALUES (in_as_macro, in_members, source_id)
-        ON CONFLICT DO UPDATE SET members = in_members;
+        ON CONFLICT ON CONSTRAINT unique_macro_source DO UPDATE SET members = in_members;
 
     result = 1;
     return result;
