@@ -55,11 +55,14 @@ def classifySearchString(data):
     except ValueError:
         pass
 
-    if data.lower().startswith('as'):
+    if data.upper().startswith('AS-'):
+        return ASMacro(data.upper()) # as macros are always uppcase
+
+    if data.upper().startswith('AS'):
         try:
             return ASNumber(int(data[2:]))
         except ValueError:
-            return ASMacro(data.upper()) # as macros are always uppcase
+            raise ValueError('Cannot classify %s' % data)
 
     try:
         ipaddr.IPNetwork(data)
