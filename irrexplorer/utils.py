@@ -67,7 +67,7 @@ def classifySearchString(data):
         try:
             return ASNumber(int(data[2:]))
         except ValueError:
-            raise ValueError('Invalid as number %s' % data)
+            return ASMacro(data)
 
     try:
         ipaddr.IPNetwork(data)
