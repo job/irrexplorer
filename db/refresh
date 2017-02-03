@@ -10,7 +10,7 @@ psql irrexplorer -c "select name,id from sources where name = '$1';" -tAF, > sou
 
 # Create routes and as-set data files, filter double repeated routes
 # zcatting and processing this twice is sorta silly
-zcat *.db*.gz | ./create_irr_routes | uniq -u > irr_routes.data
+zcat *.db*.gz | ./create_irr_routes | sort -u > irr_routes.data
 zcat *.db*.gz | ./create_irr_as_sets > irr_as_sets.data
 
 # Create serial
