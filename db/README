@@ -6,7 +6,7 @@ From the db directory, run
 
 And that should be it :-)
 
-Fill irr.yml with the sources you want first though.
+Copy ../irrexplorer_config.yml.dist to ../irrexplorer_config.yml and fill it with the sources you want first though.
 
 Read bootstrap if you are interested in the details :-)
 
