@@ -61,7 +61,7 @@ def irrParser(datasource):
             ctx = None
 
         elif line.startswith('as-set:'):
-            object_ = readAttr(line)
+            object_ = readAttr(line).upper()
             obj_type = AS_SET
             ctx = None
 
