@@ -25,7 +25,8 @@ pdf: https://ripe70.ripe.net/presentations/52-RIPE70_jobsnijders_irrlockdown.pdf
 Setup
 -----
 
-Edit db/irr.yml to your liking.
+Copy irrexplorer_config.yml.dist to irrexplorer_config.yml and edit it to your
+liking.
 
 Note that mirroring of many IRR databases is not possible without getting
 access granted.
