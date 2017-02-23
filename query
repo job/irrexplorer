@@ -19,11 +19,11 @@ def main():
             so = utils.classifySearchString(arg)
 
             if type(so) is utils.Prefix:
-                result = report.prefix_report(db, so.value)
+                result = report.prefix(db, so.value)
                 # prefix report already prints some stuff (consider changing that)
 
             if type(so) is utils.ASNumber:
-                result = report.as_report(db, so.value)
+                result = report.as_prefixes(db, so.value)
                 for prefix, sources in result['prefixes'].items():
                     print prefix, sources.keys()
                 print
@@ -32,7 +32,7 @@ def main():
 
             if type(so) is utils.ASMacro:
                 #res = db.query_as_macro(so.value)
-                result = report.as_macro_report(db, so.value)
+                result = report.macro_expand(db, so.value)
                 for e in result['expanded']:
                     print e
                 print
