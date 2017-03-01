@@ -123,7 +123,7 @@ class IRRSQLDatabase:
         # very long. In particular, if there are multiple paths to a big macro, the whole thing will blow up.
 
         query = """WITH RECURSIVE member_list(as_macro, path, members, source, depth, cycle) AS (
-                    SELECT as_macro, ARRAY[as_macro], members, source, 1 AS depth, false FROM as_sets_view WHERE as_macro ILIKE = %s
+                    SELECT as_macro, ARRAY[as_macro], members, source, 1 AS depth, false FROM as_sets_view WHERE as_macro ILIKE %s
                     UNION
                     SELECT a.as_macro, path || a.as_macro,  a.members, a.source, depth+1 AS depth, a.as_macro = ANY(path) AS cycle FROM as_sets_view a
                     JOIN member_list b ON ( a.as_macro = ANY(b.members) AND NOT cycle)
