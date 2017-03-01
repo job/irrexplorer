@@ -130,7 +130,7 @@ class IRRSQLDatabase:
                    )
                 SELECT as_macro, source, depth, path, members FROM member_list LIMIT 10000;
                 """
-        return self._execute_fetchall(query, (as_macro.lower(),))
+        return self._execute_fetchall(query, (as_macro,))
 
 
 
