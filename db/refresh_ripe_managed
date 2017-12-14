@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -ev
+
+source_id=$(psql irrexplorer -c "select id from sources where name = 'ripe';" -tAF,)
+
+../fetch_ripe_managed.py | sed "s/$/|${source_id}/" > ripe_managed.data
+
+psql irrexplorer -c "DELETE FROM managed_routes WHERE source_id = '${source_id}';"
+psql irrexplorer -c "\copy managed_routes from ripe_managed.data delimiter '|'"
+rm ripe_managed.data
