@@ -111,7 +111,7 @@ class NRTMStreamer(object):
                 if obj:
                     yield tag, int(serial), obj
                 else:
-                    print "unsuppored: %s" % object_data[0]
+                    print "Unsupported: %s" % object_data[0]
                     yield None, int(serial), (None, (None, None, None))
 
             else:
