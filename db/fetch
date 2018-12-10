@@ -3,20 +3,15 @@
 # Tool to fetch databases from irrexplorer yaml config file
 
 import sys
-import urllib
-
+import subprocess
 import yaml
-
-
 
 def fetch(url):
     file_name = url.split('/')[-1]
     print 'Fetching %s --> %s' % (url, file_name)
-    try:
-        urllib.urlretrieve(url, filename=file_name)
-    except urllib.ContentTooShortError:
-        print "INFO: Assuming local file for %s" % file_name
-
+    args = ['wget', '-4', '-q', '-O', file_name, url]
+    wget = subprocess.Popen(args)
+    wget.wait()
 
 def main():
 

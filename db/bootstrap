@@ -6,7 +6,7 @@ set -ev
 
 # Create database
 echo "Please input sudo password to create irrexplorer database (or do it manually)"
-sudo su - postgres -c "createdb irrexplorer"
+#sudo su - postgres -c "createdb irrexplorer"
 psql irrexplorer -f ../data/schema.sql
 
 

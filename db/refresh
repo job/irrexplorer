@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -ev
+set -evx
 
 # Fetch irr databases
 ./fetch ../irrexplorer_config.yml $1
@@ -9,7 +9,8 @@ set -ev
 psql irrexplorer -c "select name,id from sources where name = '$1';" -tAF, > sources.map
 
 # Create routes and as-set data files, filter double repeated routes
-zcat *.db*.gz | tee >(./create_irr_routes | sort -u > irr_routes.data) >(./create_irr_as_sets > irr_as_sets.data)
+# zcatting and processing this twice is sorta silly
+zcat *.db*.gz | tee >(./create_irr_routes | sort -u > irr_routes.data) | ./create_irr_as_sets > irr_as_sets.data
 
 # Create serial
 ./create_serials > serials.sql
@@ -17,10 +18,13 @@ zcat *.db*.gz | tee >(./create_irr_routes | sort -u > irr_routes.data) >(./creat
 # Load data in postgres
 psql irrexplorer -f serials.sql
 
+set +e
 psql irrexplorer -c "DELETE FROM routes  USING sources WHERE routes.source_id = sources.id AND sources.name = '$1';"
 psql irrexplorer -c "DELETE FROM as_sets USING sources WHERE as_sets.source_id = sources.id AND sources.name = '$1';"
 
 psql irrexplorer -c "\copy routes from irr_routes.data delimiter '|'"
 psql irrexplorer -c "\copy as_sets from irr_as_sets.data delimiter '|'"
 
-rm *.gz *.CURRENTSERIAL
+set -e
+
+rm -fv *.gz *.CURRENTSERIAL

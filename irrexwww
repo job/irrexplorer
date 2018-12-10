@@ -35,7 +35,7 @@ def main():
     dsn = "dbname=irrexplorer"
     pgdb = sqldb.IRRSQLDatabase(dsn)
 
-    www.create_app(pgdb).run(host="0.0.0.0", debug=True, use_reloader=False)
+    www.create_app(pgdb).run(host="0.0.0.0", debug=False, use_reloader=False)
 
 
 
